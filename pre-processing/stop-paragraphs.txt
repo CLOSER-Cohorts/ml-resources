@@ -3,6 +3,7 @@ How many hours have you been spending doing each of the following activities on 
 In the last four weeks, how many|https://discovery.closer.ac.uk/item/uk.cls.nextsteps/f33294e3-52c2-4b52-b492-67b60c743903
 In the last seven days, on how many days did you|https://discovery.closer.ac.uk/item/uk.iser.ukhls/e96b88a9-e04d-4f74-90fe-22c96c7d9c34
 In the month before the Coronavirus outbreak in March,|https://discovery.closer.ac.uk/item/uk.cls.bcs70/2cc7e5f9-d947-415d-971a-4a82ea43e01b
+Since the Coronavirus outbreak please indicate how the following have changed.|https://discovery.closer.ac.uk/item/uk.cls.nextsteps/226c639a-b0c7-4083-9c2d-7dca925818f7
 Using a scale of 0 to 10, where 0 means 'completely disagree' and 10 means 'completely agree', please indicate the extent to which you agree or disagree with each of the statements| 
 We would like to know about how you have been spending your time recently. How many hours have you been spending doing each of the following activities on a typical week day in the last two weeks?|https://discovery.closer.ac.uk/item/uk.cls.mcs/554ae7cb-f418-41db-8d1a-a46aed8bb1d3https://discovery.closer.ac.uk/item/uk.cls.nextsteps/de259a3e-0be9-40b0-bf8e-61937bbfdc5c
 
