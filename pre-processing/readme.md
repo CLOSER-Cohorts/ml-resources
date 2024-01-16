@@ -1,5 +1,6 @@
-## stop-preambles.txt 
-A resource for pre-processing questions. removing this extraneous text assists classifiers
+## stop-preambles-[lang].txt 
+A resource for pre-processing questions. removing this extraneous text assists classifiers.
+The file naming allows for the use of additional languages
 
 The file format is delimted by a | with the contents
 
