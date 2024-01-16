@@ -1,4 +1,3 @@
-Question Text|Source example
 How many hours have you been spending doing each of the following activities on a typical week day since the Coronavirus outbreak began|https://discovery.closer.ac.uk/item/uk.cls.mcs/9368dcc0-8782-4d90-b64c-64827fe71c19
 In the last four weeks, how many|https://discovery.closer.ac.uk/item/uk.cls.nextsteps/f33294e3-52c2-4b52-b492-67b60c743903
 In the last seven days, on how many days did you|https://discovery.closer.ac.uk/item/uk.iser.ukhls/e96b88a9-e04d-4f74-90fe-22c96c7d9c34
