@@ -3,7 +3,6 @@ but rather a set of helper functions required to interact with the API when work
 machine learning projects."""
 
 from colectica_api import ColecticaObject
-from examples.lib.utility import update_repository
 USERNAME = "USERNAME"
 PASSWORD = "PASSWORD"
 HOSTNAME = "HOSTNAME"
