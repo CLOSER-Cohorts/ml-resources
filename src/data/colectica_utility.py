@@ -21,12 +21,6 @@ def getItemText(item_type, text_field, search_set=[], items_text={}):
         elif item[text_field]!={} and len(item[text_field].keys())==0:
             items_text[item['AgencyId']][item['Identifier']] = item[text_field]
 
-all_studies = C.search_items(C.item_code('Series'), SearchLatestVersion=True)['Results']
-all_question_summaries={}
-all_variable_labels={}
-getQuestionsForStudies(all_studies, all_question_summaries)
-getVariablesForStudies(all_studies, all_variable_labels)
-
 def getQuestionsForStudies(studies, all_question_summaries):
     for study in studies:
         study_search_set = [{
@@ -53,3 +47,10 @@ def getVariablesForStudies(studies, all_variable_labels):
             'Label',
             search_set = study_search_set,
             items_text = all_variable_labels)
+
+all_studies = C.search_items(C.item_code('Series'), SearchLatestVersion=True)['Results']
+all_question_summaries={}
+all_variable_labels={}
+getQuestionsForStudies(all_studies, all_question_summaries)
+getVariablesForStudies(all_studies, all_variable_labels)
+
