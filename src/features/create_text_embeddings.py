@@ -9,8 +9,8 @@ def createEmbeddingFromItem(agencyId, identifier, item_text, item_embeddings={})
 all_question_embeddings={}
 for agencyId in all_question_summaries.keys():
     print(f"Creating question embeddings for {agencyId}...")
-    for questionSummary in all_question_summaries[agencyId].items():
-        createEmbeddingFromItem(agencyId, questionSummary[0], questionSummary[1], all_question_embeddings)
+    for question_summary in all_question_summaries[agencyId].items():
+        createEmbeddingFromItem(agencyId, question_summary[0], question_summary[1], all_question_embeddings)
 
 for agencyId in all_question_summaries.keys():
     print(f"{agencyId}, {len(list(all_question_embeddings[agencyId].items()))}, {len(list(all_question_summaries[agencyId].items()))}")
