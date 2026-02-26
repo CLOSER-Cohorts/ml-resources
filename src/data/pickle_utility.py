@@ -2,15 +2,15 @@ import pickle
 from pathlib import Path
 import re
 
-def save_versioned_pickle_file(obj, object_name):
+def save_versioned_pickle_file(obj, object_name, folder='.'):
     """
-    Saves `obj` into a versioned Pickle file in the `..\data` folder.
+    Saves `obj` into a versioned Pickle file in `folder`.
     
     If no files named {object_name}_X.pickle exist, creates {object_name}_1.pickle.
     
     Otherwise the function creates {object_name}_{max_version+1}.pickle.
     """
-    folder_path = Path("../data")
+    folder_path = Path(folder)
     # Pattern to match files like object_name_3.pickle
     pattern = re.compile(rf"^{re.escape(object_name)}_(\d+)\.pickle$")
     max_version = 0
