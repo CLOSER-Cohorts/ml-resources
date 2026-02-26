@@ -22,10 +22,10 @@ def save_versioned_pickle_file(obj, object_name, folder='.'):
                 max_version = max(max_version, version)
     new_version = max_version + 1
     # Write object to Pickle file
-    print(f"../data/{object_name}_{new_version}.pickle")
-    with open(f"../data/{object_name}_{new_version}.pickle", 'wb') as handle:
+    print(f"{folder}/{object_name}_{new_version}.pickle")
+    with open(f"{folder}/{object_name}_{new_version}.pickle", 'wb') as handle:
         pickle.dump(obj, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 data_for_ml=[1,2,3,4,5,6]
 
-save_versioned_pickle_file(data_for_ml, 'data_for_ml')    
+save_versioned_pickle_file(data_for_ml, 'data_for_ml', 'data')
