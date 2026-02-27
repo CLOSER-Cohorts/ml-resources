@@ -34,7 +34,14 @@ updated_dataset = add_input_feature_to_dataset(list(lha_identifiers),
     'QuestionSummary', 
     dataset)
 
-save_versioned_pickle_file(updated_dataset, 'dataset_for_training')
 
 X_train, X_test, y_train, y_test = train_test_split(updated_dataset['InputFeatures'],
     updated_dataset['Targets'], train_size=0.9)
+
+dataForTrainingAndTest = {}
+dataForTrainingAndTest['X_train'] = X_train
+dataForTrainingAndTest['X_test'] = X_test
+dataForTrainingAndTest['y_train'] = y_train
+dataForTrainingAndTest['y_test'] = y_test
+
+save_versioned_pickle_file(dataForTrainingAndTest, 'dataset_for_training')
