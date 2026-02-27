@@ -47,9 +47,47 @@ def getVariablesForStudies(studies, all_variable_labels):
             search_set = study_search_set,
             items_text = all_variable_labels)
 
+def getTopicsForItems(items, topics={}):
+    for index, item in enumerate(items):
+        if item['ItemType']==C.item_code('Question'):
+            topic_type=C.item_code('Question Group')
+        else:
+            topic_type=C.item_code('Variable Group')
+        if item['AgencyId'] not in topics.keys():
+            topics[item['AgencyId']] = {}
+        if item['Identifier'] not in topics[item['AgencyId']].keys():
+            topicItem=C.search_relationship_byobject(item['AgencyId'],
+                    item['Identifier'],
+                    item_types=[topic_type],
+                    Descriptions=True)
+            topic = ""
+            if len(topicItem)==1:
+                if 'en-GB' in item['ItemName'].keys():
+                    topic=topicItem[0]['ItemName']['en-GB']
+                elif item['ItemName']!={} and len(item['ItemName'].keys())==0:
+                    topic=topicItem[0]['ItemName']
+            topics[item['AgencyId']][item['Identifier']] = topic
+
 all_studies = C.search_items(C.item_code('Series'), SearchLatestVersion=True)['Results']
 all_question_summaries={}
 all_variable_labels={}
 getQuestionsForStudies(all_studies, all_question_summaries)
 getVariablesForStudies(all_studies, all_variable_labels)
 
+item_topics={}
+for study in all_studies:
+    study_search_set = [{
+                 "agencyId": study['AgencyId'],
+                 "identifier": study['Identifier'],
+                 "version": study['Version']
+                }]
+    print(f"Getting topics for items in {study['AgencyId']}...")
+    study_question_items = C.search_items(C.item_code('Question'),
+        SearchSets=study_search_set,
+        SearchLatestVersion=True)['Results']
+    getTopicsForItems(study_question_items, topics=item_topics)
+
+save_versioned_pickle_file(item_topics, 'all_item_topics')
+
+for agencyId in item_topics.keys():
+    print(f"{agencyId}, {len(list(item_topics[agencyId].items()))}, {len(list(all_question_summaries[agencyId].items()))}")
