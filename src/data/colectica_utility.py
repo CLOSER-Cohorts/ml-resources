@@ -55,7 +55,7 @@ def getTopicsForItems(items, topics={}):
             topic_type=C.item_code('Variable Group')
         if item['AgencyId'] not in topics.keys():
             topics[item['AgencyId']] = {}
-        if item['Identifier'] not in topics.keys():
+        if item['Identifier'] not in topics[item['AgencyId']].keys():
             topicItem=C.search_relationship_byobject(item['AgencyId'],
                     item['Identifier'],
                     item_types=[topic_type],
