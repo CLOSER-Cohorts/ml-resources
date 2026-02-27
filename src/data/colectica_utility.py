@@ -53,7 +53,6 @@ def getTopicsForItems(items, topics={}):
             topic_type=C.item_code('Question Group')
         else:
             topic_type=C.item_code('Variable Group')
-        #print(f"{index} of {len(items)}")
         if item['AgencyId'] not in topics.keys():
             topics[item['AgencyId']] = {}
         if item['Identifier'] not in topics.keys():
