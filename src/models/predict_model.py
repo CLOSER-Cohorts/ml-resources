@@ -2,15 +2,16 @@ def calculateAccuracy(classifier, predictions, X_test, y_test, N):
   wrongPredictions=[]  
   correct_predictions=0
   correct_prediction_in_top_N_results=0
-  for j in range(len(predictions)):
-     res = sorted(range(len(predictions[j])), key = lambda sub: predictions[j][sub])[-N:]
-     if classifier.classes_[res][-1]==y_test[j]:
+  for j, pred in enumerate(predictions):
+     top_N_results_indices = np.argsort(pred)[-N:]
+     top_N_results = classifier.classes_[top_N_results_indices]
+     if top_N_results[-1] == y_test[j]:
          correct_predictions = correct_predictions + 1
-     print([x for x in classifier.classes_[res]])
-     if y_test[j] in [x for x in classifier.classes_[res]]:
+     print([x for x in top_N_results])
+     if y_test[j] in top_N_results:
          correct_prediction_in_top_N_results+=1
      else:
-         wrongPredictions.append({"TopNPredictions": list(classifier.classes_[res]), "True": list(y_test[j])[0]})
+         wrongPredictions.append({"TopNPredictions": list(top_N_results), "True": list(y_test[j])[0]})
   print(f"Accuracy: {correct_predictions/len(predictions)}.")
   print(f"Correct or in top {N} results:{correct_prediction_in_top_N_results/len(predictions)}")
   return wrongPredictions
