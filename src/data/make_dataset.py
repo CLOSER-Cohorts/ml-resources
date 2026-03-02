@@ -21,6 +21,14 @@ def add_input_feature_to_dataset(identifiers,
     updated_targets=dataset['Targets'].loc[identifiers]
     return { "InputFeatures": updated_input_features, "Targets": updated_targets}
 
+def create_model_data_object(X_train, X_test, y_train, y_test):
+    dataForTrainingAndTest = {}
+    dataForTrainingAndTest['X_train'] = X_train
+    dataForTrainingAndTest['X_test'] = X_test
+    dataForTrainingAndTest['y_train'] = y_train
+    dataForTrainingAndTest['y_test'] = y_test
+    return dataForTrainingAndTest
+
 lha_identifiers = item_topics['uk.lha'].keys()
 
 dataset = create_dataset(lha_identifiers, 
@@ -34,14 +42,14 @@ updated_dataset = add_input_feature_to_dataset(list(lha_identifiers),
     'QuestionSummary', 
     dataset)
 
-
 X_train, X_test, y_train, y_test = train_test_split(updated_dataset['InputFeatures'],
     updated_dataset['Targets'], train_size=0.9)
 
-dataForTrainingAndTest = {}
-dataForTrainingAndTest['X_train'] = X_train
-dataForTrainingAndTest['X_test'] = X_test
-dataForTrainingAndTest['y_train'] = y_train
-dataForTrainingAndTest['y_test'] = y_test
+lr_model_data=create_model_data_object(X_train, X_test, y_train, y_test)
 
-save_versioned_pickle_file(dataForTrainingAndTest, 'dataset_for_training')
+save_versioned_pickle_file(lr_model_data, 'model_data_for_logistic_regression')
+    
+def read_dataset_from_file(filename):
+    data_file = open(filename, 'rb')
+    model_data = pickle.load(data_file)
+    return model_data
