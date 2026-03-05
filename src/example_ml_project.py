@@ -6,7 +6,7 @@ from ml_resources import ( create_dataset,
     train_model,
     calculate_accuracy,
     create_embedding_from_item,
-    pickle_utility,
+    save_versioned_pickle_file,
     create_text_embeddings
 )
 from ml_resources.data import colectica_utility
@@ -48,9 +48,8 @@ for study in [all_studies[0]]:
 # Assuming that we got question summaries for the uk.lha and uk.iser.ukhls studies and 
 # calculated their embeddings, and obtained the topics assigned to those questions, here 
 # is how we would save them into a versioned pickle file... 
-pickle_utility.save_versioned_pickle_file(all_question_embeddings, 'lha_usoc_question_embeddings', folder='../data')
-pickle_utility.save_versioned_pickle_file(item_topics, 'lha_usoc_topics', folder='../data')
-
+save_versioned_pickle_file(all_question_embeddings, 'lha_usoc_question_embeddings', folder='../data')
+save_versioned_pickle_file(item_topics, 'lha_usoc_topics', folder='../data')
 
 # Assuming that we have already saved question embeddings and their associated topics into 
 # pickle files, here is how we read them from the pickle files...
