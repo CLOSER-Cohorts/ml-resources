@@ -1,4 +1,6 @@
 from sklearn.model_selection import train_test_split
+import pandas as pd
+import pickle
 
 def create_dataset(identifiers, 
     input_features,
@@ -28,28 +30,3 @@ def create_model_data_object(X_train, X_test, y_train, y_test):
     dataForTrainingAndTest['y_train'] = y_train
     dataForTrainingAndTest['y_test'] = y_test
     return dataForTrainingAndTest
-
-lha_identifiers = item_topics['uk.lha'].keys()
-
-dataset = create_dataset(lha_identifiers, 
-    all_question_embeddings['uk.lha'], 
-    'QuestionEmbedding', 
-    'Topic', 
-    item_topics['uk.lha'])
-
-updated_dataset = add_input_feature_to_dataset(list(lha_identifiers), 
-    all_question_summaries['uk.lha'],
-    'QuestionSummary', 
-    dataset)
-
-X_train, X_test, y_train, y_test = train_test_split(updated_dataset['InputFeatures'],
-    updated_dataset['Targets'], train_size=0.9)
-
-lr_model_data=create_model_data_object(X_train, X_test, y_train, y_test)
-
-save_versioned_pickle_file(lr_model_data, 'model_data_for_logistic_regression')
-    
-def read_dataset_from_file(filename):
-    data_file = open(filename, 'rb')
-    model_data = pickle.load(data_file)
-    return model_data

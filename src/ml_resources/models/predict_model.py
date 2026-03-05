@@ -1,4 +1,6 @@
-def calculateAccuracy(classifier, predictions, X_test, y_test, N):
+import numpy as np
+
+def calculate_accuracy(classifier, predictions, X_test, y_test, N=5):
   wrongPredictions=[]  
   correct_predictions=0
   correct_prediction_in_top_N_results=0
@@ -15,11 +17,3 @@ def calculateAccuracy(classifier, predictions, X_test, y_test, N):
   print(f"Accuracy: {correct_predictions/len(predictions)}.")
   print(f"Correct or in top {N} results:{correct_prediction_in_top_N_results/len(predictions)}")
   return wrongPredictions
-
-predictions=trainedModel.predict(list(dataForTrainingAndTest['X_test']['QuestionEmbedding'].values))
-predictions_with_probabilities=trainedModel.predict_proba(list(dataForTrainingAndTest['X_test']['QuestionEmbedding'].values))
-calculateAccuracy(trainedModel, 
-    predictions_with_probabilities, 
-    dataForTrainingAndTest['X_test']['QuestionEmbedding'].values, 
-    dataForTrainingAndTest['y_test'].values,
-    N)
