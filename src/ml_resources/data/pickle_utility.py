@@ -26,6 +26,7 @@ def save_versioned_pickle_file(obj, object_name, folder='.'):
     with open(f"{folder}/{object_name}_{new_version}.pickle", 'wb') as handle:
         pickle.dump(obj, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-data_for_ml=[1,2,3,4,5,6]
-
-save_versioned_pickle_file(data_for_ml, 'data_for_ml', 'data')
+def read_dataset_from_file(filename):
+    data_file = open(filename, 'rb')
+    model_data = pickle.load(data_file)
+    return model_data
