@@ -75,8 +75,7 @@ dataset = update_dataset('uk.iser.ukhls',
     all_question_embeddings['uk.iser.ukhls'], 
     'QuestionEmbedding', 
     'Topic',
-    item_topics['uk.iser.ukhls'],
-    dataset)
+    item_topics['uk.iser.ukhls'])
 
 X_train, X_test, y_train, y_test = train_test_split(
     pd.concat([dataset['uk.lha']['InputFeatures'], dataset['uk.iser.ukhls']['InputFeatures']]),
@@ -96,3 +95,5 @@ wrong_predictions=calculate_accuracy(trainedModel,
     lr_model_data['X_test']['QuestionEmbedding'].values, 
     lr_model_data['y_test'].values,
     N=3)
+
+question_categories=colectica_utility.get_categories_for_questions('uk.iser.ukhls', identifiers_usoc)

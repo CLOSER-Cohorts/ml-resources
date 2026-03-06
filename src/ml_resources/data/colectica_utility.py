@@ -49,6 +49,25 @@ def get_questions_for_studies(studies, all_question_summaries):
                 search_set = study_search_set,
                 items_text = all_question_summaries
                 )
+
+def get_categories_for_questions(study_agency_id, question_identifiers, all_question_categories={}):
+    for index, question_identifier in enumerate(question_identifiers):
+        print(index)
+        code_lists=C.search_relationship_bysubject(study_agency_id,
+            question_identifier,
+            item_types=[C.item_code('Code Set')])
+        categories_text = []
+        for code_list in code_lists:
+            categories=C.search_relationship_bysubject(code_list['Item1']['Item3'], code_list['Item1']['Item1'],
+                  Version=code_list['Item1']['Item2'], item_types=[C.item_code('Category')])
+            for category in categories:
+                  category_item=C.get_item_json(category['Item1']['Item3'], category['Item1']['Item1'],
+                     version=category['Item1']['Item2'])
+                  if category_item['Label'] != {}:
+                      categories_text.append(category_item['Label']['en-GB'])
+        all_question_categories[question_identifier]=categories_text
+    return all_question_categories
+
     
 def get_variables_for_studies(studies, all_variable_labels):
     for study in studies:
