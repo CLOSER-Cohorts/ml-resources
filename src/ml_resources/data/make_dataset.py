@@ -21,14 +21,16 @@ def update_dataset(study_agency_id,
             dataset[study_agency_id]["Targets"].loc[identifier] = [targets[identifier]]
     return dataset
 
-def add_input_feature_to_dataset(identifiers, 
-    input_features, 
-    new_input_feature_name, 
+def add_input_feature_to_dataset(study_agency_id,
+    identifiers,
+    input_features,
+    new_input_feature_name,
     dataset):
-    updated_input_features=dataset['InputFeatures'].loc[identifiers]
-    updated_input_features[new_input_feature_name] = {k: input_features[k] for k in identifiers if k in input_features}
-    updated_targets=dataset['Targets'].loc[identifiers]
-    return { "InputFeatures": updated_input_features, "Targets": updated_targets}
+    updated_input_features=dataset[study_agency_id]['InputFeatures']#.loc[identifiers]
+    updated_input_features[new_input_feature_name] = {k: input_features[study_agency_id][k] for k in identifiers if k in input_features[study_agency_id]}
+    updated_targets = dataset[study_agency_id]['Targets'].loc[identifiers]
+    dataset[study_agency_id]['InputFeatures'] = updated_input_features
+    dataset[study_agency_id]['Targets'] = updated_targets
 
 def create_model_data_object(X_train, X_test, y_train, y_test):
     dataForTrainingAndTest = {}
