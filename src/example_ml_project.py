@@ -64,12 +64,16 @@ all_question_embeddings=read_dataset_from_file('../data/lha_usoc_question_embedd
 identifiers_usoc = list(item_topics['uk.iser.ukhls'].keys())
 identifiers_lha = list(item_topics['uk.lha'].keys())
 
+# Create a dataset...
+
 dataset = update_dataset('uk.lha',
     identifiers_lha,
     all_question_embeddings['uk.lha'], 
     'QuestionEmbedding', 
     'Topic', 
     item_topics['uk.lha'])
+
+# ...and now we update the dataset we just created so it includes data from another study...
 
 dataset = update_dataset('uk.iser.ukhls',
     identifiers_usoc, 
@@ -104,8 +108,6 @@ save_versioned_pickle_file(all_question_categories, 'all_question_categories', f
 
 all_question_categories=read_dataset_from_file('../data/all_question_categories_1.pickle')
 
-
-all_question_categories=all_question_categories2
 all_question_category_embeddings={}
 for agencyId in all_question_categories.keys():
     print(f"Creating question category embeddings for {agencyId}...")
