@@ -11,7 +11,7 @@ PROCESS:
 #question_da=read_dataset_from_file('../data/all_question_categories_1.pickle')
 #all_question_summaries=read_dataset_from_file('../data/usoc_question_summaries_1.pickle')
 
-am1_data=read_dataset_from_file('../data/am1_data_1.pickle')
+am1_data=read_dataset_from_file('../projects/am1_project/data/am1_data_1.pickle')
 
 
 2. PERFORM QUALITY CONTROL, E.G. REMOVE DATA WITH MISSING, INADEQUATE values, ARRAYS with
@@ -22,18 +22,21 @@ PARTICULAR VALUES
 # associated with it, the question summary contains text, a question has a set of
 # categories associated with it that are not deemed to have predictive value, e.g. yes/no
 
+filtered_questions_by_length_of_summary=filter_values_by_length(am1_data, "Summary", 10)
+
 filtered_questions_by_number_of_categories=filter_values_by_length(am1_data, 
     "QuestionCategories", 
     3, 
     filter_type="less_than")
-filtered_questions_by_length_of-summary=filter_values_by_length(am1_data, 
-    "Summary", 
-    10, 
-    filter_type="less_than")
+
+3. Convert the JSON dictionary to an dataframe that is suitable for use with pipelines etc
 
 3. PERFORM DATA TRANSFORMATIONS EXCLUDING CALCULATION OF EMBEDDINGS EG CONVERT ARRAYS
 TO ORDERED LOWER CASE STRING
 4. TRANSFORM TEXT COLUMNS TO EMBEDDINGS
+
+pipeline_input=pd.DataFrame([x[1]['Summary'] for x in am1_data['uk.iser.ukhls'].items()], columns=['question_summaries'])
+
 5. CREATE DATASET WITH PARTICULAR SET OF COLUMNS EG DROP THE RAW TEXT THAT WE HAVE created
 EMBEDDINGS FROM
 

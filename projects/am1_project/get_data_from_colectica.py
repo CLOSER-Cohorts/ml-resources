@@ -13,7 +13,7 @@ save_versioned_pickle_file(usoc_question_summaries, 'usoc_question_summaries', f
 item_topics={}
 for study in [all_studies[0]]:
     print(f"Getting topics for items in {study['AgencyId']}...")
-    colectica_utility.get_topics_for_items(list(am1_data[study['AgencyId']].keys())[0:5], 
+    colectica_utility.get_topics_for_items(list(am1_data[study['AgencyId']].keys()),
         study['AgencyId'],
         colectica_client.item_code('Question Group'), 
         colectica_client, 

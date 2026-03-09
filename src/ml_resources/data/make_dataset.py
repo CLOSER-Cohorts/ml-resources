@@ -54,9 +54,9 @@ def filter_values_by_length(data_values, filter_attribute, length, include_zero_
     for study in data_values.keys():
         #for item in data_values.keys():
             if filter_type == 'greater_than':
-                filtered_values[study] = {k: v for k, v in test_data[study].items() if len(v[filter_attribute]) > length or (len(v[filter_attribute])==0 and include_zero_length_items)}
+                filtered_values[study] = {k: v for k, v in data_values[study].items() if len(v[filter_attribute]) > length or (len(v[filter_attribute])==0 and include_zero_length_items)}
             elif filter_type == 'less_than':
-                filtered_values[study] = {k: v for k, v in test_data[study].items() if len(v[filter_attribute]) < length or (len(v[filter_attribute])==0 and include_zero_length_items)}
+                filtered_values[study] = {k: v for k, v in data_values[study].items() if len(v[filter_attribute]) < length or (len(v[filter_attribute])==0 and include_zero_length_items)}
             else:
                 print(f"Unknown filter type {filter_type}.")
     return filtered_values
