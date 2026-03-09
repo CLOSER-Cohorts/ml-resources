@@ -1,4 +1,7 @@
-from ml_resources import read_dataset_from_file, filter_values_by_length
+from ml_resources import (
+    read_dataset_from_file, 
+    filter_values_by_length,
+    convert_dictionary_to_dataframe)
 
 PROCESS: 
 1. GET DATA FROM COLECTICA
@@ -22,7 +25,7 @@ PARTICULAR VALUES
 # associated with it, the question summary contains text, a question has a set of
 # categories associated with it that are not deemed to have predictive value, e.g. yes/no
 
-filtered_questions_by_length_of_summary=filter_values_by_length(am1_data, "Summary", 10)
+filtered_questions=filter_values_by_length(am1_data, "Summary", 10)
 
 filtered_questions_by_number_of_categories=filter_values_by_length(am1_data, 
     "QuestionCategories", 
@@ -30,6 +33,8 @@ filtered_questions_by_number_of_categories=filter_values_by_length(am1_data,
     filter_type="less_than")
 
 3. Convert the JSON dictionary to an dataframe that is suitable for use with pipelines etc
+
+df=convert_dictionary_to_dataframe(filtered_questions)
 
 3. PERFORM DATA TRANSFORMATIONS EXCLUDING CALCULATION OF EMBEDDINGS EG CONVERT ARRAYS
 TO ORDERED LOWER CASE STRING
