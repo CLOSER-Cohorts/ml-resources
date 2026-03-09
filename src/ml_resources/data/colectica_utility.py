@@ -29,12 +29,13 @@ def get_item_text(item_type, text_field, search_set=[], items_text={}):
         if item['AgencyId'] not in items_text.keys():
             items_text[item['AgencyId']] = {}
         if item['Identifier'] not in items_text[item['AgencyId']].keys():
+            items_text[item['AgencyId']][item['Identifier']]={}
             if 'en-GB' in item[text_field].keys():
-                items_text[item['AgencyId']][item['Identifier']] = item[text_field]['en-GB']
+                items_text[item['AgencyId']][item['Identifier']][text_field] = item[text_field]['en-GB']
             elif item[text_field]!={} and len(item[text_field].keys())==0:
-                items_text[item['AgencyId']][item['Identifier']] = item[text_field]
+                items_text[item['AgencyId']][item['Identifier']][text_field] = item[text_field]
 
-def get_questions_for_studies(studies, all_question_summaries):
+def get_questions_for_studies(studies, all_question_summaries, text_field):
     if not isinstance(studies, list):
             studies = [studies]
     for study in studies:
@@ -45,16 +46,17 @@ def get_questions_for_studies(studies, all_question_summaries):
                 }]
         print(f"Getting question summaries for {study['AgencyId']}...")
         get_item_text(C.item_code('Question'),
-                'Summary',
+                text_field,
                 search_set = study_search_set,
                 items_text = all_question_summaries
                 )
 
-def get_categories_for_questions(study_agency_id, question_identifiers, all_question_categories={}):
-    if study_agency_id not in all_question_categories:
-        all_question_categories[study_agency_id]={}
+def get_categories_for_questions(study_agency_id, question_identifiers, all_items={}, verbose=False):
+    if study_agency_id not in all_items:
+        all_items[study_agency_id]={}
     for index, question_identifier in enumerate(question_identifiers):
-        print(index)
+        if verbose:
+            print(f"{index} of {len(question_identifiers)} questions")
         code_lists=C.search_relationship_bysubject(study_agency_id,
             question_identifier,
             item_types=[C.item_code('Code Set')])
@@ -67,7 +69,9 @@ def get_categories_for_questions(study_agency_id, question_identifiers, all_ques
                      version=category['Item1']['Item2'])
                   if category_item['Label'] != {}:
                       categories_text.append(category_item['Label']['en-GB'])
-        all_question_categories[study_agency_id][question_identifier]=categories_text
+        if question_identifier not in all_items[study_agency_id]:
+            all_items[study_agency_id][question_identifier]={}
+        all_items[study_agency_id][question_identifier]["QuestionCategories"]=categories_text
     return all_question_categories
 
     
@@ -84,24 +88,22 @@ def get_variables_for_studies(studies, all_variable_labels):
             search_set = study_search_set,
             items_text = all_variable_labels)
 
-def get_topics_for_items(items, C, topics={}):
-    for index, item in enumerate(items):
-        print(f"{index} of {len(items)}")
-        if item['ItemType']==C.item_code('Question'):
-            topic_type=C.item_code('Question Group')
-        else:
-            topic_type=C.item_code('Variable Group')
-        if item['AgencyId'] not in topics.keys():
-            topics[item['AgencyId']] = {}
-        if item['Identifier'] not in topics[item['AgencyId']].keys():
-            topicItem=C.search_relationship_byobject(item['AgencyId'],
-                    item['Identifier'],
+def get_topics_for_items(item_identifiers, study_agency_id, topic_type, C, verbose=False, topics={}):
+    for index, identifier in enumerate(item_identifiers):
+        if verbose:
+            print(f"{index} of {len(item_identifiers)}")
+        if study_agency_id not in topics.keys():
+            topics[study_agency_id] = {}
+        if identifier not in topics[study_agency_id].keys():
+            topics[study_agency_id][identifier]={}
+        topicItem=C.search_relationship_byobject(study_agency_id,
+                    identifier,
                     item_types=[topic_type],
                     Descriptions=True)
-            topic = ""
-            if len(topicItem)==1:
-                if 'en-GB' in item['ItemName'].keys():
-                    topic=topicItem[0]['ItemName']['en-GB']
-                elif item['ItemName']!={} and len(item['ItemName'].keys())==0:
-                    topic=topicItem[0]['ItemName']
-            topics[item['AgencyId']][item['Identifier']] = topic
+        topic = ""
+        if len(topicItem)==1:
+            if 'en-GB' in topicItem[0]['ItemName'].keys():
+                topic=topicItem[0]['ItemName']['en-GB']
+            elif topicItem[0]['ItemName']!={} and len(topicItem[0]['ItemName'].keys())==0:
+                topic=topicItem[0]['ItemName']
+            topics[study_agency_id][identifier]['Topic'] = topic
