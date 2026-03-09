@@ -6,6 +6,17 @@ from sklearn.preprocessing import FunctionTransformer
 from sklearn.compose import ColumnTransformer
 import copy
 
+def convert_dictionary_to_dataframe(dict_obj):
+    dataset=pd.DataFrame({})
+    feature_names=[]
+    for study_agency_id in dict_obj.keys():
+        for item in dict_obj[study_agency_id].items():
+            for key in item[1].keys():
+                if key not in feature_names:
+                    feature_names.append(key)
+                dataset.loc[item[0], key] = item[1][key]
+    return dataset
+
 def update_dataset(study_agency_id,
     identifiers,
     input_features,
@@ -14,7 +25,8 @@ def update_dataset(study_agency_id,
     targets,
     dataset={}):
     """Updates an existing dataset specified in the dataset keyword input argument, or 
-    creates a new dataset if an existing dataset is not specified."""
+    creates a new dataset if an existing dataset is not specified. 
+    IS THIS FN NEEDED NOW?"""
     if study_agency_id not in dataset:
         X=pd.DataFrame({}, columns=[input_feature_name])
         y=pd.DataFrame({}, columns=[target_name])
