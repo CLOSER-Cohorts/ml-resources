@@ -39,7 +39,7 @@ filtered_questions_by_number_of_categories=filter_values_by_length(am1_data,
 df=convert_dictionary_to_dataframe(filtered_questions)
 
 #4. Now we perform some data cleaning. Resetting the index is important so the pipeline
-operations will work (the indices have to be continuous numeric values with no gaps)
+# operations will work (the indices have to be continuous numeric values with no gaps)
 
 df = df.dropna(subset=["Topic"]).reset_index(drop=True)
      
