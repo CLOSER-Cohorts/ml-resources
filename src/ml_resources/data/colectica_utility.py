@@ -72,8 +72,6 @@ def get_categories_for_questions(study_agency_id, question_identifiers, all_item
         if question_identifier not in all_items[study_agency_id]:
             all_items[study_agency_id][question_identifier]={}
         all_items[study_agency_id][question_identifier]["QuestionCategories"]=categories_text
-    return all_items
-
     
 def get_variables_for_studies(studies, all_variable_labels):
     for study in studies:

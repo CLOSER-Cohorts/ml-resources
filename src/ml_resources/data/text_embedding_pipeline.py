@@ -6,17 +6,24 @@ from sklearn.compose import ColumnTransformer
 from ml_resources import read_dataset_from_file
 import pandas as pd
 
-def apply_pipeline(data, column):
+embedding_length=384
+
+def apply_pipeline(data, columns):
     embedding_transformer = FunctionTransformer(lambda x: model.encode(x.squeeze()), validate=False)
-    preprocessor = ColumnTransformer([
-        ("Embedding", embedding_transformer, [column])
-    ],
+    column_transformers=[]
+    for column in columns:
+        column_transformers.append(
+        ("Embedding_"+column, embedding_transformer, [column]))
+    print(column_transformers)
+    preprocessor = ColumnTransformer(
+        column_transformers,
     remainder="passthrough"
     )
     pipeline = Pipeline([("feature_creation", preprocessor)])
     transformed_data=list(pipeline.fit_transform(data))
-    transformed_embeddings = pd.DataFrame({"embeddings": [x[0:384] for x in transformed_data],
-        "topic": [x[384] for x in transformed_data]})
+    transformed_embeddings = pd.DataFrame({"summary_embeddings": [x[0:embedding_length] for x in transformed_data],
+     "category_embeddings": [x[embedding_length:embedding_length*2] for x in transformed_data],
+        "topic": [x[embedding_length*2] for x in transformed_data]})
     return transformed_embeddings
 #df2.index = range(0, len(df2))     
 #transformed_embeddings = apply_pipeline(df2, 'Summary')    

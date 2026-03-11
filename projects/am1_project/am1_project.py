@@ -29,10 +29,13 @@ am1_data=read_dataset_from_file('../projects/am1_project/data/am1_data_1.pickle'
 
 filtered_questions=filter_values_by_length(am1_data, "Summary", 10)
 
-filtered_questions_by_number_of_categories=filter_values_by_length(am1_data, 
+filtered_questions_by_number_of_categories=filter_values_by_length(filtered_questions,
     "QuestionCategories", 
-    3, 
-    filter_type="less_than")
+    3)
+
+
+
+filtered_questions=filtered_questions_by_number_of_categories
 
 #3. Convert the JSON dictionary to an dataframe that is suitable for use with pipelines etc
 
@@ -64,13 +67,13 @@ print(level_one_class_proportions)
 
 #5. PERFORM DATA TRANSFORMATIONS. TRANSFORM TEXT COLUMNS TO EMBEDDINGS
 
-transformed_embeddings = apply_pipeline(df, 'Summary')
+transformed_embeddings = apply_pipeline(df, ['Summary', 'QuestionCategories'])
 
 save_versioned_pickle_file(transformed_embeddings, 'question_summary_embeddings', folder='../projects/am1_project/data')
 
 # We assume the embeddings have previously been calculated, so we read them in...
 
-transformed_embeddings=read_dataset_from_file('../projects/am1_project/data/question_summary_embeddings_1.pickle')
+transformed_embeddings2=read_dataset_from_file('../projects/am1_project/data/question_summary_embeddings_1.pickle')
 
 #6. split data into training and test
 
@@ -83,18 +86,25 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y           # ensures balanced class proportions
 )
 
+
 #7 Create a logistic regression model, test it, and measure it's accuracy
 
 lr_model_data=create_model_data_object(X_train, X_test, y_train, y_test)
-trainedModel=train_model(lr_model_data, selected_input_features='embeddings')
-trainedModel.predict(list(lr_model_data['X_test']['embeddings'].values))
-X_test = np.vstack(lr_model_data['X_test']['embeddings'].values)
+trainedModel=train_model(lr_model_data, selected_input_features=['summary_embeddings', 'category_embeddings'])
+input_feature_list=[]
+for input_feature in ['summary_embeddings', 'category_embeddings']:
+        input_feature_list.append(np.vstack(data_for_model['X_test'][input_feature]))
+X_test = np.hstack(
+        input_feature_list
+)
+trainedModel.predict(X_test)
+#X_test = np.vstack(lr_model_data['X_test']['embeddings'].values)
 predictions_with_probabilities=trainedModel.predict_proba(X_test)
 #X_test2=pd.DataFrame(list(lr_model_data['X_test']['embeddings']))
 #predictions_with_probabilities=trainedModel.predict_proba(list(lr_model_data['X_test']['embeddings'].values))
 wrong_predictions=calculate_accuracy(trainedModel,
-    predictions_with_probabilities, 
-    lr_model_data['X_test']['embeddings'].values, 
+    predictions_with_probabilities,
+    X_test,
     lr_model_data['y_test'].values,
     N=3)
 
