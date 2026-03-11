@@ -72,8 +72,6 @@ def get_categories_for_questions(study_agency_id, question_identifiers, all_item
         if question_identifier not in all_items[study_agency_id]:
             all_items[study_agency_id][question_identifier]={}
         all_items[study_agency_id][question_identifier]["QuestionCategories"]=categories_text
-    return all_question_categories
-
     
 def get_variables_for_studies(studies, all_variable_labels):
     for study in studies:
@@ -106,4 +104,4 @@ def get_topics_for_items(item_identifiers, study_agency_id, topic_type, C, verbo
                 topic=topicItem[0]['ItemName']['en-GB']
             elif topicItem[0]['ItemName']!={} and len(topicItem[0]['ItemName'].keys())==0:
                 topic=topicItem[0]['ItemName']
-            topics[study_agency_id][identifier]['Topic'] = topic
+            topics[topicItem[0]]['AgencyId'][identifier]['Topic'] = topic

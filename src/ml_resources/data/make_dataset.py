@@ -14,7 +14,11 @@ def convert_dictionary_to_dataframe(dict_obj):
             for key in item[1].keys():
                 if key not in feature_names:
                     feature_names.append(key)
-                dataset.loc[item[0], key] = item[1][key]
+                if key == "QuestionCategories":
+                    feature_value=(" ".join(sorted(item[1][key])).lower())
+                else:
+                    feature_value = item[1][key]
+                dataset.loc[item[0], key] = feature_value
     return dataset
 
 def update_dataset(study_agency_id,
