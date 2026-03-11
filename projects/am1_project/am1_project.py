@@ -1,4 +1,6 @@
+from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
 import numpy as np
 import pandas as pd
 from ml_resources import (
@@ -96,10 +98,24 @@ for input_feature in ['summary_embeddings', 'category_embeddings']:
         X_test = np.hstack(
         input_feature_list
 )
-trainedModel.predict(X_test)
+y_pred=trainedModel.predict(X_test)
 predictions_with_probabilities=trainedModel.predict_proba(X_test)
 wrong_predictions=calculate_accuracy(trainedModel,
     predictions_with_probabilities,
     X_test,
     lr_model_data['y_test'].values,
     N=3)
+
+print(classification_report(lr_model_data['y_test'].values, y_pred, target_names=set(lr_model_data['y_test'].values)))
+
+cm = confusion_matrix(y_test, y_pred)
+print(cm)
+target_names=list(set(lr_model_data['y_test'].values))
+for index, topic in enumerate(target_names):
+    print(f"TOPIC {topic}, {sum(cm[index,])}")
+    for index2, x in enumerate(cm[index,]):
+        if x>0:
+            print(f"{target_names[index2]}: {x}")
+
+for index, x in enumerate(cm):
+    print(cm[index,])
