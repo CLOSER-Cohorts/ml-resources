@@ -27,8 +27,10 @@ for study in [all_studies[study_index]]:
 
 for study_agency_id in am1_data.keys():
     print(f"Getting categories for questions in {study_agency_id}...")
-    colectica_utility.get_categories_for_questions(study_agency_id, list(am1_data[study_agency_id].keys()),
-        am1_data, verbose=True)
+    colectica_utility.get_categories_for_questions(study_agency_id,
+        list(am1_data[study_agency_id].keys()),
+        all_items=am1_data,
+        verbose=True)
 
 # Assuming that we got the topics for usoc questions, here is how we would save them into a 
 # versioned pickle file... 
