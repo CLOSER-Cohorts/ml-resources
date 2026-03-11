@@ -1,4 +1,5 @@
 from sklearn.model_selection import train_test_split
+import numpy as np
 import pandas as pd
 from ml_resources import (
     read_dataset_from_file,
@@ -91,8 +92,8 @@ lr_model_data=create_model_data_object(X_train, X_test, y_train, y_test)
 trainedModel=train_model(lr_model_data, selected_input_features=['summary_embeddings', 'category_embeddings'])
 input_feature_list=[]
 for input_feature in ['summary_embeddings', 'category_embeddings']:
-        input_feature_list.append(np.vstack(data_for_model['X_test'][input_feature]))
-X_test = np.hstack(
+        input_feature_list.append(np.vstack(lr_model_data['X_test'][input_feature]))
+        X_test = np.hstack(
         input_feature_list
 )
 trainedModel.predict(X_test)
