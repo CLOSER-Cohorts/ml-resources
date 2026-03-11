@@ -33,8 +33,6 @@ filtered_questions_by_number_of_categories=filter_values_by_length(filtered_ques
     "QuestionCategories", 
     3)
 
-
-
 filtered_questions=filtered_questions_by_number_of_categories
 
 #3. Convert the JSON dictionary to an dataframe that is suitable for use with pipelines etc
@@ -58,22 +56,23 @@ print(class_proportions[class_proportions<10])
 questions_with_unique_topics=list(class_proportions[class_proportions<2].index)
 df=df[~df['Topic'].isin(questions_with_unique_topics)].reset_index(drop=True)
 
-# Investigate the proportions of topics at level one. For now we won't do anythin
+# Investigate the proportions of topics at level one. For now we won't do anything
 # based on this, but we may use this information at a further point.
 level_one_topics=pd.DataFrame([x[0:3] for x in df["Topic"]])
 level_one_class_proportions = level_one_topics.value_counts()
 print(level_one_class_proportions)
 
-
 #5. PERFORM DATA TRANSFORMATIONS. TRANSFORM TEXT COLUMNS TO EMBEDDINGS
+
+# If we have already calculated the embeddings and saved them to a pickle file, we read them in...
+
+transformed_embeddings = read_dataset_from_file('../projects/am1_project/data/transformed_embeddings_1.pickle')
+
+# ...otherwise we can calculate them from scratch, and save them to a file...
 
 transformed_embeddings = apply_pipeline(df, ['Summary', 'QuestionCategories'])
 
-save_versioned_pickle_file(transformed_embeddings, 'question_summary_embeddings', folder='../projects/am1_project/data')
-
-# We assume the embeddings have previously been calculated, so we read them in...
-
-transformed_embeddings2=read_dataset_from_file('../projects/am1_project/data/question_summary_embeddings_1.pickle')
+save_versioned_pickle_file(transformed_embeddings, 'transformed_embeddings', folder='../projects/am1_project/data')
 
 #6. split data into training and test
 
@@ -86,7 +85,6 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y           # ensures balanced class proportions
 )
 
-
 #7 Create a logistic regression model, test it, and measure it's accuracy
 
 lr_model_data=create_model_data_object(X_train, X_test, y_train, y_test)
@@ -98,15 +96,9 @@ X_test = np.hstack(
         input_feature_list
 )
 trainedModel.predict(X_test)
-#X_test = np.vstack(lr_model_data['X_test']['embeddings'].values)
 predictions_with_probabilities=trainedModel.predict_proba(X_test)
-#X_test2=pd.DataFrame(list(lr_model_data['X_test']['embeddings']))
-#predictions_with_probabilities=trainedModel.predict_proba(list(lr_model_data['X_test']['embeddings'].values))
 wrong_predictions=calculate_accuracy(trainedModel,
     predictions_with_probabilities,
     X_test,
     lr_model_data['y_test'].values,
     N=3)
-
-
-

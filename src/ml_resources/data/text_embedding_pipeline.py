@@ -25,9 +25,3 @@ def apply_pipeline(data, columns):
      "category_embeddings": [x[embedding_length:embedding_length*2] for x in transformed_data],
         "topic": [x[embedding_length*2] for x in transformed_data]})
     return transformed_embeddings
-#df2.index = range(0, len(df2))     
-#transformed_embeddings = apply_pipeline(df2, 'Summary')    
-
-#transformed_embeddings = apply_pipeline(df, 'Summary')
-#d = pd.DataFrame(am1_data['uk.iser.ukhls'].values(), columns=['question_summaries')
-#pipeline_input=pd.DataFrame([x[1]['Summary'] for x in am1_data['uk.iser.ukhls'].items()], columns=['question_summaries'])
