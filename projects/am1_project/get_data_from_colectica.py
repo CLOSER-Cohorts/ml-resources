@@ -25,6 +25,8 @@ for study in [all_studies[study_index]]:
         topics=am1_data,
         verbose=True)
 
+# We get the categories for questions in our dataset (from all studies)...
+
 for study_agency_id in am1_data.keys():
     print(f"Getting categories for questions in {study_agency_id}...")
     colectica_utility.get_categories_for_questions(study_agency_id,
