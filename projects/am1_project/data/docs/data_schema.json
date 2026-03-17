@@ -1,7 +1,8 @@
 {
   "title": "Question classification dataset",
   "summary": "This dataset is used to train models for predicting the topics of questions based on 
-    their summaries and categories.",
+    their summaries and categories. This JSON dataset has been created by querying the CLOSER 
+    repository REST API using https://github.com/CLOSER-Cohorts/colectica-api.",
   "modelCategory": "multiclass_classification",
   "schemaVersion": 1.0,
   "inputDataFormat": "JSON",
