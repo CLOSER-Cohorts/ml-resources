@@ -10,7 +10,7 @@
     "name": "AgencyId",
     "description": "Value of the agency id for a study in CLOSER",
     "id": {
-        "name": "uuid",
+        "name": "Identifier",
         "description": "Unique identifier for a question"
     }
   },
@@ -18,7 +18,7 @@
     "name": "Topic",
     "description": "A string identifying a topic belonging to the topics ontology defined by 
         CLOSER. These strings can be either 3 characters long (indicating a high-level topic) or 
-        5 characters long (indicating a more specific lower-level topic)."
+        5 characters long (indicating a more specific lower-level topic)"
   },
   "features": [
     {
@@ -30,7 +30,7 @@
     },
     {
       "name": "QuestionCategories",
-      "description": "A list of strings representing categorical values associated with a question.",
+      "description": "A list of strings representing categorical values associated with a question",
       "dataType": "LIST",
       "required": false,
       "nullable": true

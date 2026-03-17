@@ -2,8 +2,7 @@
 # dataset and on the transformed dataset containing numeric text embedding input features 
 # generated from it.
 
-
->>> print(raw_model_data[columns])
+>>> print(raw_am1_data[columns])
                                                 Summary                                 QuestionCategories  Topic
 0     Please say whether you strongly agree, agree, ...    agree disagree strongly agree strongly disagree  10403
 1     I have the first/next person in the household ...  absent / temporarily away (e.g. at boarding sc...    115
@@ -19,13 +18,13 @@
 
 [6346 rows x 3 columns]
 
->>> print(raw_model_data.iloc[0])
+>>> print(raw_am1_data.iloc[0])
 Summary               Please say whether you strongly agree, agree, ...
 Topic                                                             10403
 QuestionCategories      agree disagree strongly agree strongly disagree
 Name: 0, dtype: str
 
->>> raw_model_data.dtypes
+>>> raw_am1_data.dtypes
 Summary               str
 Topic                 str
 QuestionCategories    str
