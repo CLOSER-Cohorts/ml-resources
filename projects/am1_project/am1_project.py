@@ -20,7 +20,7 @@ from ml_resources import (
 # that there are pickle files in the data directory containing question summaries,
 # categories, topics, etc. This code is in get_data_from_colectica.py
 
-am1_data=read_dataset_from_file('../projects/am1_project/data/am1_data_1.pickle')
+am1_data=read_dataset_from_file('../projects/am1_project/data/am1_data_4.pickle')
 
 #2. PERFORM QUALITY CONTROL, E.G. REMOVE DATA WITH MISSING, INADEQUATE values, ARRAYS with
 # PARTICULAR VALUES
