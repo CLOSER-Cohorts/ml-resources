@@ -28,8 +28,8 @@ and they can choose which (if any) of these is the most appropriate topic for th
 
 <!-- Provide the basic links for the model. -->
 
-- **Repository:** https://discovery.closer.ac.uk/
-- **Paper [optional]:** https://closer.ac.uk/
+- **CLOSER data repository:** https://discovery.closer.ac.uk/
+- **CLOSER website:** https://closer.ac.uk/
 
 ## Uses
 
