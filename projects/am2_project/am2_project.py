@@ -75,7 +75,8 @@ for item_type in [colectica_client.item_code(x) for x in item_types_string]:
     pca_data = PCA(n_components=2)
     print(unique_relationships_profile.fillna(0))
     if len(unique_relationships_profile.fillna(0))>1:
-        principalComponents = pca_data.fit_transform(unique_relationships_profile.fillna(0))
+        principalComponents = pca_data.fit_transform(
+            unique_relationships_profile.fillna(0))
         count=0
         plt.title(f"Plot for {colectica_client.item_code_inv(item_type)}")
         for i in principalComponents:
@@ -107,10 +108,19 @@ for k in range(2,10):
     score = silhouette_score(principalComponents, labels)
     scores.append(score)
 
+item_types_2 = ['Series',
+'Study',
+'Data File',
+'Organization',
+'Instrument',
+'Data Collection'
+]
+
+trainingData2=pd.DataFrame({})
 for pc in all_principal_components.items():
 #for pc in [all_principal_components['Data Collection']]:
-#   if pc[0]=='Series':
- if len(pc[1])>2:
+ #  if pc[0]=='Series':
+ if len(pc[1])>2 and pc[0] in item_types_2:
     print("\nCHECKING DATA TYPES: *******************" + pc[0] + "******************")
     scores = []
     for k in range(2,min(10,len(pc[1]))):
@@ -124,10 +134,13 @@ for pc in all_principal_components.items():
         #for x in range(0, optimum_K):
     print(f"THERE ARE {len(set(labels.tolist()))} CLUSTERS")
     distances=[]
+    coordinates=[]
     for x in set(labels.tolist()):
         distances.append(math.dist(all_principal_components[pc[0]][labels.tolist().index(x)], [0,0]))
+        coordinates.append(all_principal_components[pc[0]][labels.tolist().index(x)]).tolist()
     print(distances)
-    for a, b in combinations(set(labels.tolist()), 2):  
+    #for a, b in combinations(set(labels.tolist()), 2):  
+    for a in 
                 biggest_differences=(abs(all_unique_relationships[pc[0]].iloc[labels.tolist().index(a)]
                     -all_unique_relationships[pc[0]].iloc[labels.tolist().index(b)])==5.0)
                 if len(biggest_differences.index[biggest_differences==True])>0:
@@ -136,13 +149,38 @@ for pc in all_principal_components.items():
                         f"{all_unique_relationships[pc[0]].iloc[labels.tolist().index(b)].name}"))
                     indices_a = [i for i, x in enumerate(labels) if x == a]
                     indices_b = [i for i, x in enumerate(labels) if x == b]
-                    matching_rows_a = all_relationships[pc[0]][all_relationships[pc[0]].eq(all_unique_relationships[pc[0]].iloc[labels.tolist().index(a)]).all(axis=1)]
-                    print(f"CLUSTER {a}, {len(matching_rows_a)} ITEMS")
-                    print(matching_rows_a)
-                    matching_rows_b = all_relationships[pc[0]][all_relationships[pc[0]].eq(all_unique_relationships[pc[0]].iloc[labels.tolist().index(b)]).all(axis=1)]
-                    print(f"CLUSTER {b}, {len(matching_rows_b)} ITEMS")
-                    print(matching_rows_b)
+                    matching_rows = {}
+                    matching_rows['a'] = all_relationships[pc[0]][all_relationships[pc[0]].eq(all_unique_relationships[pc[0]].iloc[labels.tolist().index(a)]).all(axis=1)]
+                    matching_rows['a']['ItemType'] = pc[0]
+                    matching_rows['a']['Flagged'] = 0
+                    matching_rows['a']['ItemTypesForInspection'] = ""
+                    print(f"CLUSTER {a}, {len(matching_rows['a'])} ITEMS")
+                    print(matching_rows['a'])
+                    matching_rows['b'] = all_relationships[pc[0]][all_relationships[pc[0]].eq(all_unique_relationships[pc[0]].iloc[labels.tolist().index(b)]).all(axis=1)]
+                    print(f"CLUSTER {b}, {len(matching_rows['b'])} ITEMS")
+                    print(matching_rows['b'])
+                    matching_rows['b']['ItemType'] = pc[0]
+                    matching_rows['b']['Flagged'] = 0
+                    matching_rows['b']['ItemTypesForInspection'] = ""
+                    clusters_need_attention="a"
+                    trainingData2.loc[len(trainingData2)] = coordinates.extend(pc[0])
                     print(biggest_differences.index[biggest_differences==True])
+                    while clusters_need_attention not in ["y", "n"]:
+                        clusters_need_attention = input("Are any of these clusters containing broken items? y/n\n")
+                    if clusters_need_attention == 'y':
+                        flagged_clusters=""
+                        while flagged_clusters not in ["a", "b"]:
+                            flagged_clusters=input("Which of these clusters contain broken items?\n")
+                        for flagged_cluster in flagged_clusters:
+                            flagged_item_types=list(biggest_differences.index[biggest_differences==True])
+                            flagged_item_types=input(f"What are the missing/unneccessary item types that are causing the problem in this cluster? {list(biggest_differences.index[biggest_differences==True])}\n") or str(list(biggest_differences.index[biggest_differences==True]))
+                            matching_rows[flagged_cluster]['Flagged'] = 1
+                            matching_rows[flagged_cluster]['ItemTypesForInspection'] = flagged_item_types
+                            trainingData2['Flagged']=1
+                    trainingData=pd.concat([trainingData, matching_rows['a']], ignore_index=False)
+                    trainingData=pd.concat([trainingData, matching_rows['b']], ignore_index=False)
+                    #trainingData = trainingData.drop_duplicates()
+                    trainingData = trainingData.replace({np.nan: 0})
  else:
     print("THERE ARE ONLY TWO CLUSTERS")  
     biggest_differences=(abs(all_unique_relationships[pc[0]].iloc[0]
@@ -160,6 +198,34 @@ for pc in all_principal_components.items():
                     print(f"CLUSTER {b}, {len(matching_rows_b)} ITEMS")
                     print(matching_rows_b)
                     print(biggest_differences.index[biggest_differences==True])         
+
+
+
+trainingData = trainingData[~trainingData.index.duplicated(keep=False)] 
+save_versioned_pickle_file(trainingData, 'training_data', folder='../projects/am2_project/data')
+dtc = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
+y=trainingData[['Flagged']]
+X=trainingData.drop(['Flagged', 'ItemTypesForInspection'], axis=1)
+X=trainingData.drop(['Flagged'], axis=1)
+X["ItemType"] = X["ItemType"].astype("category").cat.codes
+print(df)
+dtc.fit(X, y)
+
+a=trainingData[trainingData['ItemType']=='Series'].copy()
+y=a[['Flagged']]
+X=a.drop(['Flagged', 'ItemTypesForInspection'], axis=1)
+X["ItemType"] = X["ItemType"].astype("category").cat.codes
+print(a)
+dtc.fit(X, y)
+
+plt.figure(figsize=(10, 10))
+tree.plot_tree(
+    dtc,
+    class_names=["0", "1"],
+    filled=True,
+    feature_names=X.columns
+)
+plt.show()
 
 
                     all_relationships[pc[0]].iloc[indices_b]
