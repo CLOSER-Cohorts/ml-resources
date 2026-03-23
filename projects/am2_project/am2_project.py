@@ -210,7 +210,7 @@ for item_type in item_types:
         target_values=[str(x) for x in set(y_test) | set(y_pred)]
         report = classification_report(y_test, y_pred, target_names=target_values)
         print(report)
-        notes_on_experiment = input("Enter any notes on this experiment you wish to record: ")
+        notes_on_experiment = input("Enter any notes on this experiment you wish to record (e.g. parameters, evaluation metrics, what did/didn't work): ")
         with open(f"classification_report_{item_type}.txt", "w") as f:
             _ = f.write(f"Classification report for {item_type}\n\n")
             _ = f.write(f"Notes: \n{notes_on_experiment}\n\n")

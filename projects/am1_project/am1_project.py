@@ -110,7 +110,7 @@ report = classification_report(lr_model_data['y_test'].values, y_pred, target_na
 print(report)
 model_name_version=f"logistic_regression_for_topic_classification_v1"
 training_data=f"Summaries and categories for {len(X_train)} questions"
-notes_on_experiment = input("Enter any notes on this experiment you wish to record: ")
+notes_on_experiment = input("Enter any notes on this experiment you wish to record (e.g. parameters, evaluation metrics, what did/didn't work): ")
 with open(f"classification_report_topic_classification_v1.txt", "w") as f:
     _ = f.write(f"Classification report for topic classification logistic regression model\n\n")
     _ = f.write(f"Notes: \n{notes_on_experiment}\n\n")
