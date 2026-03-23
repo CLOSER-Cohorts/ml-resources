@@ -14,6 +14,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import classification_report
 
+
 all_relationships={}
 all_unique_relationships={}
 all_principal_components={}
@@ -24,6 +25,19 @@ colectica_client.item_code('Organization'),
 colectica_client.item_code('Instrument'),
 colectica_client.item_code('Data Collection')
 ]
+
+sweep_info=colectica_utility.get_sweeps()
+
+# Here is sample code for printing all the names of sweeps in each study...
+
+for x in sweep_info.keys():
+    print(x)
+    for y in sweep_info[x]['SweepNames']:
+        print(y)
+    print("\n")
+
+# ...and here is some sample code for getting a specific study from the sweep_info object.
+len([x for x in sweep_info['uk.cls.ncds']['SweepItems'] if x['ItemName']['en-GB']=='Age 44 Biomedical Survey (2002)'] )
 
 item_types_string=['Action', 'Archive', 'Category', 'Category Group', 'Category Set', 'ClassificationCorrespondenceTable', 'ClassificationFamily', 'ClassificationIndex', 'ClassificationItem', 'ClassificationLevel', 'ClassificationSeries', 'Code List Group', 'Code List Set', 'Code Set', 'Concept', 'Concept Group', 'Concept Set', 'Conceptual Component', 'Conceptual Variable', 'Conceptual Variable Group', 'Conceptual Variable Set', 'Conditional', 'Control Construct Group', 'Control Construct Set', 'Data Collection', 'Data File', 'Data Layout', 'DataCollection Methodology', 'General Instruction', 'Generation Instruction', 'Individual', 'Instruction Group', 'Instrument', 'Instrument Group', 'Instrument Set', 'Interviewer Instruction', 'Interviewer Instruction Set', 'Logical Product', 'Loop', 'Managed Representation Group', 'Managed Representation Set', 'MeasurementItem', 'MeasurementConstruct', 'Metadata Package', 'NCube', 'NCube Group', 'NCube Set', 'Organization', 'Organization Group', 'Organization Set', 'OtherMaterial', 'OtherMaterialGroup', 'OtherMaterialScheme', 'Physical Data Product', 'Physical Structure', 'PhysicalStructure Set', 'Processing Event', 'Processing Event Group', 'Processing Event Set', 'Processing Instruction Group', 'Processing Instruction Scheme', 'Project', 'Quality Standard', 'Quality Statement', 'Quality Statement Group', 'Quality Statement Set', 'Question', 'Question Activity', 'Question Block', 'Question Grid', 'Question Group', 'Question Set', 'RecordLayout', 'RecordLayout Set', 'Repeat', 'Represented Variable', 'Represented Variable Group', 'Represented Variable Set', 'Reusable Missing Value', 'Sequence', 'Series', 'Statement', 'StatisticalClassification', 'Study', 'SubSeries', 'UnitType', 'UnitTypeScheme', 'UnitTypeGroup', 'Universe', 'Universe Group', 'Universe Set', 'Variable', 'Variable Group', 'Variable Set', 'Variable Statistic', 'While']
 item_types_string=['Data File', 'Data Collection', 'Variable Statistic', 'While', 'Instrument']
@@ -201,13 +215,8 @@ for item_type in item_types:
 
 [str(x) for x in set(y_test)][str(x) for x in set(y_pred)]
 
-ADD CODE THAT GENERATES WRITTEN REPORTS. IE IT PRINTS DETAILS OF THE CLUSTER TO A TEXT FILE.
-IT PRINTS WARNINGS WHEN IT THINKS IT HAS FOUND AN ERROR. THE REPORTS ARE ACCESSIBLE AT 
-A DASHBOARD. PERHAPS THE DECISION TREE CAN BE INVOKED VIA AN API.
 
-ADD A BIT OF CODE THAT ADDS THE FLAGGED PREDICTION TO THE REPORT
 
-MAYBE THINK ABOUT COMMITTING THIS CURRENT CODE TO THE REPO    
 
 """
 inertia = []
