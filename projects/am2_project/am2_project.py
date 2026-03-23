@@ -14,7 +14,6 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import classification_report
 
-
 all_relationships={}
 all_unique_relationships={}
 all_principal_components={}
