@@ -187,6 +187,8 @@ for item_type in item_types:
         pca_data=generate_pca_data(X_train, item_type, "training")
         final_dataset=generate_data_for_classification(item_type, pca_data, X_train)
         dtc = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
+        model_name_version=f"{item_type}_decision_tree_classifier_for_error_detection_v1"
+        training_data=f"{len(X_train)}_{item_type}_items"
         #final_dataset["ItemType"] = final_dataset["ItemType"].astype("category").cat.codes
         X=pd.DataFrame(final_dataset[['ItemType', 'Distance']])
         X["ItemType"] = X["ItemType"].astype("category").cat.codes
@@ -208,9 +210,13 @@ for item_type in item_types:
         target_values=[str(x) for x in set(y_test) | set(y_pred)]
         report = classification_report(y_test, y_pred, target_names=target_values)
         print(report)
+        notes_on_experiment = input("Enter any notes on this experiment you wish to record: ")
         with open(f"classification_report_{item_type}.txt", "w") as f:
             _ = f.write(f"Classification report for {item_type}\n\n")
-            _ = f.write(report)
+            _ = f.write(f"Notes: \n{notes_on_experiment}\n\n")
+            _ = f.write(f"Model name and version: \n{model_name_version}\n\n")
+            _ = f.write(f"Training data: \n{training_data}\n\n")
+            _ = f.write(f"Classification report: \n{report}\n\n")
             _ = f.write("\nThese items have been flagged as needing attention.\n\n")
             for index_flagged in indices_flagged:
                 _ = f.write(test_dataset.index[index_flagged])

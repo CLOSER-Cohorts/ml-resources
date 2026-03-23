@@ -106,7 +106,22 @@ wrong_predictions=calculate_accuracy(trainedModel,
     lr_model_data['y_test'].values,
     N=3)
 
-print(classification_report(lr_model_data['y_test'].values, y_pred, target_names=set(lr_model_data['y_test'].values)))
+report = classification_report(lr_model_data['y_test'].values, y_pred, target_names=set(lr_model_data['y_test'].values))
+print(report)
+model_name_version=f"logistic_regression_for_topic_classification_v1"
+training_data=f"Summaries and categories for {len(X_train)} questions"
+notes_on_experiment = input("Enter any notes on this experiment you wish to record: ")
+with open(f"classification_report_topic_classification_v1.txt", "w") as f:
+    _ = f.write(f"Classification report for topic classification logistic regression model\n\n")
+    _ = f.write(f"Notes: \n{notes_on_experiment}\n\n")
+    _ = f.write(f"Model name and version: \n{model_name_version}\n\n")
+    _ = f.write(f"Training data: \n{training_data}\n\n")
+    _ = f.write(f"Classification report: \n{report}\n\n")
+    _ = f.write("\nThese items have been flagged as needing attention.\n\n")
+    # wrong_predictions may not contain the desired information at present,
+    # we may need to update the calculate_accuracy function
+    for wrong_prediction in wrong_predictions:
+        _ = f.write(wrong_prediction)
 
 cm = confusion_matrix(y_test, y_pred)
 print(cm)
