@@ -5,6 +5,8 @@ machine learning projects."""
 from colectica_api import ColecticaObject
 import os
 import sys
+import re
+from natsort import natsorted
 
 REQUIRED_VARS = ["COLECTICA_USERNAME", "COLECTICA_PASSWORD", "COLECTICA_HOSTNAME"]
 
@@ -105,3 +107,31 @@ def get_topics_for_items(item_identifiers, study_agency_id, topic_type, C, verbo
             elif topicItem[0]['ItemName']!={} and len(topicItem[0]['ItemName'].keys())==0:
                 topic=topicItem[0]['ItemName']
             topics[topicItem[0]]['AgencyId'][identifier]['Topic'] = topic
+
+def get_sweeps():
+    sweep_info={}
+    # Get all studies...
+    study_items = C.search_items([C.item_code('Series')],
+            ReturnIdentifiersOnly=True,
+            SearchLatestVersion=True)['Results']
+    for study in study_items:
+                sweep_info[study['AgencyId']]={}
+                print(f"Getting sweeps for {study['AgencyId']}...")
+                searchSets =[{
+                    "agencyId": study['AgencyId'],
+                    "identifier": study['Identifier'],
+                    "version": study['Version']}]
+                sweep_items = C.search_items([C.item_code('Study')],
+                ReturnIdentifiersOnly=False,
+                SearchSets=searchSets,
+                SearchLatestVersion=True)['Results']
+                sweep_names=[]
+                for sweep_item in sweep_items:
+                    if 'en-GB' in sweep_item['ItemName'].keys():
+                        sweep_names.append(f"{sweep_item['ItemName']['en-GB']}")
+                    else:
+                        sweep_names.append(sweep_item['ItemName'])
+                print(sweep_names)
+                sweep_info[study['AgencyId']]['SweepNames']=natsorted(sweep_names)
+                sweep_info[study['AgencyId']]['SweepItems']=sweep_items
+    return sweep_info
