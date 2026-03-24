@@ -3,7 +3,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 import numpy as np
 import pandas as pd
-from ml_resources import (
+import json
+from src.ml_resources import (
     read_dataset_from_file,
     save_versioned_pickle_file, 
     filter_values_by_length,
@@ -12,15 +13,41 @@ from ml_resources import (
     train_model,
     create_model_data_object,
     calculate_accuracy)
+from src.ml_resources.data import colectica_utility
 
 #PROCESS: 
 #1. GET DATA FROM COLECTICA
 
 # We assume that the code in get_data_from_colectica.py has already been executed, and
 # that there are pickle files in the data directory containing question summaries,
-# categories, topics, etc. This code is in get_data_from_colectica.py
+# categories, topics, etc. This code is in get_data_from_colectica.py.
+# We assume the code is being run from the repository root directory (ml-resources).
 
-am1_data=read_dataset_from_file('../projects/am1_project/data/am1_data_4.pickle')
+am1_data=read_dataset_from_file('./projects/am1_project/data/am1_data_4.pickle')
+
+# We can check if there is newly available data...
+with open("./projects/am1_project/config/am1_config.json") as f:
+    project_config = json.load(f)
+
+new_am1_data={}
+colectica_utility.get_questions_in_containing_items(project_config['studies'], new_am1_data, "Summary")
+
+question_keys_from_repository_for_dataset = []
+for agencyId in new_am1_data.keys():
+    question_keys_from_repository_for_dataset.extend(new_am1_data[agencyId].keys())
+
+question_keys_from_current_dataset = []
+for agencyId in new_am1_data.keys():
+    question_keys_from_current_dataset.extend(new_am1_data[agencyId].keys())
+
+if question_keys_from_repository_for_dataset==question_keys_from_current_dataset:
+    print("No new data available for model")
+else:
+    print("The following new items are available to use for training/testing the model:")
+    new_question_identifiers=[x for x in question_keys_from_repository_for_dataset if x not in question_keys_from_current_dataset]
+    for agency in new_am1_data.keys():
+        print(agency)
+        print([x for x in new_question_identifiers if x in new_am1_data[agency].keys()])
 
 #2. PERFORM QUALITY CONTROL, E.G. REMOVE DATA WITH MISSING, INADEQUATE values, ARRAYS with
 # PARTICULAR VALUES

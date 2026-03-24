@@ -1,5 +1,5 @@
-from ml_resources import ( create_embedding_from_item, read_dataset_from_file)
-from ml_resources import save_versioned_pickle_file
+from src.ml_resources import ( create_embedding_from_item, read_dataset_from_file)
+from src.ml_resources import save_versioned_pickle_file
 
 # We assume that the question summaries have been created and saved as in 
 # get_data_from_colectica.property, and are available in a pickle file...
