@@ -3,7 +3,7 @@ model = SentenceTransformer('all-MiniLM-L6-v2')
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.compose import ColumnTransformer
-from ml_resources import read_dataset_from_file
+from src.ml_resources import read_dataset_from_file
 import pandas as pd
 
 def create_embedding_from_item(agencyId, identifier, item_text, item_embeddings={}):

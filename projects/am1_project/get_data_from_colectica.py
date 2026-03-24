@@ -1,29 +1,29 @@
-from ml_resources.data import colectica_utility
-from ml_resources import read_dataset_from_file, save_versioned_pickle_file
+from src.ml_resources.data import colectica_utility
+from src.ml_resources import read_dataset_from_file, save_versioned_pickle_file
+import json
 colectica_client = colectica_utility.C
 
-study_index=3
-# We get all the studies...
-all_studies = colectica_client.search_items(colectica_client.item_code('Series'), SearchLatestVersion=True)['Results']
+with open("./config/am1_config.json") as f:
+    project_config = json.load(f)
 
 # If you're starting from scratch, create the am1_data object...
 am1_data={}
 # ...otherwise read it in from a pickle file.
 am1_data=read_dataset_from_file('../projects/am1_project/data/am1_data_3.pickle')
 
-# We get the questions for the first study (should be usoc)
-colectica_utility.get_questions_for_studies(all_studies[0], am1_data, "Summary")
+# We get the questions for the usoc study...
+colectica_utility.get_questions_in_containing_items(project_config['studies'], am1_data, "Summary")
 
 # We get the topics for questions in the usoc study...
-
-for study in [all_studies[study_index]]:
+for study in project_config['studies']:
     print(f"Getting topics for items in {study['AgencyId']}...")
-    colectica_utility.get_topics_for_items(list(am1_data[study['AgencyId']].keys()),
-        study['AgencyId'],
-        colectica_client.item_code('Question Group'), 
-        colectica_client, 
-        topics=am1_data,
-        verbose=True)
+    if study['AgencyId'] in am1_data.keys():
+        colectica_utility.get_topics_for_items(list(am1_data[study['AgencyId']].keys()),
+            study['AgencyId'],
+            colectica_client.item_code('Question Group'),
+            colectica_client,
+            topics=am1_data,
+            verbose=True)
 
 # We get the categories for questions in our dataset (from all studies)...
 

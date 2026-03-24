@@ -37,19 +37,16 @@ def get_item_text(item_type, text_field, search_set=[], items_text={}):
             elif item[text_field]!={} and len(item[text_field].keys())==0:
                 items_text[item['AgencyId']][item['Identifier']][text_field] = item[text_field]
 
-def get_questions_for_studies(studies, all_question_summaries, text_field):
-    if not isinstance(studies, list):
-            studies = [studies]
-    for study in studies:
-        study_search_set = [{
-                 "agencyId": study['AgencyId'],
-                 "identifier": study['Identifier'],
-                 "version": study['Version']
-                }]
-        print(f"Getting question summaries for {study['AgencyId']}...")
-        get_item_text(C.item_code('Question'),
+def get_questions_in_containing_items(containing_items, all_question_summaries, text_field):
+    """Questions can be group under a number of 'containing' items, e.g. studies, sweeps,
+    instruments, etc. This function retrieves summaries for questions contained in a list of items."""
+    if not isinstance(containing_items, list):
+            containing_items = [containing_items]
+    print(f"Getting question summaries for {[f"Agency: {item['AgencyId']}, Identifier: {item['Identifier']}, Version: {item['Version']}" for item in containing_items]}...")
+    # all_question_summaries will be updated in place with the values of question summaries...
+    get_item_text(C.item_code('Question'),
                 text_field,
-                search_set = study_search_set,
+                search_set = containing_items,
                 items_text = all_question_summaries
                 )
 
@@ -102,11 +99,12 @@ def get_topics_for_items(item_identifiers, study_agency_id, topic_type, C, verbo
                     Descriptions=True)
         topic = ""
         if len(topicItem)==1:
+            print(topicItem)
             if 'en-GB' in topicItem[0]['ItemName'].keys():
                 topic=topicItem[0]['ItemName']['en-GB']
             elif topicItem[0]['ItemName']!={} and len(topicItem[0]['ItemName'].keys())==0:
                 topic=topicItem[0]['ItemName']
-            topics[topicItem[0]]['AgencyId'][identifier]['Topic'] = topic
+            topics[study_agency_id][identifier]['Topic'] = topic
 
 def get_sweeps():
     sweep_info={}

@@ -3,8 +3,8 @@ import pandas as pd
 import numpy as np
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
-from ml_resources.data import colectica_utility
-from ml_resources import read_dataset_from_file, save_versioned_pickle_file
+from src.ml_resources.data import colectica_utility
+from src.ml_resources import read_dataset_from_file, save_versioned_pickle_file
 colectica_client = colectica_utility.C
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score

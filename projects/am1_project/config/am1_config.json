@@ -1,0 +1,19 @@
+{
+  "studies": [
+                {
+                 "AgencyId": "uk.iser.ukhls",
+                 "Identifier": "44a7a09e-4703-498c-96f7-0131b296c917",
+                 "Version": 82
+                },
+                {
+                 "AgencyId": "uk.cls.bcs70",
+                 "Identifier": "e4afc442-dfbc-4292-8a7f-835b31ca89e0",
+                 "Version": 10
+                }
+            ],
+  "sweeps": [
+            ]
+}
+
+             
+            
