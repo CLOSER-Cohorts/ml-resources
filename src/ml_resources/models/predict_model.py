@@ -18,6 +18,25 @@ def calculate_accuracy(classifier, predictions, X_test, y_test, N=5):
   print(f"Correct or in top {N} results:{correct_prediction_in_top_N_results/len(predictions)}")
   return wrongPredictions
 
+def set_value_with_dtype(df, column, index, value_str):
+    dtype = df[column].dtype
+    try:
+        # Convert string to the column's dtype
+        if pd.api.types.is_integer_dtype(dtype):
+            value = int(value_str)
+        elif pd.api.types.is_float_dtype(dtype):
+            value = float(value_str)
+        elif pd.api.types.is_bool_dtype(dtype):
+            value = value_str.lower() in ["true", "1", "yes"]
+        elif pd.api.types.is_datetime64_any_dtype(dtype):
+            value = pd.to_datetime(value_str)
+        else:
+            # Treat as string/object
+            value = value_str
+        df.loc[index, column] = value
+    except Exception as e:
+        raise ValueError(f"Could not convert '{value_str}' to {dtype}") from e
+
 def obtain_correct_data_labels(data_with_predictions, explanation_of_prediction, target_label):
     data_with_updated_predictions=data_with_predictions.copy()
     print("We will now determine if the predictions returned by a model are correct.")
@@ -33,5 +52,6 @@ def obtain_correct_data_labels(data_with_predictions, explanation_of_prediction,
             if changePrediction == "y":
                 correctPrediction = input("What is the correct value for this prediction? ")
                 # we need to check if the datatype for prediction is right
-                data_with_updated_predictions.loc[index, target_label] = int(correctPrediction)
+                set_value_with_dtype(data_with_updated_predictions, target_label, index, correctPrediction)
     return data_with_updated_predictions
+
