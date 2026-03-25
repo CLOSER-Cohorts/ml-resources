@@ -133,6 +133,8 @@ wrong_predictions=calculate_accuracy(trainedModel,
     lr_model_data['y_test'].values,
     N=3)
 
+#b=obtain_correct_data_labels(final_dataset_copy, "do this", "Flagged")
+
 report = classification_report(lr_model_data['y_test'].values, y_pred, target_names=set(lr_model_data['y_test'].values))
 print(report)
 model_name_version=f"logistic_regression_for_topic_classification_v1"
