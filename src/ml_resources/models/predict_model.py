@@ -64,7 +64,7 @@ def obtain_correctly_labelled_data(data_with_predictions,
                         correct_prediction=list(set(data_with_predictions['Flagged']))[0]
             else:
                 correct_prediction = ""
-            changePrediction = input(f"Do you want to provide the correct value for this prediction? {correct_prediction} y/n ")
+            changePrediction = input(f"Do you want to provide the correct value for this prediction? {("", "Correct prediction:")[len("") == 0]} {correct_prediction} y/n ")
             if changePrediction == "y":
                 if not target_variable_is_binary:
                     correctPrediction = input(f"What is the correct value for this prediction? {correct_prediction}")
