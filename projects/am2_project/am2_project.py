@@ -12,7 +12,6 @@ from itertools import combinations
 import math
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import cross_val_score
-from sklearn.metrics import classification_report
 from sklearn.ensemble import IsolationForest
 
 all_relationships={}
@@ -188,30 +187,13 @@ for item_type in item_types:
         test_dataset.index = input_for_test_pca.index
         test_dataset["ItemType"] = test_dataset["ItemType"].astype("category").cat.codes
         y_pred=dtc.predict(pd.DataFrame(test_dataset[['x', 'y', 'ItemType', 'Distance']]))
-        
-
-
-
-
-
-        # THE BELOW CODE CAN BE USEFUL FOR ADDING TO THE CODE THAT IS USED TO CHECK PERFORMANCE
-        indices_flagged = [i for i, x in enumerate(y_pred) if x == 1]
-        y_test=test_dataset['Flagged']
-        y_test.values.tolist().extend(y_pred.tolist())
-        target_values=[str(x) for x in set(y_test) | set(y_pred)]
-        report = classification_report(y_test, y_pred, target_names=target_values)
-        print(report)
-        notes_on_experiment = input("Enter any notes on this experiment you wish to record (e.g. parameters, evaluation metrics, what did/didn't work): ")
-        with open(f"classification_report_{item_type}.txt", "w") as f:
-            _ = f.write(f"Classification report for {item_type}\n\n")
-            _ = f.write(f"Notes: \n{notes_on_experiment}\n\n")
-            _ = f.write(f"Model name and version: \n{model_name_version}\n\n")
-            _ = f.write(f"Training data: \n{training_data}\n\n")
-            _ = f.write(f"Classification report: \n{report}\n\n")
-            _ = f.write("\nThese items have been flagged as needing attention.\n\n")
-            for index_flagged in indices_flagged:
-                _ = f.write(test_dataset.index[index_flagged])
-        print(f"\n\n\nFinished {item_type}")
+        correctly_labelled_data=obtain_correctly_labelled_data(test_dataset,
+            'We are testing isolation forests',
+            'Flagged',
+            model_name_version,
+            training_data,
+            item_type=item_type,
+            target_variable_is_binary=True)
 
 save_versioned_pickle_file(trainingData2, 'training_data2', folder='../projects/am2_project/data')
 
