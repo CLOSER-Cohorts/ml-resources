@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from src.ml_resources.data import colectica_utility
-from src.ml_resources import read_dataset_from_file, save_versioned_pickle_file
+from src.ml_resources import read_dataset_from_file, save_versioned_pickle_file, create_model_package
 colectica_client = colectica_utility.C
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
@@ -195,7 +195,9 @@ for item_type in item_types:
             item_type=item_type,
             target_variable_is_binary=True)
 
-save_versioned_pickle_file(trainingData2, 'training_data2', folder='../projects/am2_project/data')
+model_package=create_model_package(dtc, X, 'Flagged', preprocessing=["PCA"], notes="test package creation")
+
+save_versioned_pickle_file(model_package, model_name_version, folder='../projects/am2_project/models')
 
 
 WHAT IF YOU MODIFIED THE TEST DATA SO MOST OF THEM WERE BROKEN? WOULD THE DTC STILL WORK?

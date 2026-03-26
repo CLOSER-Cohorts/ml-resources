@@ -2,7 +2,7 @@ import pickle
 from pathlib import Path
 import re
 
-def save_versioned_pickle_file(obj, object_name, folder='.', comments="New version of file."):
+def save_versioned_pickle_file(obj, object_name, folder='.', comments=None):
     """
     Saves `obj` into a versioned Pickle file in `folder`.
     
@@ -29,7 +29,8 @@ def save_versioned_pickle_file(obj, object_name, folder='.', comments="New versi
     print(file_path)
     with open(file_path, 'wb') as handle:
         pickle.dump(obj, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    generate_data_versioning_document(f"{folder}/{object_name}", object_name, new_version, comments)
+    if comments is not None:
+        generate_data_versioning_document(f"{folder}/{object_name}", object_name, new_version, comments)
 
 def generate_data_versioning_document(data_documentation_folder,
     dataset_name,
