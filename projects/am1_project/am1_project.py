@@ -30,7 +30,7 @@ with open("./projects/am1_project/config/am1_config.json") as f:
     project_config = json.load(f)
 
 new_am1_data={}
-colectica_utility.get_questions_in_containing_items(project_config['studies'], new_am1_data, "Summary")
+colectica_utility.get_questions_in_containing_items(project_config['Studies'], new_am1_data, "Summary")
 
 question_keys_from_repository_for_dataset = []
 for agencyId in new_am1_data.keys():
