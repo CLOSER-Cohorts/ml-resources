@@ -107,7 +107,8 @@ def train_semi_supervised_model(model,
     item_types,
     all_data,
     all_principal_components={},
-    dataset_name="_"):
+    dataset_name="_",
+    generate_classification_report=False):
     for item_type in item_types:
         if input(f"Do you want to process the {item_type} items? ") in ['y', 'Y']:
             test_size_value=input("What proportion of the items do you want to put aside for testing? ")
@@ -122,17 +123,29 @@ def train_semi_supervised_model(model,
                 all_principal_components=all_principal_components)
             clf = IsolationForest(max_samples=100, random_state=0)
             clf.fit(pca_data)
-            final_dataset=generate_data_for_classification(item_type,
+            training_dataset_isolation_forest=generate_data_for_classification(item_type,
                 pca_data,
                 X_train,
                 clf,
                 dataset_name=dataset_name)
             model_name_version=f"{item_type}_classifier_for_error_detection"
             training_data_description=f"{len(X_train)}_{item_type}_items"
-            X=pd.DataFrame(final_dataset[['x', 'y', 'ItemType', 'Distance']])
+            human_labelled_training_data=obtain_correctly_labelled_data(training_dataset_isolation_forest,
+                'We are testing isolation forests',
+                'Flagged',
+                model_name_version,
+                training_data_description,
+                item_type=item_type,
+                target_variable_is_binary=True,
+                categories=[-1,1]
+                )
+            all_data[item_type]=human_labelled_training_data
+            X=pd.DataFrame(human_labelled_training_data[['x', 'y', 'ItemType', 'Distance']])
             X["ItemType"] = X["ItemType"].astype("category").cat.codes
-            all_data[item_type]=final_dataset
-            y=final_dataset[['Flagged']]
+            y=human_labelled_training_data[['Flagged']]
+            print("FITTING MODEL")
+            print(X)
+            print(y)
             model.fit(X, y)
             # Generate test data, and calculate the accuracy of the decision tree
             print("Now we will run tests on the data we set aside...")
@@ -149,18 +162,27 @@ def train_semi_supervised_model(model,
             test_dataset.index = input_for_test_pca.index
             test_dataset["ItemType"] = test_dataset["ItemType"].astype("category").cat.codes
             y_pred=model.predict(pd.DataFrame(test_dataset[['x', 'y', 'ItemType', 'Distance']]))
-            correctly_labelled_data=obtain_correctly_labelled_data(training_dataset,
+            # We replace the 'Flagged' target variable in the test dataset which contains values
+            # calculated by an IsolationForest with the predictions produced by the supervised
+            # model.
+            test_dataset['Flagged']=y_pred
+            print(test_dataset)
+            obtain_correctly_labelled_data(test_dataset,
                 'We are testing isolation forests',
                 'Flagged',
                 model_name_version,
                 training_data_description,
                 item_type=item_type,
-                target_variable_is_binary=True)
+                target_variable_is_binary=True,
+                only_relabel_outliers=False,
+                categories=[-1,1],
+                generate_classification_report=generate_classification_report
+                )
             notes=input("Write any notes you want to include in the model metadata here, or press 'Enter' to leave the notes field empty. ")    
-            model_package=create_model_package(model, 
-                X, 
+            model_package=create_model_package(model,
+                X,
                 'Flagged', 
-                preprocessing=["PCA"], 
+                preprocessing=["PCA"],
                 notes=notes,
                 model_version=model_name_version,
                 training_data_version=training_data_description)
