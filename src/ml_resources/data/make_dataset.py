@@ -77,6 +77,16 @@ def filter_values_by_length(data_values, filter_attribute, length, include_zero_
                 print(f"Unknown filter type {filter_type}.")
     return filtered_values
 
+def check_for_newly_available_data(ids_from_repository_for_dataset,
+    current_project_data_ids):
+    if sorted(ids_from_repository_for_dataset)==sorted(current_project_data_ids):
+        print("No new data available for model")
+    else:
+        print("The following new items are available to use for training/testing the model:")
+        newly_available_data_identifiers=[x for x in ids_from_repository_for_dataset if x not in current_project_data_ids]
+        print(newly_available_data_identifiers)
+    return newly_available_data_identifiers
+
 #a=filter_values_by_length(test_data, "QuestionCategories", 3)
 #{k: v for k, v in test_data['uk.iser.ukhls'].items() if len(v["QuestionCategories"].items()) > length}
 """

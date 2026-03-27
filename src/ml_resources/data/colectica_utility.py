@@ -134,9 +134,8 @@ def get_sweeps():
                 sweep_info[study['AgencyId']]['SweepItems']=sweep_items
     return sweep_info
 
-def obtain_items_from_colectica(item_types_string):
-    for item_type in [C.item_code(x) for x in item_types_string]:
-        items = C.search_items([item_type],
+def obtain_items_from_colectica(item_type):
+    items= C.search_items([C.item_code(item_type)],
             ReturnIdentifiersOnly=True,
             SearchLatestVersion=True)['Results']
-        return items
+    return items

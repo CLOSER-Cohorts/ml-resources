@@ -37,17 +37,16 @@ for agencyId in new_am1_data.keys():
     question_keys_from_repository_for_dataset.extend(new_am1_data[agencyId].keys())
 
 question_keys_from_current_dataset = []
-for agencyId in new_am1_data.keys():
-    question_keys_from_current_dataset.extend(new_am1_data[agencyId].keys())
+for agencyId in am1_data.keys():
+    question_keys_from_current_dataset.extend(am1_data[agencyId].keys())
 
-if question_keys_from_repository_for_dataset==question_keys_from_current_dataset:
-    print("No new data available for model")
-else:
-    print("The following new items are available to use for training/testing the model:")
-    new_question_identifiers=[x for x in question_keys_from_repository_for_dataset if x not in question_keys_from_current_dataset]
-    for agency in new_am1_data.keys():
-        print(agency)
-        print([x for x in new_question_identifiers if x in new_am1_data[agency].keys()])
+new_question_identifiers=check_for_newly_available_data(question_keys_from_repository_for_dataset,
+    question_keys_from_current_dataset)
+
+# have not yet implemented what to do with new questions
+for agency in new_am1_data.keys():
+    print(agency)
+    print([x for x in new_question_identifiers if x in new_am1_data[agency].keys()])
 
 #2. PERFORM QUALITY CONTROL, E.G. REMOVE DATA WITH MISSING, INADEQUATE values, ARRAYS with
 # PARTICULAR VALUES
