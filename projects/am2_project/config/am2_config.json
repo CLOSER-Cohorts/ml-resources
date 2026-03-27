@@ -1,5 +1,5 @@
 {
   "Studies": [],
   "Sweeps": [],
-  "ItemTypes": ["Instrument"]
+  "ItemTypes": ["Instrument", "Series"]
 }
