@@ -12,7 +12,6 @@ import math
 
 def create_am2_input_features(items, colectica_client):    
     df_relationships = pd.DataFrame()
-    df_relationships_unique = pd.DataFrame()
     # Using 'enumerate(items)' to create an index may be slow due to the complexity
     # of the item objects
     count = 0
@@ -53,7 +52,7 @@ def create_am2_input_features(items, colectica_client):
                 #df_relationships.loc[len(df_relationships)] = newRow
                 df_relationships.loc[f"{item['AgencyId']}:{item['Identifier']}"] = newRow
                 df_relationships = df_relationships.replace({np.nan: 0})
-        return df_relationships
+    return df_relationships
 
 def generate_data_for_classification(item_type, 
     pca_data,
