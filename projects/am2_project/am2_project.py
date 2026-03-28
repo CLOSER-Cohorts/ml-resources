@@ -67,8 +67,6 @@ all_training_data={}
 all_principal_components={}
 for item_type in item_types_string[0:3]:
     print(f"Creating semi-supervised model for {item_type}")
-    df_relationships = all_relationships_data[item_type]
-    df_relationships_unique=df_relationships.drop_duplicates().fillna(0)
     # This is the model we will train in semi-supervised fashion... 
     dtc = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
     # check_is_fitted throws an error if the model isn't fitted. The below statement should throw
@@ -76,7 +74,7 @@ for item_type in item_types_string[0:3]:
     # nothing, without throwing an exception.
     #check_is_fitted(dtc)
     train_semi_supervised_model(dtc,
-        df_relationships_unique,
+        all_relationships_data,
         item_types_string[0:3],
         all_training_data,
         all_principal_components=all_principal_components,

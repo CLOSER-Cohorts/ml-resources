@@ -103,7 +103,7 @@ def generate_pca_data(X_train,
         return principalComponents
 
 def train_semi_supervised_model(model,
-    df_relationships_unique,
+    all_relationships_data,
     item_types,
     all_data,
     all_principal_components={},
@@ -114,6 +114,8 @@ def train_semi_supervised_model(model,
         if input(f"Do you want to process the {item_type} items? ") in ['y', 'Y']:
             test_size_value=input("What proportion of the items do you want to put aside for testing? ")
             # Generate training data, and train a decision tree
+            df_relationships = all_relationships_data[item_type]
+            df_relationships_unique=df_relationships.drop_duplicates().fillna(0)
             X_train, X_test = train_test_split(
                 df_relationships_unique, # this needs to be specific to data type it's not at present
                 test_size=float(test_size_value)
