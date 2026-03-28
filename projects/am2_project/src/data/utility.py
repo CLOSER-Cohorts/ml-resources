@@ -129,7 +129,7 @@ def train_semi_supervised_model(model,
                 X_train,
                 clf,
                 dataset_name=dataset_name)
-            training_dataset_isolation_forest.index = pca_data.index
+            training_dataset_isolation_forest.index = X_train.index
             model_name_version=f"{item_type}_classifier_for_error_detection"
             training_data_description=f"{len(X_train)}_{item_type}_items"
             human_labelled_training_data=obtain_correctly_labelled_data(training_dataset_isolation_forest,
