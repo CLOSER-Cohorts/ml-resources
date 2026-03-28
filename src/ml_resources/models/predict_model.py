@@ -44,6 +44,7 @@ def obtain_correctly_labelled_data(data_with_predictions,
     target_label,
     model_name_version,
     training_data,
+    df_relationships_unique,
     item_type="items",
     target_variable_is_binary=False,
     reports_directory='./projects/am2_project/experiments/',
@@ -59,6 +60,7 @@ def obtain_correctly_labelled_data(data_with_predictions,
         if (only_relabel_outliers==False or (only_relabel_outliers==True and sample[target_label]==-1)):
             print(f"Sample {index}")
             print(sample)
+            print(df_relationships_unique.loc[index])
             input_prompt = f"For this sample, the model predicted: {sample[target_label]}. Is this correct? y/n "
             isPredictionCorrect = input(input_prompt)
             if isPredictionCorrect == "n":
