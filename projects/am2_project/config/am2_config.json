@@ -1,5 +1,17 @@
 {
   "Studies": [],
   "Sweeps": [],
-  "ItemTypes": ["Instrument", "Series", "Action", "Archive", "Category", "Category Group" ]
+  "ItemTypes": ["Instrument", 
+    "Series",
+    "Action",
+    "Archive",
+    "Category",
+    "Category Group",
+    "Category Set",
+    "ClassificationCorrespondenceTable",
+    "ClassificationFamily",
+    "ClassificationIndex",
+    "ClassificationItem",
+    "ClassificationLevel",
+    "ClassificationSeries" ]
 }
