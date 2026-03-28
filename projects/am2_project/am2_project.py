@@ -29,7 +29,7 @@ item_types_string = project_config['ItemTypes']
 
 all_relationships_data={}
 # maybe automatically get the latest version?
-file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_4.pickle')
+file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_5.pickle')
 if file_path.exists():
     all_relationships_data=read_dataset_from_file(file_path)
 else:
