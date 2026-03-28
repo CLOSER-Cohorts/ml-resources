@@ -18,16 +18,16 @@ colectica_client = colectica_utility.C
 #START WITH ONE DATA TYPE, E.G. DATA FILE, BUILD IN THAT
 with open("./projects/am2_project/config/am2_config.json") as f:
     project_config = json.load(f)
+item_types_string = project_config['ItemTypes']
 
 #TRY ADDING MORE DATA TYPES NOW. CREATE A SERIES OF MODELS, ONE FOR EACH DATA TYPE
 #PERHAPS WHEN YOU HAVE MANY MODELS, YOU CAN TRY CREATING A SINGLE DECISION TREE 
 #WITH THE CONTENTS OF ALL_DATA
 
-item_types_string = project_config['ItemTypes']
 
 all_relationships_data={}
 # maybe automatically get the latest version?
-file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_3.pickle')
+file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_4.pickle')
 if file_path.exists():
     all_relationships_data=read_dataset_from_file(file_path)
 else:
@@ -50,7 +50,16 @@ for item_type in item_types_string:
     ids_for_newly_available_data=check_for_newly_available_data(
         [x['Identifier'] for x in items],
         [x.split(":")[1] for x in df_relationships.index])
-         
+
+    # we can use ids_for_newly_available_data to reduce the size of the input
+    # to create_am2_input_features if there are new data available
+# need to ask colectica support what these flags for search_items do
+# RankResults=True,
+ #       ResultOffset=0,
+ #       NextResult=0,
+ #       ResultOrdering=0,
+        
+
 df_relationships_unique=df_relationships.drop_duplicates().fillna(0)
 
 # This is the model we will train in semi-supervised fashion...

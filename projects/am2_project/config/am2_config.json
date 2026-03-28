@@ -13,5 +13,11 @@
     "ClassificationIndex",
     "ClassificationItem",
     "ClassificationLevel",
-    "ClassificationSeries" ]
+    "ClassificationSeries",
+    "Code List Group",
+    "Code List Set",
+    "Code Set",
+    "Concept",
+    "Concept Group",
+    "Concept Set" ]
 }
