@@ -43,7 +43,7 @@ for item_type in item_types_string:
         df_relationships=create_am2_input_features(items, colectica_client)
         all_relationships_data[item_type]=df_relationships
     else:
-        print(f"We already have data for item type {item_type}")
+        print(f"We already have some data for item type {item_type}")
         df_relationships=all_relationships_data[item_type]    
     # Let's check for newly available data on Colectica...
     ids_for_newly_available_data=check_for_newly_available_data(
