@@ -29,7 +29,7 @@ item_types_string = project_config['ItemTypes']
 
 all_relationships_data={}
 # maybe automatically get the latest version?
-file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_5.pickle')
+file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_82.pickle')
 if file_path.exists():
     all_relationships_data=read_dataset_from_file(file_path)
 else:
@@ -63,27 +63,31 @@ for item_type in item_types_string:
  #       ResultOrdering=0,
         
 
-df_relationships_unique=df_relationships.drop_duplicates().fillna(0)
-
-# This is the model we will train in semi-supervised fashion...
-dtc = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
-# check_is_fitted throws an error if the model isn't fitted. The below statement should throw
-# an error, but after we run train_semi_supervised_model, check_is_fitted should run and return
-# nothing, without throwing an exception.
-check_is_fitted(dtc)
 all_training_data={}
 all_principal_components={}
-train_semi_supervised_model(dtc,
-    df_relationships_unique,
-    item_types_string,
-    all_training_data,
-    all_principal_components=all_principal_components,
-    dataset_name="wip",
-    generate_classification_report=True)
-# dtc was fitted in train_semi_supervised_model so the below check_is_fitted command should
-# run and not throw an error.
-check_is_fitted(dtc)
-save_versioned_pickle_file(all_relationships_data, 'all_am2_relationships_data', folder='./projects/am2_project/data')
+for item_type in item_types_string[0:3]:
+    print(f"Creating semi-supervised model for {item_type}")
+    df_relationships = all_relationships_data[item_type]
+    df_relationships_unique=df_relationships.drop_duplicates().fillna(0)
+    # This is the model we will train in semi-supervised fashion... 
+    dtc = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
+    # check_is_fitted throws an error if the model isn't fitted. The below statement should throw
+    # an error, but after we run train_semi_supervised_model, check_is_fitted should run and return
+    # nothing, without throwing an exception.
+    #check_is_fitted(dtc)
+    train_semi_supervised_model(dtc,
+        df_relationships_unique,
+        item_types_string[0:3],
+        all_training_data,
+        all_principal_components=all_principal_components,
+        dataset_name="wip",
+        generate_classification_report=True)
+    # dtc was fitted in train_semi_supervised_model so the below check_is_fitted command should
+    # run and not throw an error.
+    check_is_fitted(dtc)
+    
+    
+    #save_versioned_pickle_file(all_relationships_data, 'all_am2_relationships_data', folder='./projects/am2_project/data')
 
 # The commands below are useful for reading the supervised model trained by
 # train_semi_supervised_model above into memory for inspection

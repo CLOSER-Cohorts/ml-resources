@@ -109,6 +109,7 @@ def train_semi_supervised_model(model,
     all_principal_components={},
     dataset_name="_",
     generate_classification_report=False):
+    all_models={}
     for item_type in item_types:
         if input(f"Do you want to process the {item_type} items? ") in ['y', 'Y']:
             test_size_value=input("What proportion of the items do you want to put aside for testing? ")
@@ -190,3 +191,7 @@ def train_semi_supervised_model(model,
             save_versioned_pickle_file(model_package,
                 model_name_version, 
                 folder='./projects/am2_project/models')
+            all_models[model_name_version]=model_package
+    save_versioned_pickle_file(model_package,
+        model_name_version,
+        folder='./projects/am2_project/models')
