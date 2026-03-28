@@ -19,6 +19,10 @@ colectica_client = colectica_utility.C
 with open("./projects/am2_project/config/am2_config.json") as f:
     project_config = json.load(f)
 
+#TRY ADDING MORE DATA TYPES NOW. CREATE A SERIES OF MODELS, ONE FOR EACH DATA TYPE
+#PERHAPS WHEN YOU HAVE MANY MODELS, YOU CAN TRY CREATING A SINGLE DECISION TREE 
+#WITH THE CONTENTS OF ALL_DATA
+
 item_types_string = project_config['ItemTypes']
 
 all_relationships_data={}
@@ -68,7 +72,6 @@ train_semi_supervised_model(dtc,
 check_is_fitted(dtc)
 save_versioned_pickle_file(all_relationships_data, 
         'all_am2_relationships_data', folder='./projects/am2_project/data')
-
 
 # The commands below are useful for reading the supervised model trained by
 # train_semi_supervised_model above into memory for inspection
