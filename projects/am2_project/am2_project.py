@@ -13,6 +13,8 @@ from sklearn.utils.validation import check_is_fitted
 from pathlib import Path
 colectica_client = colectica_utility.C
 
+
+# items_not_to_consider..
 #item_types_string=["Action", "Archive", "Category", "Category Group", "Category Set", "ClassificationCorrespondenceTable", "ClassificationFamily", "ClassificationIndex", "ClassificationItem", "ClassificationLevel", "ClassificationSeries", "Code List Group", "Code List Set", "Code Set", "Concept", "Concept Group", "Concept Set", "Conceptual Component", "Conceptual Variable", "Conceptual Variable Group", "Conceptual Variable Set", "Conditional", "Control Construct Group", "Control Construct Set", "Data Collection", "Data File", "Data Layout", "DataCollection Methodology", "General Instruction", "Generation Instruction", "Individual", "Instruction Group", "Instrument", "Instrument Group", "Instrument Set", "Interviewer Instruction", "Interviewer Instruction Set", "Logical Product", "Loop", "Managed Representation Group", "Managed Representation Set", "MeasurementItem", "MeasurementConstruct", "Metadata Package", "NCube", "NCube Group", "NCube Set", "Organization", "Organization Group", "Organization Set", "OtherMaterial", "OtherMaterialGroup", "OtherMaterialScheme", "Physical Data Product", "Physical Structure", "PhysicalStructure Set", "Processing Event", "Processing Event Group", "Processing Event Set", "Processing Instruction Group", "Processing Instruction Scheme", "Project", "Quality Standard", "Quality Statement", "Quality Statement Group", "Quality Statement Set", "Question", "Question Activity", "Question Block", "Question Grid", "Question Group", "Question Set", "RecordLayout", "RecordLayout Set", "Repeat", "Represented Variable", "Represented Variable Group", "Represented Variable Set", "Reusable Missing Value", "Sequence", "Series", "Statement", "StatisticalClassification", "Study", "SubSeries", "UnitType", "UnitTypeScheme", "UnitTypeGroup", "Universe", "Universe Group", "Universe Set", "Variable", "Variable Group", "Variable Set", "Variable Statistic", "While"]
 #item_types_string=["Data File", "Data Collection", "Variable Statistic", "While", "Instrument"]
 #START WITH ONE DATA TYPE, E.G. DATA FILE, BUILD IN THAT
@@ -43,6 +45,7 @@ for item_type in item_types_string:
         print(f"Need to create a relationships profile for {item_type} items")
         df_relationships=create_am2_input_features(items, colectica_client)
         all_relationships_data[item_type]=df_relationships
+        save_versioned_pickle_file(all_relationships_data, 'all_am2_relationships_data', folder='./projects/am2_project/data')
     else:
         print(f"We already have some data for item type {item_type}")
         df_relationships=all_relationships_data[item_type]    
@@ -80,8 +83,7 @@ train_semi_supervised_model(dtc,
 # dtc was fitted in train_semi_supervised_model so the below check_is_fitted command should
 # run and not throw an error.
 check_is_fitted(dtc)
-save_versioned_pickle_file(all_relationships_data, 
-        'all_am2_relationships_data', folder='./projects/am2_project/data')
+save_versioned_pickle_file(all_relationships_data, 'all_am2_relationships_data', folder='./projects/am2_project/data')
 
 # The commands below are useful for reading the supervised model trained by
 # train_semi_supervised_model above into memory for inspection
