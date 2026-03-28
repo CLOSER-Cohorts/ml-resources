@@ -16,43 +16,44 @@ def create_am2_input_features(items, colectica_client):
     # Using 'enumerate(items)' to create an index may be slow due to the complexity
     # of the item objects
     count = 0
-    for item in items:
-      print(f"{colectica_client.item_code_inv(item['ItemType'])}")
-      if item['Identifier'] != '4f1fa78e-ff60-4a85-bd3c-aace9da5955f':
-        count=count+1
-        print(f"{count} of {len(items)}")
-        child=colectica_client.search_relationship_bysubject(item['AgencyId'], 
-            item['Identifier'],
-            Version=item['Version'])
-        parent=colectica_client.search_relationship_byobject(item['AgencyId'],
-            item['Identifier'],
-            Version=item['Version'])
-        print("Get descendants...")
-        descendants=colectica_client.query_set(item['AgencyId'],
-            item['Identifier'],
-            version=item['Version'])
-        print("Get ancestors...")
-        ancestors=colectica_client.query_set(item['AgencyId'],
-            item['Identifier'],
-            version=item['Version'],
-            reverseTraversal=True)
-        descendantTypes=set([colectica_client.item_code_inv(x['Item2']) for x in descendants])
-        ancestorTypes=set([colectica_client.item_code_inv(x['Item2']) for x in ancestors])
-        newRow={}
-        if  len(parent)>0:
-            for x in list(descendantTypes) + list(ancestorTypes):
-                if x in [colectica_client.item_code_inv(y['Item2']) for y in parent+child]:
-                    newRow[x] = 5.0
-                else:
-                    newRow[x] = 1.0
-        # Ensure all columns in new_row exist in df
-        for key in newRow:
-            if key not in df_relationships.columns:
-                df_relationships[key] = 0 
-        #df_relationships.loc[len(df_relationships)] = newRow
-        df_relationships.loc[f"{item['AgencyId']}:{item['Identifier']}"] = newRow
-        df_relationships = df_relationships.replace({np.nan: 0})
-    return df_relationships
+    if len(items)>1:
+        for item in items:
+            print(f"{colectica_client.item_code_inv(item['ItemType'])}")
+            if item['Identifier'] != '4f1fa78e-ff60-4a85-bd3c-aace9da5955f':
+                count=count+1
+                print(f"{count} of {len(items)}")
+                child=colectica_client.search_relationship_bysubject(item['AgencyId'], 
+                    item['Identifier'],
+                    Version=item['Version'])
+                parent=colectica_client.search_relationship_byobject(item['AgencyId'],
+                    item['Identifier'],
+                    Version=item['Version'])
+                print("Get descendants...")
+                descendants=colectica_client.query_set(item['AgencyId'],
+                    item['Identifier'],
+                    version=item['Version'])
+                print("Get ancestors...")
+                ancestors=colectica_client.query_set(item['AgencyId'],
+                    item['Identifier'],
+                    version=item['Version'],
+                    reverseTraversal=True)
+                descendantTypes=set([colectica_client.item_code_inv(x['Item2']) for x in descendants])
+                ancestorTypes=set([colectica_client.item_code_inv(x['Item2']) for x in ancestors])
+                newRow={}
+                if len(parent)>0:
+                    for x in list(descendantTypes) + list(ancestorTypes):
+                        if x in [colectica_client.item_code_inv(y['Item2']) for y in parent+child]:
+                            newRow[x] = 5.0
+                        else:
+                            newRow[x] = 1.0
+                # Ensure all columns in new_row exist in df
+                for key in newRow:
+                    if key not in df_relationships.columns:
+                        df_relationships[key] = 0 
+                #df_relationships.loc[len(df_relationships)] = newRow
+                df_relationships.loc[f"{item['AgencyId']}:{item['Identifier']}"] = newRow
+                df_relationships = df_relationships.replace({np.nan: 0})
+        return df_relationships
 
 def generate_data_for_classification(item_type, 
     pca_data,
