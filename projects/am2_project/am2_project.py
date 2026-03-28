@@ -65,24 +65,22 @@ for item_type in item_types_string:
 
 all_training_data={}
 all_principal_components={}
-for item_type in item_types_string[0:3]:
-    print(f"Creating semi-supervised model for {item_type}")
-    # This is the model we will train in semi-supervised fashion... 
-    dtc = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
-    # check_is_fitted throws an error if the model isn't fitted. The below statement should throw
-    # an error, but after we run train_semi_supervised_model, check_is_fitted should run and return
-    # nothing, without throwing an exception.
-    #check_is_fitted(dtc)
-    train_semi_supervised_model(dtc,
-        all_relationships_data,
-        item_types_string[0:3],
-        all_training_data,
-        all_principal_components=all_principal_components,
-        dataset_name="wip",
-        generate_classification_report=True)
-    # dtc was fitted in train_semi_supervised_model so the below check_is_fitted command should
-    # run and not throw an error.
-    check_is_fitted(dtc)
+# This is the model we will train in semi-supervised fashion... 
+dtc = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
+# check_is_fitted throws an error if the model isn't fitted. The below statement should throw
+# an error, but after we run train_semi_supervised_model, check_is_fitted should run and return
+# nothing, without throwing an exception.
+#check_is_fitted(dtc)
+train_semi_supervised_model(dtc,
+    all_relationships_data,
+    item_types_string[0:4],
+    all_training_data,
+    all_principal_components=all_principal_components,
+    dataset_name="wip",
+    generate_classification_report=True)
+# dtc was fitted in train_semi_supervised_model so the below check_is_fitted command should
+# run and not throw an error.
+check_is_fitted(dtc)
     
     
     #save_versioned_pickle_file(all_relationships_data, 'all_am2_relationships_data', folder='./projects/am2_project/data')
@@ -97,6 +95,6 @@ tree.plot_tree(
     dtc,
     class_names=["2", "3"],
     filled=True,
-    feature_names=['x', 'y', 'ItemType', 'Distance']
+    feature_names=['x', 'y', 'ItemType', 'DistanceFromOrigin', 'AnomalyScore']
 )
 plt.show()

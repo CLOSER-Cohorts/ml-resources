@@ -60,9 +60,11 @@ def generate_data_for_classification(item_type,
     clf,
     dataset_name="data",
     graphs_directory='./projects/am2_project/graphs/'):
+    print(pca_data)
     target_variables=clf.predict(pca_data)
+    scores = clf.decision_function(pca_data)
     unique_data_rows = all_data.drop_duplicates()
-    final_dataset=pd.DataFrame({}, columns=['x', 'y', 'Distance', 'ItemType', 'Flagged'])
+    final_dataset=pd.DataFrame({}, columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'ItemType', 'Flagged'])
     # CREATE THE PLOT WITH THE OUTLIERS
     scatter2 = plt.scatter(pca_data[:, 0], pca_data[:, 1], c=target_variables, s=20, edgecolor="k")
     labels=["outliers", "inliers"]
@@ -75,7 +77,10 @@ def generate_data_for_classification(item_type,
     plt.close()
     for index, target_variable in enumerate(target_variables):
             row_for_final_dataset = pca_data[index].tolist()
-            row_for_final_dataset.extend([math.dist(pca_data[index], [0,0]), item_type, target_variable])
+            row_for_final_dataset.extend([math.dist(pca_data[index], [0,0]), 
+            scores[index],
+            item_type, 
+            target_variable])
             final_dataset.loc[len(final_dataset)] = row_for_final_dataset
     return final_dataset
 
@@ -110,8 +115,10 @@ def train_semi_supervised_model(model,
     dataset_name="_",
     generate_classification_report=False):
     all_models={}
+    print(item_types)
     for item_type in item_types:
-        if input(f"Do you want to process the {item_type} items? ") in ['y', 'Y']:
+        if len(all_relationships_data[item_type])>3 and input(f"Do you want to process the {item_type} items? ") in ['y', 'Y']:
+            print(f"Creating semi-supervised model for {item_type}")
             test_size_value=input("What proportion of the items do you want to put aside for testing? ")
             # Generate training data, and train a decision tree
             df_relationships = all_relationships_data[item_type]
@@ -145,7 +152,7 @@ def train_semi_supervised_model(model,
                 categories=[-1,1]
                 )
             all_data[item_type]=human_labelled_training_data
-            X=pd.DataFrame(human_labelled_training_data[['x', 'y', 'ItemType', 'Distance']])
+            X=pd.DataFrame(human_labelled_training_data[['x', 'y', 'ItemType', 'DistanceFromOrigin', 'AnomalyScore']])
             X["ItemType"] = X["ItemType"].astype("category").cat.codes
             y=human_labelled_training_data[['Flagged']]
             print("FITTING MODEL")
@@ -153,38 +160,39 @@ def train_semi_supervised_model(model,
             print(y)
             model.fit(X, y)
             # Generate test data, and calculate the accuracy of the decision tree
-            print("Now we will run tests on the data we set aside...")
-            input_for_test_pca=X_test.drop_duplicates().fillna(0)
-            test_pca_data = generate_pca_data(input_for_test_pca,
-                item_type,
-                dataset_name=f"{dataset_name}_test",
-                all_principal_components=all_principal_components)
-            test_dataset = generate_data_for_classification(item_type,
-                test_pca_data,
-                X_test,
-                clf,
-                dataset_name="test_data")
-            test_dataset.index = input_for_test_pca.index
-            test_dataset["ItemType"] = test_dataset["ItemType"].astype("category").cat.codes
-            y_pred=model.predict(pd.DataFrame(test_dataset[['x', 'y', 'ItemType', 'Distance']]))
-            # We replace the 'Flagged' target variable in the test dataset which contains values
-            # calculated by an IsolationForest with the predictions produced by the supervised
-            # model.
-            test_dataset['Flagged']=y_pred
-            print(test_dataset)
-            obtain_correctly_labelled_data(test_dataset,
-                'We are testing isolation forests',
-                'Flagged',
-                model_name_version,
-                training_data_description,
-                df_relationships_unique,
-                item_type=item_type,
-                target_variable_is_binary=True,
-                only_relabel_outliers=False,
-                categories=[-1,1],
-                generate_classification_report=generate_classification_report
-                )
-            notes=input("Write any notes you want to include in the model metadata here, or press 'Enter' to leave the notes field empty. ")    
+            if len(X_test)>3:
+                print("Now we will run tests on the data we set aside...")
+                input_for_test_pca=X_test.drop_duplicates().fillna(0)
+                test_pca_data = generate_pca_data(input_for_test_pca,
+                    item_type,
+                    dataset_name=f"{dataset_name}_test",
+                    all_principal_components=all_principal_components)
+                test_dataset = generate_data_for_classification(item_type,
+                    test_pca_data,
+                    X_test,
+                    clf,
+                    dataset_name="test_data")
+                test_dataset.index = input_for_test_pca.index
+                test_dataset["ItemType"] = test_dataset["ItemType"].astype("category").cat.codes
+                y_pred=model.predict(pd.DataFrame(test_dataset[['x', 'y', 'ItemType', 'DistanceFromOrigin', 'AnomalyScore']]))
+                # We replace the 'Flagged' target variable in the test dataset which contains values
+                # calculated by an IsolationForest with the predictions produced by the supervised
+                # model.
+                test_dataset['Flagged']=y_pred
+                print(test_dataset)
+                obtain_correctly_labelled_data(test_dataset,
+                    'We are testing isolation forests',
+                    'Flagged',
+                    model_name_version,
+                    training_data_description,
+                    df_relationships_unique,
+                    item_type=item_type,
+                    target_variable_is_binary=True,
+                    only_relabel_outliers=False,
+                    categories=[-1,1],
+                    generate_classification_report=generate_classification_report
+                    )
+                notes=input("Write any notes you want to include in the model metadata here, or press 'Enter' to leave the notes field empty. ")    
             model_package=create_model_package(model,
                 X,
                 'Flagged', 
@@ -196,6 +204,6 @@ def train_semi_supervised_model(model,
                 model_name_version, 
                 folder='./projects/am2_project/models')
             all_models[model_name_version]=model_package
-    save_versioned_pickle_file(model_package,
-        model_name_version,
-        folder='./projects/am2_project/models')
+            save_versioned_pickle_file(model_package,
+                model_name_version,
+                folder='./projects/am2_project/models')
