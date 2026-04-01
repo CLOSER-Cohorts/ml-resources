@@ -97,3 +97,13 @@ tree.plot_tree(
     feature_names=['x', 'y', 'ItemType', 'Distance']
 )
 plt.show()
+
+def my_func(all_relationships_dataNEW):
+        all_relationships_dataNEW = all_relationships_dataNEW.loc[:, (all_relationships_dataNEW != 0).any(axis=0)]
+        all_relationships_dataNEW = all_relationships_dataNEW.loc[:, (all_relationships_dataNEW != 1).any(axis=0)]
+        all_relationships_dataNEW = all_relationships_dataNEW.loc[:, (all_relationships_dataNEW != 5).any(axis=0)]
+        return(all_relationships_dataNEW)
+
+model_package=read_dataset_from_file(
+    './projects/am2_project/models/Instrument_classifier_for_error_detection/Instrument_classifier_for_error_detection_25.pickle')
+data=my_func(model_package['data'])
