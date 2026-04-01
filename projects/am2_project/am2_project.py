@@ -1,16 +1,21 @@
 import json
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import tree
+from sklearn.utils.validation import check_is_fitted
+from pathlib import Path
+import matplotlib.pyplot as plt
+import pandas as pd
 from src.ml_resources import (
     read_dataset_from_file,
     save_versioned_pickle_file,
     obtain_items_from_colectica,
-    check_for_newly_available_data)
-from projects.am2_project.src.data.utility import create_am2_input_features, train_semi_supervised_model
+    check_for_newly_available_data,
+    get_sweeps)
+from projects.am2_project.src.data.utility import (
+        create_am2_input_features,
+        train_semi_supervised_model)
 from src.ml_resources.data import colectica_utility
-from sklearn.tree import DecisionTreeClassifier
-from sklearn import tree
-import matplotlib.pyplot as plt
-from sklearn.utils.validation import check_is_fitted
-from pathlib import Path
+
 colectica_client = colectica_utility.C
 
 #item_types_string=['Action', 'Archive', 'Category', 'Category Group', 'Category Set', 'ClassificationCorrespondenceTable', 'ClassificationFamily', 'ClassificationIndex', 'ClassificationItem', 'ClassificationLevel', 'ClassificationSeries', 'Code List Group', 'Code List Set', 'Code Set', 'Concept', 'Concept Group', 'Concept Set', 'Conceptual Component', 'Conceptual Variable', 'Conceptual Variable Group', 'Conceptual Variable Set', 'Conditional', 'Control Construct Group', 'Control Construct Set', 'Data Collection', 'Data File', 'Data Layout', 'DataCollection Methodology', 'General Instruction', 'Generation Instruction', 'Individual', 'Instruction Group', 'Instrument', 'Instrument Group', 'Instrument Set', 'Interviewer Instruction', 'Interviewer Instruction Set', 'Logical Product', 'Loop', 'Managed Representation Group', 'Managed Representation Set', 'MeasurementItem', 'MeasurementConstruct', 'Metadata Package', 'NCube', 'NCube Group', 'NCube Set', 'Organization', 'Organization Group', 'Organization Set', 'OtherMaterial', 'OtherMaterialGroup', 'OtherMaterialScheme', 'Physical Data Product', 'Physical Structure', 'PhysicalStructure Set', 'Processing Event', 'Processing Event Group', 'Processing Event Set', 'Processing Instruction Group', 'Processing Instruction Scheme', 'Project', 'Quality Standard', 'Quality Statement', 'Quality Statement Group', 'Quality Statement Set', 'Question', 'Question Activity', 'Question Block', 'Question Grid', 'Question Group', 'Question Set', 'RecordLayout', 'RecordLayout Set', 'Repeat', 'Represented Variable', 'Represented Variable Group', 'Represented Variable Set', 'Reusable Missing Value', 'Sequence', 'Series', 'Statement', 'StatisticalClassification', 'Study', 'SubSeries', 'UnitType', 'UnitTypeScheme', 'UnitTypeGroup', 'Universe', 'Universe Group', 'Universe Set', 'Variable', 'Variable Group', 'Variable Set', 'Variable Statistic', 'While']
@@ -76,7 +81,8 @@ train_semi_supervised_model(
     all_training_data,
     all_principal_components=all_principal_components,
     dataset_name="wip",
-    generate_classification_report=True)
+    generate_classification_report=True,
+    save_model_in_package_file=True)
 # dtc was fitted in train_semi_supervised_model so the below check_is_fitted command should
 # run and not throw an error.
 check_is_fitted(dtc)
