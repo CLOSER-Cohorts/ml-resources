@@ -1,9 +1,9 @@
 import json
 from sklearn.tree import DecisionTreeClassifier
 from sklearn import tree
-import matplotlib.pyplot as plt
 from sklearn.utils.validation import check_is_fitted
 from pathlib import Path
+import matplotlib.pyplot as plt
 import pandas as pd
 from src.ml_resources import (
     read_dataset_from_file,
@@ -11,7 +11,9 @@ from src.ml_resources import (
     obtain_items_from_colectica,
     check_for_newly_available_data,
     get_sweeps)
-from projects.am2_project.src.data.utility import create_am2_input_features, train_semi_supervised_model
+from projects.am2_project.src.data.utility import (
+        create_am2_input_features,
+        train_semi_supervised_model)
 from src.ml_resources.data import colectica_utility
 
 colectica_client = colectica_utility.C
@@ -39,7 +41,7 @@ print(json_formatted_str)
 item_types_string = project_config['ItemTypes']
 
 all_relationships_data={}
-file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_1.pickle')
+file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_82.pickle')
 if file_path.exists():
     all_relationships_data=read_dataset_from_file(file_path)
 else:
@@ -74,8 +76,8 @@ check_is_fitted(dtc)
 all_training_data={}
 all_principal_components={}
 train_semi_supervised_model(
-    df_relationships_unique,
-    item_types_string,  
+    all_relationships_data,
+    item_types_string[0:5],
     all_training_data,
     all_principal_components=all_principal_components,
     dataset_name="wip",
@@ -102,17 +104,14 @@ tree.plot_tree(
 )
 plt.show()
 
-# The commands below are useful for reading the supervised model trained by
-# train_semi_supervised_model above into memory for inspection
-all_relationships_dataNEW=all_relationships_data.copy()
-
 def my_func(all_relationships_dataNEW):
         all_relationships_dataNEW = all_relationships_dataNEW.loc[:, (all_relationships_dataNEW != 0).any(axis=0)]
         all_relationships_dataNEW = all_relationships_dataNEW.loc[:, (all_relationships_dataNEW != 1).any(axis=0)]
         all_relationships_dataNEW = all_relationships_dataNEW.loc[:, (all_relationships_dataNEW != 5).any(axis=0)]
         return(all_relationships_dataNEW)
 
-all_labelled_data=pd.DataFrame()
 model_package=read_dataset_from_file(
     './projects/am2_project/models/Instrument_classifier_for_error_detection/Instrument_classifier_for_error_detection_25.pickle')
+all_human_labelled_data=read_dataset_from_file(
+    'projects/am2_project/data/human_labelled_data/all_human_labelled_data/all_human_labelled_data_3.pickle')
 data=my_func(model_package['data'])
