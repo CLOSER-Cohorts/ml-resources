@@ -36,7 +36,7 @@ print(json_formatted_str)
 item_types_string = project_config['ItemTypes']
 
 all_relationships_data={}
-file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_1.pickle')
+file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_82.pickle')
 if file_path.exists():
     all_relationships_data=read_dataset_from_file(file_path)
 else:
@@ -70,8 +70,8 @@ dtc = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
 check_is_fitted(dtc)
 all_training_data={}
 all_principal_components={}
-train_semi_supervised_model(dtc,
-    df_relationships_unique,
+train_semi_supervised_model(
+    all_relationships_data,
     item_types_string,
     all_training_data,
     all_principal_components=all_principal_components,
