@@ -77,7 +77,7 @@ all_training_data={}
 all_principal_components={}
 train_semi_supervised_model(
     all_relationships_data,
-    item_types_string,
+    item_types_string[0:5],
     all_training_data,
     all_principal_components=all_principal_components,
     dataset_name="wip",
@@ -112,4 +112,6 @@ def my_func(all_relationships_dataNEW):
 
 model_package=read_dataset_from_file(
     './projects/am2_project/models/Instrument_classifier_for_error_detection/Instrument_classifier_for_error_detection_25.pickle')
+all_human_labelled_data=read_dataset_from_file(
+    'projects/am2_project/data/human_labelled_data/all_human_labelled_data/all_human_labelled_data_3.pickle')
 data=my_func(model_package['data'])

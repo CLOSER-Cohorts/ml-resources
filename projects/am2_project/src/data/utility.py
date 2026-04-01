@@ -51,7 +51,7 @@ def create_am2_input_features(items, colectica_client):
                     if key not in df_relationships.columns:
                         df_relationships[key] = 0 
                 #df_relationships.loc[len(df_relationships)] = newRow
-                df_relationships.loc[f"{item['AgencyId']}:{item['Identifier']}"] = newRow
+                df_relationships.loc[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"] = newRow
                 df_relationships = df_relationships.replace({np.nan: 0})
     return df_relationships
 
@@ -123,6 +123,7 @@ def train_semi_supervised_model(
     generate_classification_report=False,
     save_model_in_package_file=True):
     all_models={}
+    all_human_labelled_data=pd.DataFrame()
     print(item_types)
     model = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
     for item_type in item_types:
@@ -175,7 +176,8 @@ def train_semi_supervised_model(
                 categories=[-1,1],
                 only_relabel_outliers=only_relabel_outliers
                 )
-            all_data[item_type]=human_labelled_training_data
+            all_human_labelled_data=pd.concat([all_human_labelled_data,
+                human_labelled_training_data])
             #human_labelled_training_data["ItemType"] = human_labelled_training_data["ItemType"].astype("category").cat.codes
             #X=pd.DataFrame(human_labelled_training_data.drop(columns=['Flagged']))
             X=pd.DataFrame(human_labelled_training_data.drop(columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'Flagged']))
@@ -202,17 +204,20 @@ def train_semi_supervised_model(
                     clf,
                     dataset_name="test_data")
                 test_dataset_isolation_forest.index = input_for_test_pca.index
-                test_dataset_isolation_forest["ItemType"] = test_dataset_isolation_forest["ItemType"].astype("category").cat.codes
+                #test_dataset_isolation_forest["ItemType"] = test_dataset_isolation_forest["ItemType"].astype("category").cat.codes
                 test_dataset_for_model=X_test.join(test_dataset_isolation_forest)
+                test_dataset_for_model["ItemType"] = test_dataset_for_model["ItemType"].astype("category").cat.codes
                 y_pred=model.predict(pd.DataFrame(
                         test_dataset_for_model.drop(
                             columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'Flagged'])))
                 # We replace the 'Flagged' target variable in the test dataset which contains values
                 # calculated by an IsolationForest with the predictions produced by the supervised
                 # model.
-                test_dataset_for_model['Flagged']=y_pred
+                test_dataset_isolation_forest['Flagged']=y_pred
                 print(test_dataset_for_model)
-                obtain_correctly_labelled_data(test_dataset_for_model,
+                test_dataset_isolation_forest=X_test.join(test_dataset_isolation_forest)
+                human_labelled_test_data=obtain_correctly_labelled_data(
+                    test_dataset_isolation_forest,
                     'We are testing isolation forests',
                     'Flagged',
                     model_name_version,
@@ -225,6 +230,8 @@ def train_semi_supervised_model(
                     categories=[-1,1],
                     generate_classification_report=generate_classification_report
                     )
+                all_human_labelled_data=pd.concat([all_human_labelled_data,
+                    human_labelled_test_data])
             if save_model_in_package_file == True:
                 notes=input("Write any notes you want to include in the model metadata here, or press 'Enter' to leave the notes field empty. ")
                 model_package=create_model_package(model,
@@ -237,8 +244,14 @@ def train_semi_supervised_model(
                 save_versioned_pickle_file(model_package,
                     model_name_version, 
                     folder='./projects/am2_project/models')
-                all_models[model_name_version]=model_package
-                save_versioned_pickle_file(model_package,
-                    model_name_version,
-                    folder='./projects/am2_project/models')
+            all_models[model_name_version]=model_package
+    if save_model_in_package_file == True:
+        # Move columns to the end of the dataframe...
+        cols_to_move=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'ItemType', 'Flagged']
+        all_human_labelled_data=all_human_labelled_data[[c for c in all_human_labelled_data.columns if c not in cols_to_move] + cols_to_move]save_versioned_pickle_file(all_human_labelled_data.replace({np.nan: 0}),
+                    "all_human_labelled_data",
+                    folder='./projects/am2_project/data/human_labelled_data')
+        save_versioned_pickle_file(all_models,
+                    "all_item_models", 
+                    folder='./projects/am2_project/models')                
     return all_data
