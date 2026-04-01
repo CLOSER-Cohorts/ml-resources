@@ -16,8 +16,22 @@ colectica_client = colectica_utility.C
 #item_types_string=['Action', 'Archive', 'Category', 'Category Group', 'Category Set', 'ClassificationCorrespondenceTable', 'ClassificationFamily', 'ClassificationIndex', 'ClassificationItem', 'ClassificationLevel', 'ClassificationSeries', 'Code List Group', 'Code List Set', 'Code Set', 'Concept', 'Concept Group', 'Concept Set', 'Conceptual Component', 'Conceptual Variable', 'Conceptual Variable Group', 'Conceptual Variable Set', 'Conditional', 'Control Construct Group', 'Control Construct Set', 'Data Collection', 'Data File', 'Data Layout', 'DataCollection Methodology', 'General Instruction', 'Generation Instruction', 'Individual', 'Instruction Group', 'Instrument', 'Instrument Group', 'Instrument Set', 'Interviewer Instruction', 'Interviewer Instruction Set', 'Logical Product', 'Loop', 'Managed Representation Group', 'Managed Representation Set', 'MeasurementItem', 'MeasurementConstruct', 'Metadata Package', 'NCube', 'NCube Group', 'NCube Set', 'Organization', 'Organization Group', 'Organization Set', 'OtherMaterial', 'OtherMaterialGroup', 'OtherMaterialScheme', 'Physical Data Product', 'Physical Structure', 'PhysicalStructure Set', 'Processing Event', 'Processing Event Group', 'Processing Event Set', 'Processing Instruction Group', 'Processing Instruction Scheme', 'Project', 'Quality Standard', 'Quality Statement', 'Quality Statement Group', 'Quality Statement Set', 'Question', 'Question Activity', 'Question Block', 'Question Grid', 'Question Group', 'Question Set', 'RecordLayout', 'RecordLayout Set', 'Repeat', 'Represented Variable', 'Represented Variable Group', 'Represented Variable Set', 'Reusable Missing Value', 'Sequence', 'Series', 'Statement', 'StatisticalClassification', 'Study', 'SubSeries', 'UnitType', 'UnitTypeScheme', 'UnitTypeGroup', 'Universe', 'Universe Group', 'Universe Set', 'Variable', 'Variable Group', 'Variable Set', 'Variable Statistic', 'While']
 #item_types_string=['Data File', 'Data Collection', 'Variable Statistic', 'While', 'Instrument']
 #START WITH ONE DATA TYPE, E.G. DATA FILE, BUILD IN THAT
+
+
 with open("./projects/am2_project/config/am2_config.json") as f:
     project_config = json.load(f)
+
+all_sweeps=get_sweeps()
+
+sweeps_for_training_and_test={}
+for study in all_sweeps.keys():
+    if study not in sweeps_for_training_and_test.keys():
+        sweeps_for_training_and_test[study]={}
+    for sweep_name, sweep_id in all_sweeps[study].items():
+        if sweep_name not in project_config['ItemsForValidation']['Sweeps'][study]:
+            sweeps_for_training_and_test[study][sweep_name]=sweep_id
+json_formatted_str = json.dumps(sweeps_for_training_and_test, indent=4)
+print(json_formatted_str)
 
 item_types_string = project_config['ItemTypes']
 
