@@ -126,12 +126,17 @@ def get_sweeps():
                 sweep_names=[]
                 for sweep_item in sweep_items:
                     if 'en-GB' in sweep_item['ItemName'].keys():
-                        sweep_names.append(f"{sweep_item['ItemName']['en-GB']}")
+                        sweep_name=f"{sweep_item['ItemName']['en-GB']}"
                     else:
-                        sweep_names.append(sweep_item['ItemName'])
-                print(sweep_names)
-                sweep_info[study['AgencyId']]['SweepNames']=natsorted(sweep_names)
-                sweep_info[study['AgencyId']]['SweepItems']=sweep_items
+                        sweep_name=sweep_item['ItemName']
+                    sweep_names.append(sweep_name)
+                    #print(sweep_names)
+                #for sweep_name in natsorted(sweep_names):
+                    if study['AgencyId'] not in sweep_info.keys():
+                        sweep_info[study['AgencyId']]={}
+                    #sweep_info[study['AgencyId']]['Identifier']=sweep_item['Identifier']
+                    sweep_info[study['AgencyId']][sweep_name]=sweep_item['Identifier']
+                #sweep_info[study['AgencyId']]['SweepItems']=sweep_items
     return sweep_info
 
 def obtain_items_from_colectica(item_type):
@@ -139,4 +144,4 @@ def obtain_items_from_colectica(item_type):
             ReturnIdentifiersOnly=True,
             MaxResults=1000,
             SearchLatestVersion=True)['Results']
-    return items
+    return items,
