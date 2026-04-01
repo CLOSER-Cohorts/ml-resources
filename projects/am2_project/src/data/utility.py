@@ -248,7 +248,8 @@ def train_semi_supervised_model(
     if save_model_in_package_file == True:
         # Move columns to the end of the dataframe...
         cols_to_move=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'ItemType', 'Flagged']
-        all_human_labelled_data=all_human_labelled_data[[c for c in all_human_labelled_data.columns if c not in cols_to_move] + cols_to_move]save_versioned_pickle_file(all_human_labelled_data.replace({np.nan: 0}),
+        all_human_labelled_data=all_human_labelled_data[[c for c in all_human_labelled_data.columns if c not in cols_to_move] + cols_to_move]
+        save_versioned_pickle_file(all_human_labelled_data.replace({np.nan: 0}),
                     "all_human_labelled_data",
                     folder='./projects/am2_project/data/human_labelled_data')
         save_versioned_pickle_file(all_models,

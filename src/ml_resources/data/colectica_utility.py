@@ -144,4 +144,4 @@ def obtain_items_from_colectica(item_type):
             ReturnIdentifiersOnly=True,
             MaxResults=1000,
             SearchLatestVersion=True)['Results']
-    return items,
+    return items
