@@ -1,0 +1,1 @@
+This is a draft readme for how to train/retrain the am2 model. It will be refined in a later branch/commit.

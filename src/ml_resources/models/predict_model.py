@@ -45,6 +45,7 @@ def obtain_correctly_labelled_data(data_with_predictions,
     model_name_version,
     training_data,
     df_relationships_unique,
+    df_relationships,
     item_type="items",
     target_variable_is_binary=False,
     reports_directory='./projects/am2_project/experiments/',
@@ -60,8 +61,14 @@ def obtain_correctly_labelled_data(data_with_predictions,
         if (only_relabel_outliers==False or (only_relabel_outliers==True and sample[target_label]==-1)):
             print(f"Sample {index}")
             print(sample)
-            print(df_relationships_unique.loc[index])
-            input_prompt = f"For this sample, the model predicted: {sample[target_label]}. Is this correct? y/n "
+            for i,val in sample.items():
+                if i in df_relationships.columns:
+                    num_instances=len([x2 for x2 in (df_relationships[i]==val).values.tolist() if x2==True])
+                    num_not_instances=len(df_relationships)
+                    print(f"Number of {i} with value {val} in the data: {num_instances}, {num_instances/num_not_instances}")
+            #print(df_relationships_unique.loc[index])
+            matched = df_relationships[(df_relationships == df_relationships_unique.loc[index]).all(axis=1)]
+            input_prompt = f"For the {len(matched)}/{len(df_relationships)} samples identical to this, the model predicted: {sample[target_label]}. Is this correct? y/n "
             isPredictionCorrect = input(input_prompt)
             if isPredictionCorrect == "n":
                 if target_variable_is_binary:
