@@ -70,9 +70,11 @@ def main(args):
                     order=list(all_item_models[item_type]['model'].feature_names_in_)
                     new_am2_relationships_data_single_type=new_am2_relationships_data_single_type.reindex(
                         columns=order).replace({np.nan: 0}) 
-                    all_item_models[item_type]['model'].predict(
+                    a=all_item_models[item_type]['model'].predict(
                         new_am2_relationships_data_single_type
                         )
+                    print("PREDICTION")
+                    print(a)
                 all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
             save_versioned_pickle_file(
                 all_new_am2_relationships_data,
