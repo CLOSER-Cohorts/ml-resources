@@ -78,7 +78,7 @@ def main(args):
                     if len(anomalies)>0:
                         print("ANOMALIES PREDICTED")
                         print(anomalies)
-                        send_message_to_slack(str(list))
+                        send_message_to_slack(str(anomalies))
                 all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
             save_versioned_pickle_file(
                 all_new_am2_relationships_data,
