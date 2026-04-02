@@ -66,10 +66,10 @@ def main(args):
                     if x['ItemType']==colectica_client.item_code(item_type)]
                 new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, colectica_client)
                 new_am2_relationships_data_single_type['ItemType']=0
-                order=list(all_item_models[item_type]['model'].feature_names_in_)
-                new_am2_relationships_data_single_type=new_am2_relationships_data_single_type.reindex(
-                    columns=order).replace({np.nan: 0})
-                if item_type in all_item_models.keys(): 
+                if item_type in all_item_models.keys():
+                    order=list(all_item_models[item_type]['model'].feature_names_in_)
+                    new_am2_relationships_data_single_type=new_am2_relationships_data_single_type.reindex(
+                        columns=order).replace({np.nan: 0}) 
                     all_item_models[item_type]['model'].predict(
                         new_am2_relationships_data_single_type
                         )
