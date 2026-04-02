@@ -57,13 +57,13 @@ def main(args):
             # have the data types as well as the urns
             items = [create_item_object(x) for x in results['new_item_urns']][0:1000]
             item_types = set([item['ItemType'] for item in items])
-            new_am2_relationships_data={}
+            all_new_am2_relationships_data={}
             for item_type in item_types:
                 items_of_a_type = [x for x in items if x['ItemType']==item_type]
-                new_am2_relationships_data=create_am2_input_features(items_of_a_type, colectica_client)
-                new_relationships_data[item_type]=new_am2_relationships_data
+                new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, colectica_client)
+                all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
             save_versioned_pickle_file(
-                new_am2_relationships_data,
+                all_new_am2_relationships_data,
                 'am2_relationships_data_for_future_model',
                 folder='./projects/am2_project/data/pending_training_data',
                 )
