@@ -73,7 +73,7 @@ def main(args):
                     predictions=all_item_models[item_type]['model'].predict(
                         new_am2_relationships_data_single_type
                         )
-                    indices_flagged = [i for i, x in enumerate(predictions) if x == 1]    
+                    indices_flagged = [i for i, x in enumerate(predictions) if x == -1]    
                     anomalies=list(new_am2_relationships_data_single_type.index[indices_flagged])
                     if len(anomalies)>0:
                         print("ANOMALIES PREDICTED")
