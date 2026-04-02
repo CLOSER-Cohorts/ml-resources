@@ -38,6 +38,15 @@ def main(args):
     logging.info("Checking for newly available data in Colectica repository")
 
     try:
+        # Get most recent version of model...
+        """
+        folder = "./projects/am2_project/models/all_item_models"
+        object_name = "all_item_models"
+        file_version = get_max_file_version(Path(f"{folder}"), object_name)
+        file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
+        model_package=read_dataset_from_file(file_path)
+"""
+
         # Your core logic here
         logging.info(f"Running task with param: {args.param}")
         with open("./projects/am2_project/config/am2_config.json") as f:
@@ -46,8 +55,13 @@ def main(args):
         if len(results['new_item_urns'])>0:
             # I need to run create_am2_input_features here : I need to 
             # have the data types as well as the urns
-            items = [create_item_object(x) for x in results['new_item_urns']]
-            new_am2_relationships_data=create_am2_input_features(items, colectica_client)
+            items = [create_item_object(x) for x in results['new_item_urns']][0:1000]
+            item_types = set([item['ItemType'] for item in items])
+            new_am2_relationships_data={}
+            for item_type in item_types:
+                items_of_a_type = [x for x in items if x['ItemType']==item_type]
+                new_am2_relationships_data=create_am2_input_features(items_of_a_type, colectica_client)
+                new_relationships_data[item_type]=new_am2_relationships_data
             save_versioned_pickle_file(
                 new_am2_relationships_data,
                 'am2_relationships_data_for_future_model',
