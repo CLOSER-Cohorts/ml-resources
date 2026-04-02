@@ -41,11 +41,44 @@ print(json_formatted_str)
 item_types_string = project_config['ItemTypes']
 
 all_relationships_data={}
-file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_82.pickle')
+file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_83.pickle')
 if file_path.exists():
     all_relationships_data=read_dataset_from_file(file_path)
 else:
     print("File does not exist")
+
+all_urns_in_current_dataset=[]
+for item_type in all_relationships_data.keys():
+    all_urns_in_current_dataset.extend(all_relationships_data[item_type].index)
+
+# Let's check if there is new data...
+
+question_keys_from_repository_for_dataset = []
+
+
+sweep_items = []
+for study, sweeps in project_config["ItemsForTrainingAndTest"]["Sweeps"].items():
+    for sweep_name, sweep_id in sweeps.items():
+        print(f"{study}, {sweep_name}, {sweep_id}")
+        latest_version_of_sweep=colectica_client.get_item_json(
+            study,
+            sweep_id
+        )
+        sweep_items.append({
+                 "agencyId": latest_version_of_sweep['AgencyId'],
+                 "identifier": latest_version_of_sweep['Identifier'],
+                 "version": latest_version_of_sweep['Version']
+             })
+
+items=obtain_items_from_colectica(project_config["ItemTypes"], sweep_items)
+
+
+            )
+    
+        colectica_utility.get_questions_in_containing_items(
+            project_config['Studies'], 
+            new_am1_data, 
+            "Summary")
 
 # The code below could be part of the deployed application;
 # it could run as a scheduled task, and every time someone goes to a dashboard
