@@ -10,7 +10,8 @@ from src.ml_resources import (
     save_versioned_pickle_file,
     obtain_items_from_colectica,
     check_for_newly_available_data,
-    get_sweeps)
+    get_sweeps,
+    get_max_file_version)
 from projects.am2_project.src.data.utility import (
         create_am2_input_features,
         train_semi_supervised_model)
@@ -26,7 +27,21 @@ colectica_client = colectica_utility.C
 with open("./projects/am2_project/config/am2_config.json") as f:
     project_config = json.load(f)
 
+
+all_relationships_data={}
+file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_83.pickle')
+if file_path.exists():
+    all_relationships_data=read_dataset_from_file(file_path)
+else:
+    print("File does not exist")
+
+a=check_for_newly_available_data(project_config)
+
 all_sweeps=get_sweeps()
+total=0
+for x,y in all_sweeps.items():
+   total+=len(y)
+
 
 sweeps_for_training_and_test={}
 for study in all_sweeps.keys():
@@ -38,48 +53,26 @@ for study in all_sweeps.keys():
 json_formatted_str = json.dumps(sweeps_for_training_and_test, indent=4)
 print(json_formatted_str)
 
-item_types_string = project_config['ItemTypes']
-
-all_relationships_data={}
-file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_83.pickle')
-if file_path.exists():
-    all_relationships_data=read_dataset_from_file(file_path)
-else:
-    print("File does not exist")
-
-all_urns_in_current_dataset=[]
-for item_type in all_relationships_data.keys():
-    all_urns_in_current_dataset.extend(all_relationships_data[item_type].index)
 
 # Let's check if there is new data...
 
 question_keys_from_repository_for_dataset = []
 
-
-sweep_items = []
-for study, sweeps in project_config["ItemsForTrainingAndTest"]["Sweeps"].items():
-    for sweep_name, sweep_id in sweeps.items():
-        print(f"{study}, {sweep_name}, {sweep_id}")
-        latest_version_of_sweep=colectica_client.get_item_json(
-            study,
-            sweep_id
-        )
-        sweep_items.append({
-                 "agencyId": latest_version_of_sweep['AgencyId'],
-                 "identifier": latest_version_of_sweep['Identifier'],
-                 "version": latest_version_of_sweep['Version']
-             })
-
-items=obtain_items_from_colectica(project_config["ItemTypes"], sweep_items)
-
+for item in items:
+    if colectica_client.item_code_inv[item['ItemType']] not in all_relationships_data.keys():
+        print(f"Need to create a relationships profile for {item_type} items")
+        df_relationships=create_am2_input_features(items, colectica_client)
+        all_relationships_data[item_type]=df_relationships
+    else:
+        print(f"We already have data for item type {item_type}")
+        df_relationships=all_relationships_data[item_type]
+    # Let's check for newly available data on Colectica...
+    ids_for_newly_available_data=check_for_newly_available_data(
+        [x['Identifier'] for x in items],
+        [x.split(":")[1] for x in df_relationships.index])
 
             )
     
-        colectica_utility.get_questions_in_containing_items(
-            project_config['Studies'], 
-            new_am1_data, 
-            "Summary")
-
 # The code below could be part of the deployed application;
 # it could run as a scheduled task, and every time someone goes to a dashboard
 # to view details of outliers, if there were new data available
@@ -119,7 +112,7 @@ train_semi_supervised_model(
 # dtc was fitted in train_semi_supervised_model so the below check_is_fitted command should
 # run and not throw an error.
 check_is_fitted(dtc)
-save_versioned_pickle_file(all_relationships_data, 
+save_versioned_pickle_file(all_am2_relationships_data,
         'all_am2_relationships_data', folder='./projects/am2_project/data')
 
 

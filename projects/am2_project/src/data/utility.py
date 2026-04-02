@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+from pathlib import Path
 from sklearn.ensemble import IsolationForest
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
@@ -9,7 +10,11 @@ from sklearn.tree import DecisionTreeClassifier
 from src.ml_resources import (
     obtain_correctly_labelled_data,
     create_model_package,
-    save_versioned_pickle_file )
+    read_dataset_from_file,
+    save_versioned_pickle_file,
+    get_max_file_version,
+    get_latest_versions_of_sweeps,
+    obtain_items_from_colectica )
 
 def create_am2_input_features(items, colectica_client):    
     df_relationships = pd.DataFrame()
@@ -256,3 +261,30 @@ def train_semi_supervised_model(
                     "all_item_models", 
                     folder='./projects/am2_project/models')                
     return all_data
+
+def check_for_newly_available_data(project_config):
+    all_relationships_data={}
+    folder=project_config["ItemRelationsFileLocation"]
+    object_name=project_config["ItemRelationsObjectName"]
+    file_version=get_max_file_version(Path(f"{folder}"), object_name)
+    try:
+        file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
+        print(f"Reading relationships data from {file_path}")
+        all_am2_relationships_data=read_dataset_from_file(file_path)
+    except Exception as e:
+        raise FileNotFoundError(f"File not found error: {e}")
+    item_types_string = project_config['ItemTypes']
+    all_urns_in_current_dataset=[]
+    sweep_items=get_latest_versions_of_sweeps(project_config)
+    for item_type in all_am2_relationships_data.keys():
+            all_urns_in_current_dataset.extend(all_am2_relationships_data[item_type].index)
+    items=obtain_items_from_colectica(project_config["ItemTypes"], sweep_items)
+    all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"
+        for item in items]
+    new_item_urns=[x for x in all_item_urns if x not in all_urns_in_current_dataset]
+    if len(new_item_urns)>0:
+        print(f"There are {len(new_item_urns)} items are available for analysis/inclusion in the data model.")
+    return {"all_item_urns": all_item_urns,
+            "all_urns_in_current_dataset": all_urns_in_current_dataset,
+            "new_item_urns": new_item_urns,
+            "all_am2_relationships_data": all_am2_relationships_data}

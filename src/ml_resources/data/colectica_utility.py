@@ -139,6 +139,23 @@ def get_sweeps():
                 #sweep_info[study['AgencyId']]['SweepItems']=sweep_items
     return sweep_info
 
+def get_latest_versions_of_sweeps(project_config):
+    sweep_items = []
+    for study, sweeps in project_config["ItemsForTrainingAndTest"]["Sweeps"].items():
+        for sweep_name, sweep_id in sweeps.items():
+            print(f"{study}, {sweep_name}, {sweep_id}")
+            latest_version_of_sweep=C.get_item_json(
+                study,
+                sweep_id
+            )
+            sweep_items.append({
+                 "agencyId": latest_version_of_sweep['AgencyId'],
+                 "identifier": latest_version_of_sweep['Identifier'],
+                 "version": latest_version_of_sweep['Version']
+             })
+    return sweep_items
+
+
 def obtain_items_from_colectica(item_types=[], search_set_items=[]):
     all_items=[]
     item_types_for_project = [C.item_code(item_type) for item_type in item_types]
