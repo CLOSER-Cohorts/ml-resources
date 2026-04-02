@@ -55,13 +55,13 @@ def main(args):
         if len(results['new_item_urns'])>0:
             # I need to run create_am2_input_features here : I need to 
             # have the data types as well as the urns
-            items = [create_item_object(x) for x in results['new_item_urns']][0:1000]
+            items = [create_item_object(x) for x in results['new_item_urns']][0:500]
             item_types = set([item['ItemType'] for item in items])
             all_new_am2_relationships_data={}
             for item_type in item_types:
                 items_of_a_type = [x for x in items if x['ItemType']==item_type]
                 new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, colectica_client)
-                all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
+                all_new_am2_relationships_data[colectica_client.item_code_inv(item_type)]=new_am2_relationships_data_single_type
             save_versioned_pickle_file(
                 all_new_am2_relationships_data,
                 'am2_relationships_data_for_future_model',
