@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 from .data.utility import (
         check_for_newly_available_data)
+from src.slack.utility import send_message_to_slack
 
 def setup_logging():
     logging.basicConfig(
@@ -30,6 +31,9 @@ def main(args):
         print(f"Hello at {datetime.now()}")
 
         logging.info("Script completed successfully")
+        # The command below works, but just to minimise noise on the channel, we 
+        # will comment it out for now.
+        #send_message_to_slack("This is a test message from code that polls the Colectica repo.")
 
     except Exception as e:
         logging.exception("Script failed")

@@ -27,7 +27,6 @@ colectica_client = colectica_utility.C
 with open("./projects/am2_project/config/am2_config.json") as f:
     project_config = json.load(f)
 
-
 all_relationships_data={}
 file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_83.pickle')
 if file_path.exists():
