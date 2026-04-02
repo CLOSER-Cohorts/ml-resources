@@ -77,7 +77,7 @@ def filter_values_by_length(data_values, filter_attribute, length, include_zero_
                 print(f"Unknown filter type {filter_type}.")
     return filtered_values
 
-def check_for_newly_available_data(ids_from_repository_for_dataset,
+def check_for_newly_available_data_am1(ids_from_repository_for_dataset,
     current_project_data_ids):
     newly_available_data_identifiers=[]
     if sorted(ids_from_repository_for_dataset)==sorted(current_project_data_ids):

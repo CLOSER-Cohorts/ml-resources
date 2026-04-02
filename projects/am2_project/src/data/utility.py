@@ -262,6 +262,12 @@ def train_semi_supervised_model(
                     folder='./projects/am2_project/models')                
     return all_data
 
+def create_urn(item):
+    return {
+        "Urn": f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}",
+        "ItemType": item['ItemType']
+    }
+
 def check_for_newly_available_data(project_config):
     all_relationships_data={}
     folder=project_config["ItemRelationsFileLocation"]
@@ -281,7 +287,7 @@ def check_for_newly_available_data(project_config):
     items=obtain_items_from_colectica(project_config["ItemTypes"], sweep_items)
     all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"
         for item in items]
-    new_item_urns=[x for x in all_item_urns if x not in all_urns_in_current_dataset]
+    new_item_urns=[create_urn(x) for x in items if x not in all_urns_in_current_dataset]
     if len(new_item_urns)>0:
         print(f"There are {len(new_item_urns)} items are available for analysis/inclusion in the data model.")
     return {"all_item_urns": all_item_urns,

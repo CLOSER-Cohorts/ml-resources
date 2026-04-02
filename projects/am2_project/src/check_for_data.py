@@ -5,7 +5,16 @@ import json
 from datetime import datetime
 from .data.utility import (
         check_for_newly_available_data)
+from src.ml_resources import (
+    save_versioned_pickle_file
+    )
 from src.slack.utility import send_message_to_slack
+from projects.am2_project.src.data.utility import (
+        create_am2_input_features
+        )
+from src.ml_resources.data import colectica_utility
+
+colectica_client = colectica_utility.C
 
 def setup_logging():
     logging.basicConfig(
@@ -17,16 +26,52 @@ def setup_logging():
         ]
     )
 
+def create_item_object(urn_and_item_type):
+    return {
+        "AgencyId": urn_and_item_type["Urn"].split(":")[2],
+        "Identifier": urn_and_item_type["Urn"].split(":")[3],
+        "Version": urn_and_item_type["Urn"].split(":")[4],
+        "ItemType": urn_and_item_type["ItemType"]
+        }
+
 def main(args):
     logging.info("Checking for newly available data in Colectica repository")
 
     try:
+        # Get most recent version of model...
+        """
+        folder = "./projects/am2_project/models/all_item_models"
+        object_name = "all_item_models"
+        file_version = get_max_file_version(Path(f"{folder}"), object_name)
+        file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
+        model_package=read_dataset_from_file(file_path)
+"""
+
         # Your core logic here
         logging.info(f"Running task with param: {args.param}")
         with open("./projects/am2_project/config/am2_config.json") as f:
             project_config = json.load(f)
-        check_for_newly_available_data(project_config)
-
+        results = check_for_newly_available_data(project_config)
+        if len(results['new_item_urns'])>0:
+            # I need to run create_am2_input_features here : I need to 
+            # have the data types as well as the urns
+            items = [create_item_object(x) for x in results['new_item_urns']][0:500]
+            item_types = sorted(set([colectica_client.item_code_inv(item['ItemType']) 
+                for item in items]))
+            all_new_am2_relationships_data={}
+            for item_type in item_types:
+                items_of_a_type = [x for x in items 
+                    if x['ItemType']==colectica_client.item_code(item_type)]
+                new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, colectica_client)
+                all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
+            save_versioned_pickle_file(
+                all_new_am2_relationships_data,
+                'am2_relationships_data_for_future_model',
+                folder='./projects/am2_project/data/pending_training_data',
+                )
+            # need to properly import the model below in future issue    
+            #model.predict(results['all_am2_relationships_data'])
+            
         # Example task
         print(f"Hello at {datetime.now()}")
 
