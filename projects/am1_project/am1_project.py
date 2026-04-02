@@ -40,7 +40,7 @@ question_keys_from_current_dataset = []
 for agencyId in am1_data.keys():
     question_keys_from_current_dataset.extend(am1_data[agencyId].keys())
 
-new_question_identifiers=check_for_newly_available_data(question_keys_from_repository_for_dataset,
+new_question_identifiers=check_for_newly_available_data_am1(question_keys_from_repository_for_dataset,
     question_keys_from_current_dataset)
 
 # have not yet implemented what to do with new questions

@@ -9,6 +9,12 @@ from src.ml_resources import (
     save_versioned_pickle_file
     )
 from src.slack.utility import send_message_to_slack
+from projects.am2_project.src.data.utility import (
+        create_am2_input_features
+        )
+from src.ml_resources.data import colectica_utility
+
+colectica_client = colectica_utility.C
 
 def setup_logging():
     logging.basicConfig(
@@ -20,6 +26,14 @@ def setup_logging():
         ]
     )
 
+def create_item_object(urn_and_item_type):
+    return {
+        "AgencyId": urn_and_item_type["Urn"].split(":")[2],
+        "Identifier": urn_and_item_type["Urn"].split(":")[3],
+        "Version": urn_and_item_type["Urn"].split(":")[4],
+        "ItemType": urn_and_item_type["ItemType"]
+        }
+
 def main(args):
     logging.info("Checking for newly available data in Colectica repository")
 
@@ -30,8 +44,12 @@ def main(args):
             project_config = json.load(f)
         results = check_for_newly_available_data(project_config)
         if len(results['new_item_urns'])>0:
+            # I need to run create_am2_input_features here : I need to 
+            # have the data types as well as the urns
+            items = [create_item_object(x) for x in results['new_item_urns']]
+            new_am2_relationships_data=create_am2_input_features(items, colectica_client)
             save_versioned_pickle_file(
-                results['all_am2_relationships_data'],
+                new_am2_relationships_data,
                 'am2_relationships_data_for_future_model',
                 folder='./projects/am2_project/data/pending_training_data',
                 )
