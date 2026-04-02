@@ -64,6 +64,7 @@ def main(args):
                 items_of_a_type = [x for x in items 
                     if x['ItemType']==colectica_client.item_code(item_type)]
                 new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, colectica_client)
+                new_am2_relationships_data_single_type['ItemType']=0
                 if item_type in all_item_models.keys(): 
                     all_item_models[item_type]['model'].predict(
                         new_am2_relationships_data_single_type
