@@ -55,8 +55,6 @@ def main(args):
             project_config = json.load(f)
         results = check_for_newly_available_data(project_config)
         if len(results['new_item_urns'])>0:
-            # I need to run create_am2_input_features here : I need to 
-            # have the data types as well as the urns
             items = [create_item_object(x) for x in results['new_item_urns']][0:500]
             item_types = sorted(set([colectica_client.item_code_inv(item['ItemType']) 
                 for item in items]))
