@@ -1,0 +1,79 @@
+2026-04-02 14:56:44,654 [INFO] Checking for newly available data in Colectica repository
+2026-04-02 14:56:44,654 [INFO] Running task with param: default_value
+2026-04-02 14:56:44,654 [INFO] Script completed successfully
+2026-04-02 15:00:06,201 [INFO] Checking for newly available data in Colectica repository
+2026-04-02 15:00:06,201 [INFO] Running task with param: default_value
+2026-04-02 15:00:06,201 [INFO] Script completed successfully
+2026-04-02 15:01:52,525 [INFO] Checking for newly available data in Colectica repository
+2026-04-02 15:01:52,528 [INFO] Running task with param: default_value
+2026-04-02 15:01:52,528 [INFO] Script completed successfully
+2026-04-02 15:03:27,674 [INFO] Checking for newly available data in Colectica repository
+2026-04-02 15:03:27,676 [INFO] Running task with param: default_value
+2026-04-02 15:03:27,678 [ERROR] Script failed
+Traceback (most recent call last):
+  File "C:\Users\o.lyttleton\Development\aiCourse\branches_for_am1\current_branch\ml-resources\projects\am2_project\src\check_for_data.py", line 27, in main
+    check_for_newly_available_data(project_config)
+  File "C:\Users\o.lyttleton\Development\aiCourse\branches_for_am1\current_branch\ml-resources\projects\am2_project\src\data\utility.py", line 264, in check_for_newly_available_data
+    file_version=get_max_file_version(Path(f"{folder}"), object_name)
+                 ^^^^^^^^^^^^^^^^^^^^
+NameError: name 'get_max_file_version' is not defined
+2026-04-02 15:04:18,069 [INFO] Checking for newly available data in Colectica repository
+2026-04-02 15:04:18,071 [INFO] Running task with param: default_value
+2026-04-02 15:04:18,072 [ERROR] Script failed
+Traceback (most recent call last):
+  File "C:\Users\o.lyttleton\Development\aiCourse\branches_for_am1\current_branch\ml-resources\projects\am2_project\src\check_for_data.py", line 27, in main
+    check_for_newly_available_data(project_config)
+  File "C:\Users\o.lyttleton\Development\aiCourse\branches_for_am1\current_branch\ml-resources\projects\am2_project\src\data\utility.py", line 265, in check_for_newly_available_data
+    file_version=get_max_file_version(Path(f"{folder}"), object_name)
+                                      ^^^^
+NameError: name 'Path' is not defined. Did you mean: 'math'?
+2026-04-02 15:04:44,636 [INFO] Checking for newly available data in Colectica repository
+2026-04-02 15:04:44,636 [INFO] Running task with param: default_value
+2026-04-02 15:04:44,636 [ERROR] Script failed
+Traceback (most recent call last):
+  File "C:\Users\o.lyttleton\Development\aiCourse\branches_for_am1\current_branch\ml-resources\projects\am2_project\src\data\utility.py", line 270, in check_for_newly_available_data
+    all_am2_relationships_data=read_dataset_from_file(file_path)
+                               ^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'read_dataset_from_file' is not defined
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\o.lyttleton\Development\aiCourse\branches_for_am1\current_branch\ml-resources\projects\am2_project\src\check_for_data.py", line 27, in main
+    check_for_newly_available_data(project_config)
+  File "C:\Users\o.lyttleton\Development\aiCourse\branches_for_am1\current_branch\ml-resources\projects\am2_project\src\data\utility.py", line 272, in check_for_newly_available_data
+    raise FileNotFoundError(f"File not found error: {e}")
+FileNotFoundError: File not found error: name 'read_dataset_from_file' is not defined
+2026-04-02 15:05:12,554 [INFO] Checking for newly available data in Colectica repository
+2026-04-02 15:05:12,556 [INFO] Running task with param: default_value
+2026-04-02 15:05:12,560 [ERROR] Script failed
+Traceback (most recent call last):
+  File "C:\Users\o.lyttleton\Development\aiCourse\branches_for_am1\current_branch\ml-resources\projects\am2_project\src\check_for_data.py", line 27, in main
+    check_for_newly_available_data(project_config)
+  File "C:\Users\o.lyttleton\Development\aiCourse\branches_for_am1\current_branch\ml-resources\projects\am2_project\src\data\utility.py", line 276, in check_for_newly_available_data
+    sweep_items=get_latest_versions_of_sweeps(project_config)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'get_latest_versions_of_sweeps' is not defined
+2026-04-02 15:06:39,007 [INFO] Checking for newly available data in Colectica repository
+2026-04-02 15:06:39,009 [INFO] Running task with param: default_value
+2026-04-02 15:06:39,016 [ERROR] Script failed
+Traceback (most recent call last):
+  File "C:\Users\o.lyttleton\Development\aiCourse\branches_for_am1\current_branch\ml-resources\projects\am2_project\src\check_for_data.py", line 27, in main
+    check_for_newly_available_data(project_config)
+  File "C:\Users\o.lyttleton\Development\aiCourse\branches_for_am1\current_branch\ml-resources\projects\am2_project\src\data\utility.py", line 276, in check_for_newly_available_data
+    sweep_items=get_latest_versions_of_sweeps(project_config)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'get_latest_versions_of_sweeps' is not defined
+2026-04-02 15:08:41,901 [INFO] Checking for newly available data in Colectica repository
+2026-04-02 15:08:41,903 [INFO] Running task with param: default_value
+2026-04-02 15:08:43,308 [ERROR] Script failed
+Traceback (most recent call last):
+  File "C:\Users\o.lyttleton\Development\aiCourse\branches_for_am1\current_branch\ml-resources\projects\am2_project\src\check_for_data.py", line 27, in main
+    check_for_newly_available_data(project_config)
+  File "C:\Users\o.lyttleton\Development\aiCourse\branches_for_am1\current_branch\ml-resources\projects\am2_project\src\data\utility.py", line 280, in check_for_newly_available_data
+    items=obtain_items_from_colectica(project_config["ItemTypes"], sweep_items)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'obtain_items_from_colectica' is not defined
+2026-04-02 15:09:04,471 [INFO] Checking for newly available data in Colectica repository
+2026-04-02 15:09:04,471 [INFO] Running task with param: default_value
+2026-04-02 15:09:14,028 [INFO] Script completed successfully
