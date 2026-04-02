@@ -60,7 +60,8 @@ def main(args):
                 for item in items]))
             all_new_am2_relationships_data={}
             for item_type in item_types:
-                items_of_a_type = [x for x in items if x['ItemType']==item_type]
+                items_of_a_type = [x for x in items 
+                    if x['ItemType']==colectica_client.item_code(item_type)]
                 new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, colectica_client)
                 all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
             save_versioned_pickle_file(
