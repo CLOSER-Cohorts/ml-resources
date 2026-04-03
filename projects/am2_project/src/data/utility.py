@@ -289,7 +289,7 @@ def check_for_newly_available_data(project_config):
     items=obtain_items_from_colectica(project_config["ItemTypes"], sweep_items)
     all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"
         for item in items]
-    new_item_urns=[create_urn(x) for x in items if x not in all_urns_in_current_dataset]
+    new_item_urns=[create_urn(x) for x in items if create_urn(x)["Urn"] not in all_urns_in_current_dataset]
     if len(new_item_urns)>0:
         print(f"There are {len(new_item_urns)} items are available for analysis/inclusion in the data model.")
     return {"all_item_urns": all_item_urns,
