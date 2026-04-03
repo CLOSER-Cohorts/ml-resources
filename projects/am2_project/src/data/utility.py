@@ -294,5 +294,4 @@ def check_for_newly_available_data(project_config):
         print(f"There are {len(new_item_urns)} items are available for analysis/inclusion in the data model.")
     return {"all_item_urns": all_item_urns,
             "all_urns_in_current_dataset": all_urns_in_current_dataset,
-            "new_item_urns": new_item_urns,
-            "all_am2_relationships_data": all_am2_relationships_data}
+            "new_item_urns": new_item_urns}
