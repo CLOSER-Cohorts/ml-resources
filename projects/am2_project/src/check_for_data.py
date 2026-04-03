@@ -28,6 +28,7 @@ def main(args):
     logging.info("Checking for newly available data in Colectica repository")
 
     try:
+        from src.slack.utility import send_message_to_slack
         from .data.utility import (
             check_for_newly_available_data)
         from src.ml_resources import (
@@ -35,7 +36,6 @@ def main(args):
             save_versioned_pickle_file,
             get_max_file_version
         )
-        from src.slack.utility import send_message_to_slack
         from projects.am2_project.src.data.utility import (
             create_am2_input_features
         )
