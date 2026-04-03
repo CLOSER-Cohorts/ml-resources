@@ -245,7 +245,7 @@ def train_semi_supervised_model(
                     preprocessing=["PCA"],
                     notes=notes,
                     model_version=model_name_version,
-                    training_data_version=training_data_description
+                    training_data_version=training_data_description,
                     training_item_ids=list(df_relationships.index))
                 save_versioned_pickle_file(model_package,
                     model_name_version, 
