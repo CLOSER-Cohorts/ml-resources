@@ -94,7 +94,8 @@ def main(args):
     except Exception as e:
         logging.exception("Script failed")
         send_message_to_slack("Check for new items failed.")
-        send_message_to_slack(e)
+        print(e)
+        send_message_to_slack(str(e))
         sys.exit(1)  # important for scheduler to detect failure
 
 if __name__ == "__main__":
