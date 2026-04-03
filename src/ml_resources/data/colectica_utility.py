@@ -6,21 +6,25 @@ from colectica_api import ColecticaObject
 import os
 import sys
 import re
+import json
 from natsort import natsorted
 
 REQUIRED_VARS = ["COLECTICA_USERNAME", "COLECTICA_PASSWORD", "COLECTICA_HOSTNAME"]
 
-missing = [var for var in REQUIRED_VARS if not os.environ.get(var)]
+with open("./projects/am2_project/config/secrets.json") as f:
+    secrets = json.load(f)
+
+missing = [var for var in REQUIRED_VARS if var not in secrets.keys()]
 
 if missing:
-    print("Error: Missing required environment variables:")
+    print("Error: Missing required config parameters:")
     for var in missing:
         print(f"  - {var}")
     sys.exit(1)
 
-USERNAME = os.environ.get("COLECTICA_USERNAME")
-PASSWORD = os.environ.get("COLECTICA_PASSWORD")
-HOSTNAME = os.environ.get("COLECTICA_HOSTNAME")
+USERNAME = secrets["COLECTICA_USERNAME"]
+PASSWORD = secrets["COLECTICA_PASSWORD"]
+HOSTNAME = secrets["COLECTICA_HOSTNAME"]
 C = ColecticaObject(HOSTNAME, USERNAME, PASSWORD, verify_ssl=False)
 
 def get_item_text(item_type, text_field, search_set=[], items_text={}):

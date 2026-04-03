@@ -5,27 +5,13 @@ import json
 from pathlib import Path
 from datetime import datetime
 import numpy as np
-from .data.utility import (
-        check_for_newly_available_data)
-from src.ml_resources import (
-    read_dataset_from_file,
-    save_versioned_pickle_file,
-    get_max_file_version
-    )
-from src.slack.utility import send_message_to_slack
-from projects.am2_project.src.data.utility import (
-        create_am2_input_features
-        )
-from src.ml_resources.data import colectica_utility
-
-colectica_client = colectica_utility.C
-
+        
 def setup_logging():
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
-            logging.FileHandler("script.log"),
+            logging.FileHandler("C:/Users/qtnzoly/Development/ai_apprenticeship/current_branch/issue-89/ml-resources/script.log"),
             logging.StreamHandler(sys.stdout)
         ]
     )
@@ -42,6 +28,21 @@ def main(args):
     logging.info("Checking for newly available data in Colectica repository")
 
     try:
+        from src.slack.utility import send_message_to_slack
+        from .data.utility import (
+            check_for_newly_available_data)
+        from src.ml_resources import (
+            read_dataset_from_file,
+            save_versioned_pickle_file,
+            get_max_file_version
+        )
+        from projects.am2_project.src.data.utility import (
+            create_am2_input_features
+        )
+        from src.ml_resources.data import colectica_utility
+
+        colectica_client = colectica_utility.C
+
         # Get most recent version of model...
         folder = "./projects/am2_project/models/all_item_models"
         object_name = "all_item_models"
@@ -93,6 +94,9 @@ def main(args):
 
     except Exception as e:
         logging.exception("Script failed")
+        send_message_to_slack("Check for new items failed.")
+        print(e)
+        send_message_to_slack(str(e))
         sys.exit(1)  # important for scheduler to detect failure
 
 if __name__ == "__main__":
