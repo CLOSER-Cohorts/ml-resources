@@ -93,7 +93,6 @@ def generate_data_for_classification(item_type,
 def generate_pca_data(X,
     item_type,
     dataset_name="_data",
-    all_principal_components={},
     fit_data=True,
     graphs_directory='./projects/am2_project/graphs/',
     pca_data = PCA(n_components=2)):
@@ -112,7 +111,6 @@ def generate_pca_data(X,
             numberInCluster=len(X[(X==unique_relationships_profile.iloc[count,:]).all(axis=1)])
             plt.text(i[0], i[1], (str(count)+": "+str(numberInCluster)))
             count=count+1
-        all_principal_components[item_type] = principalComponents
         plt.show(block=False)
         plt.savefig(f"{graphs_directory}pca_{dataset_name}_{item_type}.png")
         plt.close()
@@ -122,17 +120,17 @@ def generate_pca_data(X,
 def train_semi_supervised_model(
     all_relationships_data,
     item_types,
-    all_data,
-    all_principal_components={},
     dataset_name="_",
     generate_classification_report=False,
-    save_model_in_package_file=True):
-    all_models={}
+    save_model_in_package_file=True,
+    all_models={}):
     all_human_labelled_data=pd.DataFrame()
     print(item_types)
     model = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
     for item_type in item_types:
-        if len(all_relationships_data[item_type])>3 and input(f"Do you want to process the {item_type} items? ") in ['y', 'Y']:
+        if (item_type in all_relationships_data.keys() and 
+                len(all_relationships_data[item_type])>3 and 
+                input(f"Do you want to process the {item_type} items? ") in ['y', 'Y']):
             print(f"Creating semi-supervised model for {item_type}")
             print(f"There are {len(all_relationships_data[item_type])} items of this type")
             test_size_value=input("What proportion of the items do you want to put aside for testing? ")
@@ -152,8 +150,7 @@ def train_semi_supervised_model(
                 only_relabel_outliers=False
             pca_output=generate_pca_data(X_train,
                 item_type, 
-                dataset_name=f"{dataset_name}_training", 
-                all_principal_components=all_principal_components)
+                dataset_name=f"{dataset_name}_training")
             pca_data = pca_output['principalComponents']
             fitted_pca = pca_output['pcaFittedToData']    
             clf = IsolationForest(max_samples=100, random_state=0)
@@ -165,6 +162,10 @@ def train_semi_supervised_model(
                 dataset_name=dataset_name)
             training_dataset_isolation_forest.index = X_train.index
             X_train_copy=X_train.copy()
+            print("X_train")
+            print(X_train)
+            print("TRAINING DATASET ISOLATION FOREST")
+            print(training_dataset_isolation_forest)
             data_for_model=X_train_copy.join(training_dataset_isolation_forest)
             model_name_version=f"{item_type}_classifier_for_error_detection"
             training_data_description=f"{len(X_train)}_{item_type}_items"
@@ -199,7 +200,6 @@ def train_semi_supervised_model(
                 pca_output = generate_pca_data(input_for_test_pca,
                     item_type,
                     dataset_name=f"{dataset_name}_test",
-                    all_principal_components=all_principal_components,
                     fit_data=False,
                     pca_data=fitted_pca)
                 test_pca_data = pca_output['principalComponents']    
@@ -245,7 +245,8 @@ def train_semi_supervised_model(
                     preprocessing=["PCA"],
                     notes=notes,
                     model_version=model_name_version,
-                    training_data_version=training_data_description)
+                    training_data_version=training_data_description,
+                    training_item_ids=list(df_relationships.index))
                 save_versioned_pickle_file(model_package,
                     model_name_version, 
                     folder='./projects/am2_project/models')
@@ -253,14 +254,17 @@ def train_semi_supervised_model(
     if save_model_in_package_file == True:
         # Move columns to the end of the dataframe...
         cols_to_move=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'ItemType', 'Flagged']
-        all_human_labelled_data=all_human_labelled_data[[c for c in all_human_labelled_data.columns if c not in cols_to_move] + cols_to_move]
-        save_versioned_pickle_file(all_human_labelled_data.replace({np.nan: 0}),
+        if len(all_human_labelled_data)>0:
+            all_human_labelled_data=all_human_labelled_data[[c for c in all_human_labelled_data.columns if c not in cols_to_move] + cols_to_move]
+            save_versioned_pickle_file(all_human_labelled_data.replace({np.nan: 0}),
                     "all_human_labelled_data",
                     folder='./projects/am2_project/data/human_labelled_data')
-        save_versioned_pickle_file(all_models,
+            save_versioned_pickle_file(all_models,
                     "all_item_models", 
-                    folder='./projects/am2_project/models')                
-    return all_data
+                    folder='./projects/am2_project/models')
+            save_versioned_pickle_file(all_relationships_data,
+                    'all_am2_relationships_data',
+                    folder='./projects/am2_project/data')
 
 def create_urn(item):
     return {
@@ -269,28 +273,25 @@ def create_urn(item):
     }
 
 def check_for_newly_available_data(project_config):
-    all_relationships_data={}
-    folder=project_config["ItemRelationsFileLocation"]
-    object_name=project_config["ItemRelationsObjectName"]
+    all_urns_in_current_dataset=[]
+    folder=project_config["AllModelsFileLocation"]
+    object_name=project_config["AllModelsObjectName"]
     file_version=get_max_file_version(Path(f"{folder}"), object_name)
     try:
         file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
-        print(f"Reading relationships data from {file_path}")
-        all_am2_relationships_data=read_dataset_from_file(file_path)
+        print(f"Reading details of trained models from {file_path}")
+        all_models=read_dataset_from_file(file_path)
+        for item_type, model in all_models.items():
+            all_urns_in_current_dataset.extend(model['metadata']["training_item_ids"])
     except Exception as e:
         raise FileNotFoundError(f"File not found error: {e}")
-    item_types_string = project_config['ItemTypes']
-    all_urns_in_current_dataset=[]
     sweep_items=get_latest_versions_of_sweeps(project_config)
-    for item_type in all_am2_relationships_data.keys():
-            all_urns_in_current_dataset.extend(all_am2_relationships_data[item_type].index)
     items=obtain_items_from_colectica(project_config["ItemTypes"], sweep_items)
     all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"
         for item in items]
-    new_item_urns=[create_urn(x) for x in items if x not in all_urns_in_current_dataset]
+    new_item_urns=[create_urn(x) for x in items if create_urn(x)["Urn"] not in all_urns_in_current_dataset]
     if len(new_item_urns)>0:
         print(f"There are {len(new_item_urns)} items are available for analysis/inclusion in the data model.")
     return {"all_item_urns": all_item_urns,
             "all_urns_in_current_dataset": all_urns_in_current_dataset,
-            "new_item_urns": new_item_urns,
-            "all_am2_relationships_data": all_am2_relationships_data}
+            "new_item_urns": new_item_urns}

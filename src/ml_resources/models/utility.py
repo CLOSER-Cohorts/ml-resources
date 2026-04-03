@@ -6,7 +6,8 @@ def create_model_package(model,
     framework="sklearn",
     notes="",
     model_version="NA",
-    training_data_version="NA"):
+    training_data_version="NA",
+    training_item_ids=[]):
     model_package = {
     "model": model,
     "metadata": {
@@ -18,6 +19,7 @@ def create_model_package(model,
         "target_variable": target_variable,
         "accuracy": accuracy_report,
         "training_data_version": training_data_version,
+        "training_item_ids": training_item_ids,
         "notes": notes,
         "model_version": model_version
         },
