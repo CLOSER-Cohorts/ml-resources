@@ -9,15 +9,13 @@ from src.ml_resources import (
     read_dataset_from_file,
     save_versioned_pickle_file,
     obtain_items_from_colectica,
-    check_for_newly_available_data,
+    #check_for_newly_available_data,
     get_sweeps,
     get_max_file_version)
 from projects.am2_project.src.data.utility import (
         create_am2_input_features,
         train_semi_supervised_model)
 from src.ml_resources.data import colectica_utility
-
-
 
 colectica_client = colectica_utility.C
 
@@ -59,6 +57,7 @@ print(json_formatted_str)
 
 question_keys_from_repository_for_dataset = []
 
+"""
 for item in items:
     if colectica_client.item_code_inv[item['ItemType']] not in all_relationships_data.keys():
         print(f"Need to create a relationships profile for {item_type} items")
@@ -71,9 +70,9 @@ for item in items:
     ids_for_newly_available_data=check_for_newly_available_data(
         [x['Identifier'] for x in items],
         [x.split(":")[1] for x in df_relationships.index])
+"""
 
-            )
-    
+
 # The code below could be part of the deployed application;
 # it could run as a scheduled task, and every time someone goes to a dashboard
 # to view details of outliers, if there were new data available
@@ -102,11 +101,18 @@ dtc = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
 check_is_fitted(dtc)
 all_training_data={}
 all_principal_components={}
+
+# Get the most up to date version of the training data
+
+folder = "./projects/am2_project/data/pending_training_data/am2_relationships_data_for_future_model"
+object_name = "am2_relationships_data_for_future_model"
+file_version = get_max_file_version(Path(f"{folder}"), object_name)
+file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
+relationships_data_for_training_updated_model=read_dataset_from_file(file_path)
+
 train_semi_supervised_model(
-    all_relationships_data,
-    item_types_string[0:5],
-    all_training_data,
-    all_principal_components=all_principal_components,
+    relationships_data_for_training_updated_model,
+    project_config['ItemTypes'],
     dataset_name="wip",
     generate_classification_report=True,
     save_model_in_package_file=True)

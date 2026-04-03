@@ -93,7 +93,6 @@ def generate_data_for_classification(item_type,
 def generate_pca_data(X,
     item_type,
     dataset_name="_data",
-    all_principal_components={},
     fit_data=True,
     graphs_directory='./projects/am2_project/graphs/',
     pca_data = PCA(n_components=2)):
@@ -112,7 +111,6 @@ def generate_pca_data(X,
             numberInCluster=len(X[(X==unique_relationships_profile.iloc[count,:]).all(axis=1)])
             plt.text(i[0], i[1], (str(count)+": "+str(numberInCluster)))
             count=count+1
-        all_principal_components[item_type] = principalComponents
         plt.show(block=False)
         plt.savefig(f"{graphs_directory}pca_{dataset_name}_{item_type}.png")
         plt.close()
@@ -122,8 +120,6 @@ def generate_pca_data(X,
 def train_semi_supervised_model(
     all_relationships_data,
     item_types,
-    all_data,
-    all_principal_components={},
     dataset_name="_",
     generate_classification_report=False,
     save_model_in_package_file=True):
@@ -132,7 +128,9 @@ def train_semi_supervised_model(
     print(item_types)
     model = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
     for item_type in item_types:
-        if len(all_relationships_data[item_type])>3 and input(f"Do you want to process the {item_type} items? ") in ['y', 'Y']:
+        if (item_type in all_relationships_data.keys() and 
+                len(all_relationships_data[item_type])>3 and 
+                input(f"Do you want to process the {item_type} items? ") in ['y', 'Y']):
             print(f"Creating semi-supervised model for {item_type}")
             print(f"There are {len(all_relationships_data[item_type])} items of this type")
             test_size_value=input("What proportion of the items do you want to put aside for testing? ")
@@ -152,8 +150,7 @@ def train_semi_supervised_model(
                 only_relabel_outliers=False
             pca_output=generate_pca_data(X_train,
                 item_type, 
-                dataset_name=f"{dataset_name}_training", 
-                all_principal_components=all_principal_components)
+                dataset_name=f"{dataset_name}_training")
             pca_data = pca_output['principalComponents']
             fitted_pca = pca_output['pcaFittedToData']    
             clf = IsolationForest(max_samples=100, random_state=0)
@@ -199,7 +196,6 @@ def train_semi_supervised_model(
                 pca_output = generate_pca_data(input_for_test_pca,
                     item_type,
                     dataset_name=f"{dataset_name}_test",
-                    all_principal_components=all_principal_components,
                     fit_data=False,
                     pca_data=fitted_pca)
                 test_pca_data = pca_output['principalComponents']    
@@ -253,14 +249,14 @@ def train_semi_supervised_model(
     if save_model_in_package_file == True:
         # Move columns to the end of the dataframe...
         cols_to_move=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'ItemType', 'Flagged']
-        all_human_labelled_data=all_human_labelled_data[[c for c in all_human_labelled_data.columns if c not in cols_to_move] + cols_to_move]
-        save_versioned_pickle_file(all_human_labelled_data.replace({np.nan: 0}),
+        if len(all_human_labelled_data)>0:
+            all_human_labelled_data=all_human_labelled_data[[c for c in all_human_labelled_data.columns if c not in cols_to_move] + cols_to_move]
+            save_versioned_pickle_file(all_human_labelled_data.replace({np.nan: 0}),
                     "all_human_labelled_data",
                     folder='./projects/am2_project/data/human_labelled_data')
-        save_versioned_pickle_file(all_models,
+            save_versioned_pickle_file(all_models,
                     "all_item_models", 
-                    folder='./projects/am2_project/models')                
-    return all_data
+                    folder='./projects/am2_project/models')
 
 def create_urn(item):
     return {

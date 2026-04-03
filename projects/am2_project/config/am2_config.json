@@ -26,8 +26,7 @@
       "uk.cls.ncds": ["Age 55 Survey (2013)", "Age 62 (2020)", "Age 62 COVID-19 Survey (2021) Wave 3"]
   }
   },
-  "ItemTypes": ["Instrument", 
-    "Series",
+  "ItemTypes": [
     "Action",
     "Archive",
     "Category",
