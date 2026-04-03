@@ -123,6 +123,8 @@ check_is_fitted(dtc)
 save_versioned_pickle_file(all_am2_relationships_data,
         'all_am2_relationships_data', folder='./projects/am2_project/data')
 
+all_labelled_data=read_dataset_from_file('projects/am2_project/data/human_labelled_data/all_human_labelled_data_4.pickle')
+
 future_data=read_dataset_from_file('projects/am2_project/data/pending_training_data/am2_relationships_data_for_future_model/am2_relationships_data_for_future_model_3.pickle')
 # The commands below are useful for reading the supervised model trained by
 # train_semi_supervised_model above into memory for inspection

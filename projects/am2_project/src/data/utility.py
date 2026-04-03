@@ -261,6 +261,9 @@ def train_semi_supervised_model(
             save_versioned_pickle_file(all_models,
                     "all_item_models", 
                     folder='./projects/am2_project/models')
+            save_versioned_pickle_file(all_relationships_data,
+                    'all_am2_relationships_data',
+                    folder='./projects/am2_project/data')
 
 def create_urn(item):
     return {
