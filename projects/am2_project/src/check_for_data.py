@@ -11,7 +11,7 @@ def setup_logging():
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
-            logging.FileHandler("script.log"),
+            logging.FileHandler("C:/Users/qtnzoly/Development/ai_apprenticeship/current_branch/issue-89/ml-resources/script.log"),
             logging.StreamHandler(sys.stdout)
         ]
     )
