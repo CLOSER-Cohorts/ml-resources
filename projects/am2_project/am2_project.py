@@ -100,7 +100,9 @@ check_is_fitted(dtc)
 all_training_data={}
 all_principal_components={}
 
-# Get the most up to date version of the training data
+# The code below shows how to train the models using new relationships data
+# and the train_semi_supervised_model function. the all_item_models object
+# will be updated to included the new/updated models.
 
 with open("./projects/am2_project/config/am2_config.json") as f:
     project_config = json.load(f)
