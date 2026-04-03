@@ -281,8 +281,8 @@ def check_for_newly_available_data(project_config):
         file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
         print(f"Reading details of trained models from {file_path}")
         all_models=read_dataset_from_file(file_path)
-        for item_type, model_info in all_models.items():
-            all_urns_in_current_dataset.extend(model_info["training_item_ids"])
+        for item_type, model in all_models.items():
+            all_urns_in_current_dataset.extend(model['metadata']["training_item_ids"])
     except Exception as e:
         raise FileNotFoundError(f"File not found error: {e}")
     sweep_items=get_latest_versions_of_sweeps(project_config)
