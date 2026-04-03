@@ -1,6 +1,4 @@
-param(
-    [string]$Branch = "issue-91-create-powershell-script-for-ci-cd"
-)
+$Branch = "issue-91-create-powershell-script-for-ci-cd"
 
 # Go to your repository
 cd ..
