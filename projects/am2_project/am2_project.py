@@ -24,8 +24,6 @@ colectica_client = colectica_utility.C
 #START WITH ONE DATA TYPE, E.G. DATA FILE, BUILD IN THAT
 
 
-with open("./projects/am2_project/config/am2_config.json") as f:
-    project_config = json.load(f)
 
 all_relationships_data={}
 file_path = Path('./projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_83.pickle')
@@ -104,6 +102,9 @@ all_principal_components={}
 
 # Get the most up to date version of the training data
 
+with open("./projects/am2_project/config/am2_config.json") as f:
+    project_config = json.load(f)
+
 folder = "./projects/am2_project/data/pending_training_data/am2_relationships_data_for_future_model"
 object_name = "am2_relationships_data_for_future_model"
 file_version = get_max_file_version(Path(f"{folder}"), object_name)
@@ -122,7 +123,7 @@ check_is_fitted(dtc)
 save_versioned_pickle_file(all_am2_relationships_data,
         'all_am2_relationships_data', folder='./projects/am2_project/data')
 
-future_data=read_dataset_from_file('projects/am2_project/data/pending_training_data/am2_relationships_data_for_future_model/am2_relationships_data_for_future_model_6.pickle')
+future_data=read_dataset_from_file('projects/am2_project/data/pending_training_data/am2_relationships_data_for_future_model/am2_relationships_data_for_future_model_3.pickle')
 # The commands below are useful for reading the supervised model trained by
 # train_semi_supervised_model above into memory for inspection
 model_package=read_dataset_from_file(

@@ -162,6 +162,10 @@ def train_semi_supervised_model(
                 dataset_name=dataset_name)
             training_dataset_isolation_forest.index = X_train.index
             X_train_copy=X_train.copy()
+            print("X_train")
+            print(X_train)
+            print("TRAINING DATASET ISOLATION FOREST")
+            print(training_dataset_isolation_forest)
             data_for_model=X_train_copy.join(training_dataset_isolation_forest)
             model_name_version=f"{item_type}_classifier_for_error_detection"
             training_data_description=f"{len(X_train)}_{item_type}_items"
