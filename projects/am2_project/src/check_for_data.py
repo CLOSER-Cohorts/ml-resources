@@ -1,3 +1,11 @@
+import argparse
+import logging
+import sys
+import json
+from pathlib import Path
+from datetime import datetime
+import numpy as np
+        
 def setup_logging():
     logging.basicConfig(
         level=logging.INFO,
@@ -20,13 +28,6 @@ def main(args):
     logging.info("Checking for newly available data in Colectica repository")
 
     try:
-        import argparse
-        import logging
-        import sys
-        import json
-        from pathlib import Path
-        from datetime import datetime
-        import numpy as np
         from .data.utility import (
             check_for_newly_available_data)
         from src.ml_resources import (
