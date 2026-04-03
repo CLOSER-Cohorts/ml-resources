@@ -1,3 +1,5 @@
+# Hard code the branch variable...
+
 $Branch = "issue-91-create-powershell-script-for-ci-cd"
 
 # Go to your repository
