@@ -111,12 +111,19 @@ file_version = get_max_file_version(Path(f"{folder}"), object_name)
 file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
 relationships_data_for_training_updated_model=read_dataset_from_file(file_path)
 
+folder = "./projects/am2_project/models/all_item_models"
+object_name = "all_item_models"
+file_version = get_max_file_version(Path(f"{folder}"), object_name)
+file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
+all_item_models=read_dataset_from_file(file_path)
+
 train_semi_supervised_model(
     relationships_data_for_training_updated_model,
     project_config['ItemTypes'],
     dataset_name="wip",
     generate_classification_report=True,
-    save_model_in_package_file=True)
+    save_model_in_package_file=True,
+    all_models=all_item_models)
 # dtc was fitted in train_semi_supervised_model so the below check_is_fitted command should
 # run and not throw an error.
 check_is_fitted(dtc)
@@ -124,7 +131,7 @@ save_versioned_pickle_file(all_am2_relationships_data,
         'all_am2_relationships_data', folder='./projects/am2_project/data')
 
 all_labelled_data=read_dataset_from_file('projects/am2_project/data/human_labelled_data/all_human_labelled_data_4.pickle')
-
+all_relationships=read_dataset_from_file('projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_88.pickle')
 future_data=read_dataset_from_file('projects/am2_project/data/pending_training_data/am2_relationships_data_for_future_model/am2_relationships_data_for_future_model_3.pickle')
 # The commands below are useful for reading the supervised model trained by
 # train_semi_supervised_model above into memory for inspection

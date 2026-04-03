@@ -122,8 +122,8 @@ def train_semi_supervised_model(
     item_types,
     dataset_name="_",
     generate_classification_report=False,
-    save_model_in_package_file=True):
-    all_models={}
+    save_model_in_package_file=True,
+    all_models={}):
     all_human_labelled_data=pd.DataFrame()
     print(item_types)
     model = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
