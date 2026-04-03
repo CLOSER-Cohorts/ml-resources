@@ -1,6 +1,6 @@
 {
-  "ItemRelationsFileLocation": "./projects/am2_project/data/all_am2_relationships_data/",
-  "ItemRelationsObjectName": "all_am2_relationships_data",
+  "AllModelsFileLocation": "./projects/am2_project/models/all_item_models/",
+  "AllModelsObjectName": "all_item_models",
   "ItemsForTrainingAndTest": {
     "Studies": [],
     "Sweeps": {

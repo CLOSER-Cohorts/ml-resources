@@ -245,7 +245,8 @@ def train_semi_supervised_model(
                     preprocessing=["PCA"],
                     notes=notes,
                     model_version=model_name_version,
-                    training_data_version=training_data_description)
+                    training_data_version=training_data_description
+                    training_item_ids=list(df_relationships.index))
                 save_versioned_pickle_file(model_package,
                     model_name_version, 
                     folder='./projects/am2_project/models')
@@ -272,21 +273,19 @@ def create_urn(item):
     }
 
 def check_for_newly_available_data(project_config):
-    all_relationships_data={}
-    folder=project_config["ItemRelationsFileLocation"]
-    object_name=project_config["ItemRelationsObjectName"]
+    all_urns_in_current_dataset=[]
+    folder=project_config["AllModelsFileLocation"]
+    object_name=project_config["AllModelsObjectName"]
     file_version=get_max_file_version(Path(f"{folder}"), object_name)
     try:
         file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
-        print(f"Reading relationships data from {file_path}")
-        all_am2_relationships_data=read_dataset_from_file(file_path)
+        print(f"Reading details of trained models from {file_path}")
+        all_models=read_dataset_from_file(file_path)
+        for item_type, model_info in all_models.items():
+            all_urns_in_current_dataset.extend(model_info["training_item_ids"])
     except Exception as e:
         raise FileNotFoundError(f"File not found error: {e}")
-    item_types_string = project_config['ItemTypes']
-    all_urns_in_current_dataset=[]
     sweep_items=get_latest_versions_of_sweeps(project_config)
-    for item_type in all_am2_relationships_data.keys():
-            all_urns_in_current_dataset.extend(all_am2_relationships_data[item_type].index)
     items=obtain_items_from_colectica(project_config["ItemTypes"], sweep_items)
     all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"
         for item in items]
