@@ -7,9 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from src.ml_resources import (
     read_dataset_from_file,
-    save_versioned_pickle_file,
     obtain_items_from_colectica,
-    get_all_sweeps,
     get_max_file_version,
     get_summary_data)
 from projects.am2_project.src.data.utility import (
@@ -124,7 +122,8 @@ train_semi_supervised_model(
 # stats (note that folder and object_name should be defined as above)
 
 get_summary_data(Path(f"{folder}"), object_name)
-
+# Here's where we get the performance metrics for training and testing...
+reports=read_dataset_from_file('./projects/am2_project/experiments/all_items/classification_report_all_items_training/classification_report_all_items_training_2.pickle')
 
 all_labelled_data=read_dataset_from_file('projects/am2_project/data/human_labelled_data/all_human_labelled_data_4.pickle')
 all_relationships=read_dataset_from_file('projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_88.pickle')

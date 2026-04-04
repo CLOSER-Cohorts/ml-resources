@@ -126,6 +126,8 @@ def train_semi_supervised_model(
     save_model_in_package_file=True,
     all_models={}):
     all_human_labelled_data=pd.DataFrame()
+    all_training_reports={}
+    all_test_reports={}
     print(item_types)
     model = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
     for item_type in item_types:
@@ -181,7 +183,9 @@ def train_semi_supervised_model(
                 item_type=item_type,
                 target_variable_is_binary=True,
                 categories=[-1,1],
-                only_relabel_outliers=only_relabel_outliers
+                only_relabel_outliers=only_relabel_outliers,
+                generate_classification_report=generate_classification_report,
+                all_reports=all_training_reports
                 )
             all_human_labelled_data=pd.concat([all_human_labelled_data,
                 human_labelled_training_data])
@@ -234,7 +238,9 @@ def train_semi_supervised_model(
                     target_variable_is_binary=True,
                     only_relabel_outliers=False,
                     categories=[-1,1],
-                    generate_classification_report=generate_classification_report
+                    generate_classification_report=generate_classification_report,
+                    data_label="test",
+                    all_reports=all_test_reports
                     )
                 all_human_labelled_data=pd.concat([all_human_labelled_data,
                     human_labelled_test_data])
@@ -249,7 +255,7 @@ def train_semi_supervised_model(
                     training_data_version=training_data_description,
                     training_item_ids=list(df_relationships.index))
                 save_versioned_pickle_file(model_package,
-                    model_name_version, 
+                    model_name_version,
                     folder='./projects/am2_project/models')
             all_models[model_name_version]=model_package
     if save_model_in_package_file == True:
@@ -266,6 +272,12 @@ def train_semi_supervised_model(
             save_versioned_pickle_file(all_relationships_data,
                     'all_am2_relationships_data',
                     folder='./projects/am2_project/data')
+            save_versioned_pickle_file(all_training_reports,
+                    f"classification_report_all_items_training",
+                    folder=f"./projects/am2_project/experiments/all_items")
+            save_versioned_pickle_file(all_test_reports,
+                    f"classification_report_all_items_test",
+                    folder=f"./projects/am2_project/experiments/all_items")
 
 def create_urn(item):
     return {
