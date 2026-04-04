@@ -67,7 +67,6 @@ def main(args):
         logging.info(f"Running task with param: {args.param}")
         with open("./projects/am2_project/config/am2_config.json") as f:
             project_config = json.load(f)
-        """    
         results = check_for_newly_available_data(project_config)
         if len(results['new_item_urns'])>0:
             items = [create_item_object(x) for x in results['new_item_urns']][0:500]
@@ -97,7 +96,6 @@ def main(args):
                 'am2_relationships_data_for_future_model',
                 folder='./projects/am2_project/data/pending_training_data',
                 )
-        """
         
         all_sweeps=get_all_sweeps()
         sweeps_not_in_project=check_for_new_sweeps(project_config, all_sweeps)
