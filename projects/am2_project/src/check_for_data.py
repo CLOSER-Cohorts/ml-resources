@@ -11,7 +11,7 @@ def setup_logging():
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
-            logging.FileHandler("C:/Users/qtnzoly/Development/ai_apprenticeship/current_branch/issue-89/ml-resources/script.log"),
+            logging.FileHandler("script.log"),
             logging.StreamHandler(sys.stdout)
         ]
     )
@@ -24,6 +24,18 @@ def create_item_object(urn_and_item_type):
         "ItemType": urn_and_item_type["ItemType"]
         }
 
+def check_for_new_sweeps(project_config, all_sweeps):
+    sweep_agency_ids_in_repository=[]
+    for study, sweeps in all_sweeps.items():
+        for sweep_name, sweep_id in sweeps.items():
+            sweep_agency_ids_in_repository.append(f"{study}:{sweep_id}:{sweep_name}")
+    sweep_agency_ids_for_project=[]
+    for study, sweeps in project_config["ItemsForTrainingAndTest"]["Sweeps"].items():
+        for sweep_name, sweep_id in sweeps.items():
+            sweep_agency_ids_for_project.append(f"{study}:{sweep_id}:{sweep_name}")
+    sweeps_not_in_project=[x for x in sweep_agency_ids_in_repository if x not in sweep_agency_ids_for_project]
+    return sweeps_not_in_project
+
 def main(args):
     logging.info("Checking for newly available data in Colectica repository")
 
@@ -34,7 +46,8 @@ def main(args):
         from src.ml_resources import (
             read_dataset_from_file,
             save_versioned_pickle_file,
-            get_max_file_version
+            get_max_file_version,
+            get_all_sweeps
         )
         from projects.am2_project.src.data.utility import (
             create_am2_input_features
@@ -54,6 +67,7 @@ def main(args):
         logging.info(f"Running task with param: {args.param}")
         with open("./projects/am2_project/config/am2_config.json") as f:
             project_config = json.load(f)
+        """    
         results = check_for_newly_available_data(project_config)
         if len(results['new_item_urns'])>0:
             items = [create_item_object(x) for x in results['new_item_urns']][0:500]
@@ -83,7 +97,20 @@ def main(args):
                 'am2_relationships_data_for_future_model',
                 folder='./projects/am2_project/data/pending_training_data',
                 )
-            
+        """
+        
+        all_sweeps=get_all_sweeps()
+        sweeps_not_in_project=check_for_new_sweeps(project_config, all_sweeps)
+        if len(sweeps_not_in_project)>0:
+            print(f"""
+                The following sweeps are present in the repository, but are not included in the project:
+                {sweeps_not_in_project} 
+                """)
+            #send_message_to_slack(f"""
+            #    The following sweeps are present in the repository, but are not included in the project:
+            #    {sweeps_not_in_project} 
+            #    """)
+
         # Example task
         print(f"Hello at {datetime.now()}")
 

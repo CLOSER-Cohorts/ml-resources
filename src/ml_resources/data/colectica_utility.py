@@ -110,7 +110,7 @@ def get_topics_for_items(item_identifiers, study_agency_id, topic_type, C, verbo
                 topic=topicItem[0]['ItemName']
             topics[study_agency_id][identifier]['Topic'] = topic
 
-def get_sweeps():
+def get_all_sweeps():
     sweep_info={}
     # Get all studies...
     study_items = C.search_items([C.item_code('Series')],
@@ -134,16 +134,12 @@ def get_sweeps():
                     else:
                         sweep_name=sweep_item['ItemName']
                     sweep_names.append(sweep_name)
-                    #print(sweep_names)
-                #for sweep_name in natsorted(sweep_names):
                     if study['AgencyId'] not in sweep_info.keys():
                         sweep_info[study['AgencyId']]={}
-                    #sweep_info[study['AgencyId']]['Identifier']=sweep_item['Identifier']
                     sweep_info[study['AgencyId']][sweep_name]=sweep_item['Identifier']
-                #sweep_info[study['AgencyId']]['SweepItems']=sweep_items
     return sweep_info
 
-def get_latest_versions_of_sweeps(project_config):
+def get_latest_versions_of_project_sweeps(project_config):
     sweep_items = []
     for study, sweeps in project_config["ItemsForTrainingAndTest"]["Sweeps"].items():
         for sweep_name, sweep_id in sweeps.items():

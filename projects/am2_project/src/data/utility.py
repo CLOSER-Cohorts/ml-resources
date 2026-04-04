@@ -13,8 +13,9 @@ from src.ml_resources import (
     read_dataset_from_file,
     save_versioned_pickle_file,
     get_max_file_version,
-    get_latest_versions_of_sweeps,
-    obtain_items_from_colectica )
+    get_latest_versions_of_project_sweeps,
+    obtain_items_from_colectica,
+    get_all_sweeps )
 
 def create_am2_input_features(items, colectica_client):    
     df_relationships = pd.DataFrame()
@@ -285,7 +286,7 @@ def check_for_newly_available_data(project_config):
             all_urns_in_current_dataset.extend(model['metadata']["training_item_ids"])
     except Exception as e:
         raise FileNotFoundError(f"File not found error: {e}")
-    sweep_items=get_latest_versions_of_sweeps(project_config)
+    sweep_items=get_latest_versions_of_project_sweeps(project_config)
     items=obtain_items_from_colectica(project_config["ItemTypes"], sweep_items)
     all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"
         for item in items]
