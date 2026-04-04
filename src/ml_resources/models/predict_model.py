@@ -53,7 +53,6 @@ def obtain_correctly_labelled_data(data_with_predictions,
     generate_classification_report=False,
     only_relabel_outliers=True,
     categories=[0,1],
-    data_label="training",
     all_reports={}):
     user_labelled_data=data_with_predictions.copy()
     print("We will now determine if the predictions returned by a model are correct.")

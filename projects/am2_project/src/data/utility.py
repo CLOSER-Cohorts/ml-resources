@@ -239,7 +239,6 @@ def train_semi_supervised_model(
                     only_relabel_outliers=False,
                     categories=[-1,1],
                     generate_classification_report=generate_classification_report,
-                    data_label="test",
                     all_reports=all_test_reports
                     )
                 all_human_labelled_data=pd.concat([all_human_labelled_data,
