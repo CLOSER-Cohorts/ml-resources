@@ -8,13 +8,13 @@ import pandas as pd
 from src.ml_resources import (
     read_dataset_from_file,
     save_versioned_pickle_file,
-    obtain_items_from_colectica,
-    #check_for_newly_available_data,
-    get_sweeps,
+    obtain_items_from_colectica
+    get_all_sweeps,
     get_max_file_version)
 from projects.am2_project.src.data.utility import (
         create_am2_input_features,
-        train_semi_supervised_model)
+        train_semi_supervised_model
+        )
 from src.ml_resources.data import colectica_utility
 
 colectica_client = colectica_utility.C
@@ -31,14 +31,6 @@ if file_path.exists():
     all_relationships_data=read_dataset_from_file(file_path)
 else:
     print("File does not exist")
-
-a=check_for_newly_available_data(project_config)
-
-all_sweeps=get_sweeps()
-total=0
-for x,y in all_sweeps.items():
-   total+=len(y)
-
 
 sweeps_for_training_and_test={}
 for study in all_sweeps.keys():

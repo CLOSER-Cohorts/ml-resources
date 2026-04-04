@@ -7,5 +7,5 @@ from .models.predict_model import calculate_accuracy, obtain_correctly_labelled_
 from .models.utility import create_model_package
 from .data.colectica_utility import (
     obtain_items_from_colectica,
-    get_sweeps,
-    get_latest_versions_of_sweeps)
+    get_all_sweeps,
+    get_latest_versions_of_project_sweeps)
