@@ -45,3 +45,16 @@ def read_dataset_from_file(filename):
     data_file = open(filename, 'rb')
     model_data = pickle.load(data_file)
     return model_data
+
+def get_summary_data(folder_path, object_name):
+    pattern = re.compile(rf"^{re.escape(object_name)}_(\d+)\.pickle$")
+    for file in folder_path.iterdir():
+        if file.is_file():
+            match = pattern.match(file.name)
+            if match:
+                file_path = Path(f"{folder_path}/{file.name}")
+                all_item_models=read_dataset_from_file(file_path)
+                for classifier_type in all_item_models.keys():
+                    print(f"Classifier: {classifier_type}")
+                    print(f"File name: {file.name}")
+                    print(all_item_models[classifier_type]['data'][['x', 'y', 'DistanceFromOrigin', 'AnomalyScore']].describe())

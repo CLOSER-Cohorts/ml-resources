@@ -8,9 +8,10 @@ import pandas as pd
 from src.ml_resources import (
     read_dataset_from_file,
     save_versioned_pickle_file,
-    obtain_items_from_colectica
+    obtain_items_from_colectica,
     get_all_sweeps,
-    get_max_file_version)
+    get_max_file_version,
+    get_summary_data)
 from projects.am2_project.src.data.utility import (
         create_am2_input_features,
         train_semi_supervised_model
@@ -118,11 +119,12 @@ train_semi_supervised_model(
     generate_classification_report=True,
     save_model_in_package_file=True,
     all_models=all_item_models)
-# dtc was fitted in train_semi_supervised_model so the below check_is_fitted command should
-# run and not throw an error.
-check_is_fitted(dtc)
-save_versioned_pickle_file(all_am2_relationships_data,
-        'all_am2_relationships_data', folder='./projects/am2_project/data')
+
+# The get_summary_data command is used to check in older versions of the pickles for summary
+# stats (note that folder and object_name should be defined as above)
+
+get_summary_data(Path(f"{folder}"), object_name)
+
 
 all_labelled_data=read_dataset_from_file('projects/am2_project/data/human_labelled_data/all_human_labelled_data_4.pickle')
 all_relationships=read_dataset_from_file('projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_88.pickle')
