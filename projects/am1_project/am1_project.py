@@ -95,7 +95,7 @@ print(level_one_class_proportions)
 
 # If we have already calculated the embeddings and saved them to a pickle file, we read them in...
 
-transformed_embeddings = read_dataset_from_file('../projects/am1_project/data/transformed_embeddings_1.pickle')
+transformed_embeddings = read_dataset_from_file('./projects/am1_project/data/transformed_embeddings_1.pickle')
 
 # ...otherwise we can calculate them from scratch, and save them to a file...
 
@@ -118,6 +118,13 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 lr_model_data=create_model_data_object(X_train, X_test, y_train, y_test)
 trainedModel=train_model(lr_model_data, selected_input_features=['summary_embeddings', 'category_embeddings'])
+
+# Save the model...
+
+save_versioned_pickle_file(trainedModel, 'trainedModel', folder='../projects/am1_project/model')
+save_versioned_pickle_file(testData, 'testData', folder='../projects/am1_project/data')
+
+
 input_feature_list=[]
 for input_feature in ['summary_embeddings', 'category_embeddings']:
         input_feature_list.append(np.vstack(lr_model_data['X_test'][input_feature]))
