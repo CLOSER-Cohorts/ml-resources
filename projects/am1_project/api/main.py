@@ -2,10 +2,13 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import pickle
 import numpy as np
+from src.ml_resources import (
+    apply_pipeline)
+
 #from src.ml_resources import read_dataset_from_fil
 # 
 # e
-
+"""
 modelfile = open('./projects/am1_project/model/trainedModel/trainedModel_1.pickle', 'rb')
 trainedModel = pickle.load(modelfile)
 testDataFile = open('./projects/am1_project/data/testData/testData_1.pickle', 'rb')
@@ -15,8 +18,7 @@ X = np.hstack([
      np.vstack(testData['summary_embeddings']),
      np.vstack(testData['category_embeddings'])
  ])
-
-#model=read_dataset_from_file('./projects/am1_project/model/trainedModel/trainedModel_1.pickle')
+"""
 
 class Item(BaseModel):
     name: str
@@ -26,7 +28,7 @@ class Item(BaseModel):
 
 app = FastAPI()
 
-message_value = str(trainedModel.predict(X))
+#message_value = str(trainedModel.predict(X))
 
 @app.get("/")
 async def root():
@@ -40,3 +42,14 @@ async def create_item(item: Item):
         price_with_tax = item.price + item.tax
         item_dict.update({"price_with_tax": price_with_tax})
     return item_dict
+
+@app.post("/categorise_questions/")
+async def categorise_questions(item: Item):
+    return item
+    
+
+    
+    
+    #question_summary=item['Summary']
+    #question_categories=item['Categories']
+    #transformed_embeddings = apply_pipeline(df, ['Summary', 'QuestionCategories'])
