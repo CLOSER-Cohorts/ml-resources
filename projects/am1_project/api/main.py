@@ -1,16 +1,20 @@
+# from repo root: python -m uvicorn projects.am1_project.api.main:app --reload
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 import pickle
 import numpy as np
+import pandas as pd
 from src.ml_resources import (
     apply_pipeline)
 
 #from src.ml_resources import read_dataset_from_fil
 # 
 # e
-"""
+
 modelfile = open('./projects/am1_project/model/trainedModel/trainedModel_1.pickle', 'rb')
 trainedModel = pickle.load(modelfile)
+"""
 testDataFile = open('./projects/am1_project/data/testData/testData_1.pickle', 'rb')
 testData = pickle.load(testDataFile)
 
@@ -21,18 +25,16 @@ X = np.hstack([
 """
 
 class Item(BaseModel):
-    name: str
-    description: str | None = None
-    price: float
-    tax: float | None = None
-
+    Summary: list[str] | None = None
+    QuestionCategories: list[str] | None = None
+    
 app = FastAPI()
 
 #message_value = str(trainedModel.predict(X))
 
 @app.get("/")
 async def root():
-    return {"message": message_value}
+    return {"message": "message_value"}
 
 
 @app.post("/items/")
@@ -43,9 +45,23 @@ async def create_item(item: Item):
         item_dict.update({"price_with_tax": price_with_tax})
     return item_dict
 
+"""
+{"Summary": ["olly", "ben"], "QuestionCategories": ["100", "dog"]}
+"""
 @app.post("/categorise_questions/")
 async def categorise_questions(item: Item):
-    return item
+    df = pd.DataFrame(item.dict())
+    print(item)
+    print(df)
+    transformed_embeddings = apply_pipeline(df, ['Summary', 'QuestionCategories'])
+    print(transformed_embeddings)
+    X = np.hstack([
+     np.vstack(transformed_embeddings['summary_embeddings']),
+     np.vstack(transformed_embeddings['category_embeddings'])
+    ])
+    result = trainedModel.predict(X)
+    print(result)
+    return list(result)
     
 
     
