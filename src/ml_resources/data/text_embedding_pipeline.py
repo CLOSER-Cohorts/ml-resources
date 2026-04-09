@@ -9,7 +9,8 @@ import pandas as pd
 embedding_length=384
 
 def apply_pipeline(data, columns):
-    embedding_transformer = FunctionTransformer(lambda x: model.encode(x.squeeze()), validate=False)
+    #embedding_transformer = FunctionTransformer(lambda x: model.encode(x.squeeze()), validate=False)
+    embedding_transformer = FunctionTransformer(lambda x: model.encode(x.iloc[:, 0].tolist()), validate=False)
     column_transformers=[]
     for column in columns:
         column_transformers.append(
@@ -22,5 +23,8 @@ def apply_pipeline(data, columns):
     pipeline = Pipeline([("feature_creation", preprocessor)])
     transformed_data=list(pipeline.fit_transform(data))
     transformed_embeddings = pd.DataFrame({"summary_embeddings": [x[0:embedding_length] for x in transformed_data],
-     "category_embeddings": [x[embedding_length:embedding_length*2] for x in transformed_data]})
+     "category_embeddings": [x[embedding_length:embedding_length*2] for x in transformed_data],
+     "item_type": [x[embedding_length*2] for x in transformed_data],
+     "topic": [x[embedding_length*2+1] for x in transformed_data]}
+     )
     return transformed_embeddings

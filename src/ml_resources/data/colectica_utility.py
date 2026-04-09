@@ -28,7 +28,7 @@ HOSTNAME = secrets["COLECTICA_HOSTNAME"]
 C = ColecticaObject(HOSTNAME, USERNAME, PASSWORD, verify_ssl=False)
 
 def get_item_text(item_type, text_field, search_set=[], items_text={}):
-    study_items = C.search_items(item_type, 
+    study_items = C.search_items(item_type,
         SearchSets=search_set,
         SearchLatestVersion=True)['Results']
     for item in study_items:
@@ -36,32 +36,37 @@ def get_item_text(item_type, text_field, search_set=[], items_text={}):
             items_text[item['AgencyId']] = {}
         if item['Identifier'] not in items_text[item['AgencyId']].keys():
             items_text[item['AgencyId']][item['Identifier']]={}
+            items_text[item['AgencyId']][item['Identifier']]['ItemType'] = item_type
             if 'en-GB' in item[text_field].keys():
-                items_text[item['AgencyId']][item['Identifier']][text_field] = item[text_field]['en-GB']
+                items_text[item['AgencyId']][item['Identifier']]['TextLabel'] = item[text_field]['en-GB']
             elif item[text_field]!={} and len(item[text_field].keys())==0:
-                items_text[item['AgencyId']][item['Identifier']][text_field] = item[text_field]
+                items_text[item['AgencyId']][item['Identifier']]['TextLabel'] = item[text_field]
 
-def get_questions_in_containing_items(containing_items, all_question_summaries, text_field):
-    """Questions can be group under a number of 'containing' items, e.g. studies, sweeps,
-    instruments, etc. This function retrieves summaries for questions contained in a list of items."""
+def get_items_in_containing_items(containing_items,
+    all_items_text,
+    text_field,
+    item_type):
+    """Items can be group under a number of 'containing' items, e.g. studies, sweeps,
+    instruments, etc. This function retrieves labels/summaries for items contained in 
+    a list of items."""
     if not isinstance(containing_items, list):
             containing_items = [containing_items]
-    print(f"Getting question summaries for {[f"Agency: {item['AgencyId']}, Identifier: {item['Identifier']}, Version: {item['Version']}" for item in containing_items]}...")
+    print(f"Getting labels/summaries for {[f"Agency: {item['AgencyId']}, Identifier: {item['Identifier']}, Version: {item['Version']}" for item in containing_items]}...")
     # all_question_summaries will be updated in place with the values of question summaries...
-    get_item_text(C.item_code('Question'),
+    get_item_text(item_type,
                 text_field,
                 search_set = containing_items,
-                items_text = all_question_summaries
+                items_text = all_items_text
                 )
 
-def get_categories_for_questions(study_agency_id, question_identifiers, all_items={}, verbose=False):
+def get_categories_for_items(study_agency_id, item_identifiers, all_items={}, verbose=False):
     if study_agency_id not in all_items:
         all_items[study_agency_id]={}
-    for index, question_identifier in enumerate(question_identifiers):
+    for index, item_identifier in enumerate(item_identifiers):
         if verbose:
-            print(f"{index} of {len(question_identifiers)} questions")
+            print(f"{index} of {len(item_identifiers)} items")
         code_lists=C.search_relationship_bysubject(study_agency_id,
-            question_identifier,
+            item_identifier,
             item_types=[C.item_code('Code Set')])
         categories_text = []
         for code_list in code_lists:
@@ -72,9 +77,9 @@ def get_categories_for_questions(study_agency_id, question_identifiers, all_item
                      version=category['Item1']['Item2'])
                   if category_item['Label'] != {}:
                       categories_text.append(category_item['Label']['en-GB'])
-        if question_identifier not in all_items[study_agency_id]:
-            all_items[study_agency_id][question_identifier]={}
-        all_items[study_agency_id][question_identifier]["QuestionCategories"]=categories_text
+        if item_identifier not in all_items[study_agency_id]:
+            all_items[study_agency_id][item_identifier]={}
+        all_items[study_agency_id][item_identifier]["ItemCategories"]=categories_text
     
 def get_variables_for_studies(studies, all_variable_labels):
     for study in studies:
@@ -82,24 +87,28 @@ def get_variables_for_studies(studies, all_variable_labels):
                  "agencyId": study['AgencyId'],
                  "identifier": study['Identifier'],
                  "version": study['Version']
-                }]    
+                }]
         print(f"Getting variable labels for {study['AgencyId']}...")
         get_item_text(C.item_code('Variable'),
             'Label',
             search_set = study_search_set,
             items_text = all_variable_labels)
 
-def get_topics_for_items(item_identifiers, study_agency_id, topic_type, C, verbose=False, topics={}):
+def get_topics_for_items(item_identifiers,
+    study_agency_id, topic_types, C, verbose=False, topics={}):
+    if not isinstance(topic_types, list):
+            topic_types = [topic_types]
     for index, identifier in enumerate(item_identifiers):
         if verbose:
             print(f"{index} of {len(item_identifiers)}")
         if study_agency_id not in topics.keys():
             topics[study_agency_id] = {}
+        print(identifier)
         if identifier not in topics[study_agency_id].keys():
             topics[study_agency_id][identifier]={}
         topicItem=C.search_relationship_byobject(study_agency_id,
                     identifier,
-                    item_types=[topic_type],
+                    item_types=topic_types,
                     Descriptions=True)
         topic = ""
         if len(topicItem)==1:

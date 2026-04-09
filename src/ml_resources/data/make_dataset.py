@@ -14,10 +14,11 @@ def convert_dictionary_to_dataframe(dict_obj):
             for key in item[1].keys():
                 if key not in feature_names:
                     feature_names.append(key)
-                if key == "QuestionCategories":
+                if key == "ItemCategories":
                     feature_value=(" ".join(sorted(item[1][key])).lower())
                 else:
                     feature_value = item[1][key]
+                print(feature_value)
                 dataset.loc[item[0], key] = feature_value
     return dataset
 
@@ -65,14 +66,24 @@ def transform_input_feature_categories(data, study_agency_id, categories):
     dataCopy[study_agency_id]['InputFeatures'][categories] = dataCopy[study_agency_id]['InputFeatures'][categories].apply(lambda x: " ".join(sorted(x)).lower())
     return dataCopy
 
-def filter_values_by_length(data_values, filter_attribute, length, include_zero_length_items=False, filter_type='greater_than'):
+def filter_values_by_length(data_values,
+    filter_attribute,
+    length,
+    include_zero_length_items=False,
+    filter_type='greater_than'):
     filtered_values=copy.deepcopy(data_values)
     for study in data_values.keys():
         #for item in data_values.keys():
             if filter_type == 'greater_than':
-                filtered_values[study] = {k: v for k, v in data_values[study].items() if len(v[filter_attribute]) > length or (len(v[filter_attribute])==0 and include_zero_length_items)}
+                filtered_values[study] = {k: v for k, v in data_values[study].items() 
+                    if (filter_attribute in v.keys() and
+                        (len(v[filter_attribute]) > length or 
+                        (len(v[filter_attribute])==0 and include_zero_length_items)))}
             elif filter_type == 'less_than':
-                filtered_values[study] = {k: v for k, v in data_values[study].items() if len(v[filter_attribute]) < length or (len(v[filter_attribute])==0 and include_zero_length_items)}
+                filtered_values[study] = {k: v for k, v in data_values[study].items() 
+                    if (filter_attribute in v.keys() and
+                        (len(v[filter_attribute]) < length or
+                        (len(v[filter_attribute])==0 and include_zero_length_items)))}
             else:
                 print(f"Unknown filter type {filter_type}.")
     return filtered_values

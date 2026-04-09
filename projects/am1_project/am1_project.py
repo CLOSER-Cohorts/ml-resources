@@ -6,7 +6,7 @@ import pandas as pd
 import json
 from src.ml_resources import (
     read_dataset_from_file,
-    save_versioned_pickle_file, 
+    save_versioned_pickle_file,
     filter_values_by_length,
     convert_dictionary_to_dataframe,
     apply_pipeline,
@@ -30,7 +30,11 @@ with open("./projects/am1_project/config/am1_config.json") as f:
     project_config = json.load(f)
 
 new_am1_data={}
-colectica_utility.get_questions_in_containing_items(project_config['Studies'], new_am1_data, "Summary")
+colectica_utility.get_items_in_containing_items(project_config['Studies'],
+    new_am1_data, 
+    "Summary",
+    colectica_client.item_code('Question'))
+
 
 question_keys_from_repository_for_dataset = []
 for agencyId in new_am1_data.keys():
@@ -40,7 +44,8 @@ question_keys_from_current_dataset = []
 for agencyId in am1_data.keys():
     question_keys_from_current_dataset.extend(am1_data[agencyId].keys())
 
-new_question_identifiers=check_for_newly_available_data_am1(question_keys_from_repository_for_dataset,
+new_question_identifiers=check_for_newly_available_data_am1(
+    question_keys_from_repository_for_dataset,
     question_keys_from_current_dataset)
 
 # have not yet implemented what to do with new questions
@@ -56,10 +61,10 @@ for agency in new_am1_data.keys():
 # associated with it, the question summary contains text, a question has a set of
 # categories associated with it that are not deemed to have predictive value, e.g. yes/no
 
-filtered_questions=filter_values_by_length(am1_data, "Summary", 10)
+filtered_questions=filter_values_by_length(am1_data, "TextLabel", 10)
 
 filtered_questions_by_number_of_categories=filter_values_by_length(filtered_questions,
-    "QuestionCategories", 
+    "ItemCategories", 
     3)
 
 filtered_questions=filtered_questions_by_number_of_categories
@@ -84,6 +89,7 @@ print(class_proportions[class_proportions<10])
 
 questions_with_unique_topics=list(class_proportions[class_proportions<2].index)
 df=df[~df['Topic'].isin(questions_with_unique_topics)].reset_index(drop=True)
+df['ItemType']=df["ItemType"].astype("category").cat.codes
 
 # Investigate the proportions of topics at level one. For now we won't do anything
 # based on this, but we may use this information at a further point.
@@ -99,7 +105,8 @@ transformed_embeddings = read_dataset_from_file('./projects/am1_project/data/tra
 
 # ...otherwise we can calculate them from scratch, and save them to a file...
 
-transformed_embeddings = apply_pipeline(df, ['Summary', 'QuestionCategories'])
+transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories'])
+
 
 save_versioned_pickle_file(transformed_embeddings, 'transformed_embeddings', folder='../projects/am1_project/data')
 
@@ -117,7 +124,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 #7 Create a logistic regression model, test it, and measure it's accuracy
 
 lr_model_data=create_model_data_object(X_train, X_test, y_train, y_test)
-trainedModel=train_model(lr_model_data, selected_input_features=['summary_embeddings', 'category_embeddings'])
+trainedModel=train_model(lr_model_data,
+    selected_input_features=['summary_embeddings', 'category_embeddings', 'item_type'])
 
 # Save the model...
 
@@ -126,7 +134,7 @@ save_versioned_pickle_file(testData, 'testData', folder='../projects/am1_project
 
 
 input_feature_list=[]
-for input_feature in ['summary_embeddings', 'category_embeddings']:
+for input_feature in ['summary_embeddings', 'category_embeddings', 'item_type']:
         input_feature_list.append(np.vstack(lr_model_data['X_test'][input_feature]))
         X_test = np.hstack(
         input_feature_list
