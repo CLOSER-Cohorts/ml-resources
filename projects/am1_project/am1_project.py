@@ -105,7 +105,7 @@ transformed_embeddings = read_dataset_from_file('./projects/am1_project/data/tra
 
 # ...otherwise we can calculate them from scratch, and save them to a file...
 
-transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories'])
+transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories', 'ItemType'])
 
 
 save_versioned_pickle_file(transformed_embeddings, 'transformed_embeddings', folder='../projects/am1_project/data')

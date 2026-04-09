@@ -9,10 +9,10 @@ from src.ml_resources import (
     apply_pipeline)
 
 #from src.ml_resources import read_dataset_from_fil
-# 
+# v
 # e
 
-modelfile = open('./projects/am1_project/model/trainedModel/trainedModel_1.pickle', 'rb')
+modelfile = open('./projects/am1_project/model/trainedModel/trainedModel_2.pickle', 'rb')
 trainedModel = pickle.load(modelfile)
 """
 testDataFile = open('./projects/am1_project/data/testData/testData_1.pickle', 'rb')
@@ -25,8 +25,9 @@ X = np.hstack([
 """
 
 class Item(BaseModel):
-    Summary: list[str] | None = None
-    QuestionCategories: list[str] | None = None
+    TextLabel: list[str] | None = None
+    ItemCategories: list[str] | None = None
+    ItemType: list[str] | None = None
     
 app = FastAPI()
 
@@ -53,11 +54,12 @@ async def categorise_questions(item: Item):
     df = pd.DataFrame(item.dict())
     print(item)
     print(df)
-    transformed_embeddings = apply_pipeline(df, ['Summary', 'QuestionCategories'])
+    transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories', 'ItemType'])
     print(transformed_embeddings)
     X = np.hstack([
      np.vstack(transformed_embeddings['summary_embeddings']),
-     np.vstack(transformed_embeddings['category_embeddings'])
+     np.vstack(transformed_embeddings['category_embeddings']),
+     np.vstack(transformed_embeddings['item_type'])
     ])
     result = trainedModel.predict(X)
     print(result)
