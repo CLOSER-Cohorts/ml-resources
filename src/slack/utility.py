@@ -3,7 +3,7 @@ from slack_sdk.errors import SlackApiError
 import json
 
 
-with open("./projects/am2_project/config/secrets.json") as f:
+with open("./config/secrets.json") as f:
     secrets = json.load(f)
 
 client = WebClient(token=secrets["SlackBotToken"])

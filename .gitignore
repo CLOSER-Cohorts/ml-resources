@@ -4,4 +4,4 @@ projects/am2_project/experiments/*
 projects/am2_project/models/*
 !projects/am2_project/models/all_item_models/
 projects/am2_project/graphs
-projects/am2_project/config/secrets.json
+config/secrets.json
