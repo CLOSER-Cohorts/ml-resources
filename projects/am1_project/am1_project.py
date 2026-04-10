@@ -145,7 +145,7 @@ wrong_predictions=calculate_accuracy(trainedModel,
     predictions_with_probabilities,
     X_test,
     lr_model_data['y_test'].values,
-    N=3)
+    N=2)
 
 #b=obtain_correct_data_labels(final_dataset_copy, "do this", "Flagged")
 
@@ -154,13 +154,21 @@ print(report)
 model_name_version=f"logistic_regression_for_topic_classification_v1"
 training_data=f"Summaries and categories for {len(X_train)} questions"
 notes_on_experiment = input("Enter any notes on this experiment you wish to record (e.g. parameters, evaluation metrics, what did/didn't work): ")
-with open(f"classification_report_topic_classification_v1.txt", "w") as f:
+with open(f"projects/am1_project/reports/classification_report_topic_classification_v1.txt", "w") as f:
     _ = f.write(f"Classification report for topic classification logistic regression model\n\n")
     _ = f.write(f"Notes: \n{notes_on_experiment}\n\n")
     _ = f.write(f"Model name and version: \n{model_name_version}\n\n")
     _ = f.write(f"Training data: \n{training_data}\n\n")
     _ = f.write(f"Classification report: \n{report}\n\n")
-    _ = f.write("\nThese items have been flagged as needing attention.\n\n")
+    _ = f.write("\nThese topics have been misclassified.\n\n")
+    cm = confusion_matrix(y_test, y_pred)
+    target_names=list(set(lr_model_data['y_test'].values))
+    for index, topic in enumerate(target_names):
+        _ = f.write(f"TOPIC {topic}, {sum(cm[index,])}\n")
+        for index2, x in enumerate(cm[index,]):
+            if x>0:
+                _ = f.write(f"{target_names[index2]}: {x}\n")
+
     # wrong_predictions may not contain the desired information at present,
     # we may need to update the calculate_accuracy function
     for wrong_prediction in wrong_predictions:
