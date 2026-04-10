@@ -11,7 +11,7 @@ from natsort import natsorted
 
 REQUIRED_VARS = ["COLECTICA_USERNAME", "COLECTICA_PASSWORD", "COLECTICA_HOSTNAME"]
 
-with open("./projects/am2_project/config/secrets.json") as f:
+with open("./config/secrets.json") as f:
     secrets = json.load(f)
 
 missing = [var for var in REQUIRED_VARS if var not in secrets.keys()]
