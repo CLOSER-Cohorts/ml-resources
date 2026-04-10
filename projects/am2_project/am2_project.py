@@ -15,6 +15,11 @@ from projects.am2_project.src.data.utility import (
         create_am2_input_features,
         train_semi_supervised_model
         )
+from projects.am2_project.src.evidently import (
+    create_project,
+    create_schema,
+    generate_drift_monitoring_report
+)
 from src.ml_resources.data import colectica_utility
 
 colectica_client = colectica_utility.C
@@ -22,7 +27,6 @@ colectica_client = colectica_utility.C
 #item_types_string=['Action', 'Archive', 'Category', 'Category Group', 'Category Set', 'ClassificationCorrespondenceTable', 'ClassificationFamily', 'ClassificationIndex', 'ClassificationItem', 'ClassificationLevel', 'ClassificationSeries', 'Code List Group', 'Code List Set', 'Code Set', 'Concept', 'Concept Group', 'Concept Set', 'Conceptual Component', 'Conceptual Variable', 'Conceptual Variable Group', 'Conceptual Variable Set', 'Conditional', 'Control Construct Group', 'Control Construct Set', 'Data Collection', 'Data File', 'Data Layout', 'DataCollection Methodology', 'General Instruction', 'Generation Instruction', 'Individual', 'Instruction Group', 'Instrument', 'Instrument Group', 'Instrument Set', 'Interviewer Instruction', 'Interviewer Instruction Set', 'Logical Product', 'Loop', 'Managed Representation Group', 'Managed Representation Set', 'MeasurementItem', 'MeasurementConstruct', 'Metadata Package', 'NCube', 'NCube Group', 'NCube Set', 'Organization', 'Organization Group', 'Organization Set', 'OtherMaterial', 'OtherMaterialGroup', 'OtherMaterialScheme', 'Physical Data Product', 'Physical Structure', 'PhysicalStructure Set', 'Processing Event', 'Processing Event Group', 'Processing Event Set', 'Processing Instruction Group', 'Processing Instruction Scheme', 'Project', 'Quality Standard', 'Quality Statement', 'Quality Statement Group', 'Quality Statement Set', 'Question', 'Question Activity', 'Question Block', 'Question Grid', 'Question Group', 'Question Set', 'RecordLayout', 'RecordLayout Set', 'Repeat', 'Represented Variable', 'Represented Variable Group', 'Represented Variable Set', 'Reusable Missing Value', 'Sequence', 'Series', 'Statement', 'StatisticalClassification', 'Study', 'SubSeries', 'UnitType', 'UnitTypeScheme', 'UnitTypeGroup', 'Universe', 'Universe Group', 'Universe Set', 'Variable', 'Variable Group', 'Variable Set', 'Variable Statistic', 'While']
 #item_types_string=['Data File', 'Data Collection', 'Variable Statistic', 'While', 'Instrument']
 #START WITH ONE DATA TYPE, E.G. DATA FILE, BUILD IN THAT
-
 
 
 all_relationships_data={}
@@ -161,3 +165,19 @@ model_package=read_dataset_from_file(
 all_human_labelled_data=read_dataset_from_file(
     'projects/am2_project/data/human_labelled_data/all_human_labelled_data/all_human_labelled_data_3.pickle')
 data=my_func(model_package['data'])
+
+reference_dataset=pd.DataFrame()
+production_dataset=pd.DataFrame()
+project=create_project("Anomaly detection",
+    "Anomaly detection within the CLOSER dataset",
+    project_config["EVIDENTLY_API_KEY"],
+    project_config["EVIDENTLY_ORG_ID"])
+am2_numerical_columns=[]
+am2_categorical_columns=[]
+schema=create_schema(am2_numerical_columns, am2_categorical_columns)
+
+generate_drift_monitoring_report(reference_dataset,
+    production_dataset,
+    project,
+    schema
+    )
