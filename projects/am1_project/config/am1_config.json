@@ -1,9 +1,9 @@
 {
   "Studies": [
                 {
-                 "AgencyId": "uk.iser.ukhls",
-                 "Identifier": "44a7a09e-4703-498c-96f7-0131b296c917",
-                 "Version": 82
+                 "AgencyId": "uk.genscot",
+                 "Identifier": "9a4d4a54-6256-467b-b1f2-45c02aeb60fb",
+                 "Version": 26   
                 }
             ],
   "Sweeps": [
