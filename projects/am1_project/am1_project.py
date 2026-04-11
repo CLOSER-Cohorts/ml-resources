@@ -125,16 +125,16 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 lr_model_data=create_model_data_object(X_train, X_test, y_train, y_test)
 trainedModel=train_model(lr_model_data,
-    selected_input_features=['summary_embeddings', 'category_embeddings', 'item_type'])
+    selected_input_features=['summary_embeddings', 'category_embeddings', 'item_type', 'Agency'])
 
 # Save the model...
 
-save_versioned_pickle_file(trainedModel, 'trainedModel', folder='../projects/am1_project/model')
-save_versioned_pickle_file(testData, 'testData', folder='../projects/am1_project/data')
-
+save_versioned_pickle_file(trainedModel, 'trainedModel', folder='./projects/am1_project/model')
+save_versioned_pickle_file(all_df, 'embeddings_with_two_agency', folder='./projects/am1_project/data')
+save_versioned_pickle_file(df, 'trainingDataDf', folder='./projects/am1_project/data')
 
 input_feature_list=[]
-for input_feature in ['summary_embeddings', 'category_embeddings', 'item_type']:
+for input_feature in ['summary_embeddings', 'category_embeddings', 'item_type', 'Agency']:
         input_feature_list.append(np.vstack(lr_model_data['X_test'][input_feature]))
         X_test = np.hstack(
         input_feature_list
@@ -145,16 +145,16 @@ wrong_predictions=calculate_accuracy(trainedModel,
     predictions_with_probabilities,
     X_test,
     lr_model_data['y_test'].values,
-    N=2)
+    N=3)
 
 #b=obtain_correct_data_labels(final_dataset_copy, "do this", "Flagged")
 
 report = classification_report(lr_model_data['y_test'].values, y_pred, target_names=set(lr_model_data['y_test'].values))
 print(report)
-model_name_version=f"logistic_regression_for_topic_classification_v1"
+model_name_version=f"logistic_regression_for_topic_classification_v2"
 training_data=f"Summaries and categories for {len(X_train)} questions"
 notes_on_experiment = input("Enter any notes on this experiment you wish to record (e.g. parameters, evaluation metrics, what did/didn't work): ")
-with open(f"projects/am1_project/reports/classification_report_topic_classification_v1.txt", "w") as f:
+with open(f"projects/am1_project/reports/classification_report_topic_classification_v2.txt", "w") as f:
     _ = f.write(f"Classification report for topic classification logistic regression model\n\n")
     _ = f.write(f"Notes: \n{notes_on_experiment}\n\n")
     _ = f.write(f"Model name and version: \n{model_name_version}\n\n")
@@ -185,3 +185,21 @@ for index, topic in enumerate(target_names):
 
 for index, x in enumerate(cm):
     print(cm[index,])
+
+all_df=pd.concat([df, df_genscot], ignore_index=True)
+all_transformed_embeddings=pd.concat([transformed_embeddings_usoc, transformed_embeddings], ignore_index=True)
+
+all_df=pd.DataFrame()
+for x in all_embeddings:
+    all_df=pd.concat([all_df, x], ignore_index=True)
+    del(x)
+    
+
+all_embeddings=[]
+for i in range(0,20):
+    print(i)
+    embeddings=apply_pipeline(usoc_df.iloc[20*2000:], ['TextLabel', 'ItemCategories'])
+    all_embeddings.append(embeddings)
+
+genscot_df=read_dataset_from_file('./projects/am1_project/data/transformed_embeddings_genscot/transformed_embeddings_genscot_1.pickle')    
+training_df=read_dataset_from_file('./projects/am1_project/data/trainingDataDf/trainingDataDf_1.pickle')
