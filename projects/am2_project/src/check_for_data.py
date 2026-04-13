@@ -5,16 +5,49 @@ import json
 from pathlib import Path
 from datetime import datetime
 import numpy as np
-        
+from src.logging.utility import StructuredMessage, setup_logging    
+
+"""
+class StructuredMessage:
+    def __init__(self, /, **kwargs):
+        self.kwargs = kwargs
+    def __str__(self):
+        return '%s' % (json.dumps(self.kwargs))
+"""
+
+#
+setup_logging()
+logger = logging.getLogger("am2_project")
+
+print("LOGGING TO 2" )
+for handler in logger.handlers:
+    if isinstance(handler, logging.FileHandler):
+        print(handler.baseFilename)
+    
+
+def get_data():    
+    with open("am2_log.json") as f:
+        data = [json.loads(line) for line in f]
+    return data
+
+"""
 def setup_logging():
+    logger.setLevel(logging.INFO)    
+    handler=logging.FileHandler("am2_log.json")
+    formatter=logging.Formatter("{\"time\": \"%(asctime)s\", \"level\": [\"%(levelname)s\"], \"message\": %(message)s}")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.propagate = False
+    
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
+        format="{\"time\": \"%(asctime)s\", \"level\": [\"%(levelname)s\"], \"message\": %(message)s}",
         handlers=[
-            logging.FileHandler("script.log"),
-            logging.StreamHandler(sys.stdout)
-        ]
+            logging.FileHandler("am2_log.json")
+        ],
+        force=True
     )
+    """
 
 def create_item_object(urn_and_item_type):
     return {
@@ -37,8 +70,9 @@ def check_for_new_sweeps(project_config, all_sweeps):
     return sweeps_not_in_project
 
 def main(args):
-    logging.info("Checking for newly available data in Colectica repository")
-
+    #logging.info("Checking for newly available data in Colectica repository")
+    logger.info(StructuredMessage(message='Checking for newly available data in Colectica repository'))
+    start_time_for_input_creation=datetime.now()
     try:
         from src.slack.utility import send_message_to_slack
         from .data.utility import (
@@ -64,12 +98,12 @@ def main(args):
         all_item_models=read_dataset_from_file(file_path)
 
         # Your core logic here
-        logging.info(f"Running task with param: {args.param}")
+        logging.info(StructuredMessage(message="Creating input features..."))
         with open("./projects/am2_project/config/am2_config.json") as f:
             project_config = json.load(f)
         results = check_for_newly_available_data(project_config)
         if len(results['new_item_urns'])>0:
-            items = [create_item_object(x) for x in results['new_item_urns']][0:500]
+            items = [create_item_object(x) for x in results['new_item_urns']][0:10]
             item_types = sorted(set([colectica_client.item_code_inv(item['ItemType']) 
                 for item in items]))
             all_new_am2_relationships_data={}
@@ -96,9 +130,18 @@ def main(args):
                 'am2_relationships_data_for_future_model',
                 folder='./projects/am2_project/data/pending_training_data',
                 )
+        duration_input_creation=datetime.now()-start_time_for_input_creation
+        logger.info(StructuredMessage(message="Time for input creation",
+            status="Success",
+            duration=duration_input_creation.seconds))
         
+        start_time_for_new_sweep_detection=datetime.now()
         all_sweeps=get_all_sweeps()
         sweeps_not_in_project=check_for_new_sweeps(project_config, all_sweeps)
+        duration_of_new_sweeps_check=datetime.now()-start_time_for_new_sweep_detection
+        logger.info(StructuredMessage(message="Time for sweep check",
+            status="Success",
+            duration=duration_of_new_sweeps_check.seconds))
         if len(sweeps_not_in_project)>0:
             print(f"""
                 The following sweeps are present in the repository, but are not included in the project:
@@ -112,16 +155,19 @@ def main(args):
         # Example task
         print(f"Hello at {datetime.now()}")
 
-        logging.info("Script completed successfully")
+        #logging.info("Script completed successfully")
         # The command below works, but just to minimise noise on the channel, we 
         # will comment it out for now.
         #send_message_to_slack("This is a test message from code that polls the Colectica repo.")
 
     except Exception as e:
-        logging.exception("Script failed")
-        send_message_to_slack("Check for new items failed.")
+        #logger.exception("Script failed")
+        #time_for_new_sweeps_check=datetime.now()-start_time_for_new_sweep_detection
+        logger.info(StructuredMessage(message=f"Script failed: {e}",
+            status="Failed"))
+        #send_message_to_slack("Check for new items failed.")
         print(e)
-        send_message_to_slack(str(e))
+        #send_message_to_slack(str(e))
         sys.exit(1)  # important for scheduler to detect failure
 
 if __name__ == "__main__":
@@ -129,5 +175,5 @@ if __name__ == "__main__":
     parser.add_argument("--param", default="default_value")
     args = parser.parse_args()
 
-    setup_logging()
+    #setup_logging()
     main(args)
