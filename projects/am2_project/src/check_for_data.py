@@ -24,7 +24,7 @@ def get_summary_stats(data):
     return summary
 
 def get_data():    
-    with open("am2_log.json") as f:
+    with open("logs/am2_log.json") as f:
         data = [json.loads(line) for line in f]
     return data
 
