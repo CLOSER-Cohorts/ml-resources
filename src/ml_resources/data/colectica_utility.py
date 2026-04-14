@@ -8,6 +8,11 @@ import sys
 import re
 import json
 from natsort import natsorted
+from datetime import datetime
+import logging
+from src.logging.utility import StructuredMessage
+
+logger = logging.getLogger("am2_project")
 
 REQUIRED_VARS = ["COLECTICA_USERNAME", "COLECTICA_PASSWORD", "COLECTICA_HOSTNAME"]
 
@@ -120,6 +125,7 @@ def get_topics_for_items(item_identifiers,
             topics[study_agency_id][identifier]['Topic'] = topic
 
 def get_all_sweeps():
+    start_time_for_all_sweeps_retrieval = datetime.now()
     sweep_info={}
     # Get all studies...
     study_items = C.search_items([C.item_code('Series')],
@@ -146,9 +152,16 @@ def get_all_sweeps():
                     if study['AgencyId'] not in sweep_info.keys():
                         sweep_info[study['AgencyId']]={}
                     sweep_info[study['AgencyId']][sweep_name]=sweep_item['Identifier']
+    duration_of_all_sweeps_retrieval=datetime.now()-start_time_for_all_sweeps_retrieval
+    logger.info(StructuredMessage(message=f"Time for getting all {len(study_items)} sweeps data",
+    operation_type="get_all_sweeps",
+    number_of_records=len(study_items),
+    status="Success",
+    duration=duration_of_all_sweeps_retrieval.seconds))
     return sweep_info
 
 def get_latest_versions_of_project_sweeps(project_config):
+    start_time_for_latests_sweeps_retrieval = datetime.now()     
     sweep_items = []
     for study, sweeps in project_config["ItemsForTrainingAndTest"]["Sweeps"].items():
         for sweep_name, sweep_id in sweeps.items():
@@ -162,10 +175,17 @@ def get_latest_versions_of_project_sweeps(project_config):
                  "identifier": latest_version_of_sweep['Identifier'],
                  "version": latest_version_of_sweep['Version']
              })
+    duration_of_new_sweeps_check=datetime.now()-start_time_for_latests_sweeps_retrieval
+    logger.info(StructuredMessage(message=f"Time for getting latest versions of {len(sweep_items)} sweeps",
+    operation_type="get_latest_versions_of_project_sweeps",
+    number_of_records=len(sweep_items),
+    status="Success",
+    duration=duration_of_new_sweeps_check.seconds))
     return sweep_items
 
 
 def obtain_items_from_colectica(item_types=[], search_set_items=[]):
+    start_time_for_items_retrieval = datetime.now()     
     all_items=[]
     item_types_for_project = [C.item_code(item_type) for item_type in item_types]
     items= C.search_items(item_types_for_project,
@@ -173,4 +193,10 @@ def obtain_items_from_colectica(item_types=[], search_set_items=[]):
             MaxResults=0,
             SearchLatestVersion=True,
             SearchSets=search_set_items)['Results']
+    duration_of_items_retrieval=datetime.now()-start_time_for_items_retrieval
+    logger.info(StructuredMessage(message=f"Time for getting items of type {item_types}",
+    operation_type="obtain_items_from_colectica",
+    number_of_records=len(items),
+    status="Success",
+    duration=duration_of_items_retrieval.seconds))
     return items

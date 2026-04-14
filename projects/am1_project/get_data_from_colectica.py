@@ -38,5 +38,5 @@ def get_topics(am1_data):
 
 # Assuming that we got the topics for usoc questions, here is how we would save them into a 
 # versioned pickle file... 
-save_versioned_pickle_file(am1_data, 'am1_data', folder='../projects/am1_project/data')
-save_versioned_pickle_file(am1_data_new, 'am1_data_new', folder='../projects/am1_project/data')
+
+save_versioned_pickle_file(am1_data_new, 'am1_data_new', folder='./projects/am1_project/data')
