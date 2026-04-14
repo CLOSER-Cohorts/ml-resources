@@ -6,48 +6,39 @@ from pathlib import Path
 from datetime import datetime
 import numpy as np
 from src.logging.utility import StructuredMessage, setup_logging    
+from collections import Counter;
 
-"""
-class StructuredMessage:
-    def __init__(self, /, **kwargs):
-        self.kwargs = kwargs
-    def __str__(self):
-        return '%s' % (json.dumps(self.kwargs))
-"""
-
-#
 setup_logging()
 logger = logging.getLogger("am2_project")
 
-print("LOGGING TO 2" )
-for handler in logger.handlers:
-    if isinstance(handler, logging.FileHandler):
-        print(handler.baseFilename)
-    
+def get_summary_stats(data):
+    summary = {
+    "count": len(data),
+    "mean": data.mean(),
+    "median": np.median(data),
+    "std": data.std(),
+    "min": data.min(),
+    "max": data.max(),
+    "percentiles": np.percentile(data, [25, 50, 75, 95, 99])
+    }
+    return summary
 
 def get_data():    
     with open("am2_log.json") as f:
         data = [json.loads(line) for line in f]
     return data
 
-"""
-def setup_logging():
-    logger.setLevel(logging.INFO)    
-    handler=logging.FileHandler("am2_log.json")
-    formatter=logging.Formatter("{\"time\": \"%(asctime)s\", \"level\": [\"%(levelname)s\"], \"message\": %(message)s}")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.propagate = False
-    
-    logging.basicConfig(
-        level=logging.INFO,
-        format="{\"time\": \"%(asctime)s\", \"level\": [\"%(levelname)s\"], \"message\": %(message)s}",
-        handlers=[
-            logging.FileHandler("am2_log.json")
-        ],
-        force=True
-    )
-    """
+log_entries=get_data()
+operation_messages=[x['message'] for x in log_entries if "operation_type" in x['message'].keys()]
+message_types=set([x['operation_type'] for x in operation_messages])
+for x in message_types:
+    number_of_x=len([y for y in operation_messages if y['operation_type']==x])
+    statuses=[y['status'] for y in operation_messages if y['operation_type']==x]
+    duration=[y['duration'] for y in operation_messages if y['operation_type']==x]
+    print(f"Number of {x}: {number_of_x}")
+    success_rate=dict(Counter(statuses))
+    print(f"Success rate: {success_rate}")
+    print(f"Durations: {get_summary_stats(np.array(duration))}")
 
 def create_item_object(urn_and_item_type):
     return {
@@ -70,8 +61,7 @@ def check_for_new_sweeps(project_config, all_sweeps):
     return sweeps_not_in_project
 
 def main(args):
-    #logging.info("Checking for newly available data in Colectica repository")
-    logger.info(StructuredMessage(message='Checking for newly available data in Colectica repository'))
+    logger.info(StructuredMessage(description='Checking for newly available data in Colectica repository'))
     start_time_for_input_creation=datetime.now()
     try:
         from src.slack.utility import send_message_to_slack
@@ -98,26 +88,40 @@ def main(args):
         all_item_models=read_dataset_from_file(file_path)
 
         # Your core logic here
-        logging.info(StructuredMessage(message="Creating input features..."))
+        logging.info(StructuredMessage(description="Creating input features..."))
         with open("./projects/am2_project/config/am2_config.json") as f:
             project_config = json.load(f)
         results = check_for_newly_available_data(project_config)
         if len(results['new_item_urns'])>0:
-            items = [create_item_object(x) for x in results['new_item_urns']][0:10]
+            items = [create_item_object(x) for x in results['new_item_urns']][0:1000]
             item_types = sorted(set([colectica_client.item_code_inv(item['ItemType']) 
                 for item in items]))
             all_new_am2_relationships_data={}
             for item_type in item_types:
                 items_of_a_type = [x for x in items 
                     if x['ItemType']==colectica_client.item_code(item_type)]
+                start_time_for_input_feature=datetime.now()
                 new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, colectica_client)
-                if item_type in all_item_models.keys():
-                    order=list(all_item_models[item_type]['model'].feature_names_in_)
+                duration_input_creation=datetime.now()-start_time_for_input_feature
+                logger.info(StructuredMessage(description=f"Time for input creation for {len(items_of_a_type)} items of type {item_type}",
+                    operation_type=f"input feature creation",
+                    item_type=item_type,
+                    number_of_records=len(items_of_a_type),
+                    status="Success",
+                    duration=duration_input_creation.seconds))
+                #if item_type in all_item_models.keys():
+                if item_type=='Data Collection':
+                    order=list(all_item_models['Category_classifier_for_error_detection']['model'].feature_names_in_)
                     new_am2_relationships_data_single_type=new_am2_relationships_data_single_type.reindex(
                         columns=order).replace({np.nan: 0}) 
-                    predictions=all_item_models[item_type]['model'].predict(
+                    start_time_for_model_predictions=datetime.now()
+                    predictions=all_item_models['Category_classifier_for_error_detection']['model'].predict(
                         new_am2_relationships_data_single_type
                         )
+                    duration_model_prediction=datetime.now()-start_time_for_model_predictions
+                    logger.info(StructuredMessage(description=f"Time for AM2 model predictions for {len(new_am2_relationships_data_single_type)} items of type {item_type}",
+                        status="Success",
+                        duration=duration_model_prediction.seconds))
                     indices_flagged = [i for i, x in enumerate(predictions) if x == -1]    
                     anomalies=list(new_am2_relationships_data_single_type.index[indices_flagged])
                     if len(anomalies)>0:
@@ -131,17 +135,12 @@ def main(args):
                 folder='./projects/am2_project/data/pending_training_data',
                 )
         duration_input_creation=datetime.now()-start_time_for_input_creation
-        logger.info(StructuredMessage(message="Time for input creation",
+        logger.info(StructuredMessage(description="Time for entire data check process",
             status="Success",
             duration=duration_input_creation.seconds))
         
-        start_time_for_new_sweep_detection=datetime.now()
         all_sweeps=get_all_sweeps()
         sweeps_not_in_project=check_for_new_sweeps(project_config, all_sweeps)
-        duration_of_new_sweeps_check=datetime.now()-start_time_for_new_sweep_detection
-        logger.info(StructuredMessage(message="Time for sweep check",
-            status="Success",
-            duration=duration_of_new_sweeps_check.seconds))
         if len(sweeps_not_in_project)>0:
             print(f"""
                 The following sweeps are present in the repository, but are not included in the project:
@@ -163,7 +162,7 @@ def main(args):
     except Exception as e:
         #logger.exception("Script failed")
         #time_for_new_sweeps_check=datetime.now()-start_time_for_new_sweep_detection
-        logger.info(StructuredMessage(message=f"Script failed: {e}",
+        logger.info(StructuredMessage(description=f"Script failed: {e}",
             status="Failed"))
         #send_message_to_slack("Check for new items failed.")
         print(e)
