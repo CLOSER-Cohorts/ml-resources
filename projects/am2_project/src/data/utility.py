@@ -124,6 +124,7 @@ def train_semi_supervised_model(
     dataset_name="_",
     generate_classification_report=False,
     save_model_in_package_file=True,
+    only_relabel_outliers=True,
     all_models={}):
     all_human_labelled_data=pd.DataFrame()
     all_training_reports={}
