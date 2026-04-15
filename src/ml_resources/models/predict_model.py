@@ -2,6 +2,11 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import classification_report
 from src.ml_resources import save_versioned_pickle_file
+import logging
+from src.logging.utility import StructuredMessage, setup_logging
+
+setup_logging()
+logger = logging.getLogger("am2_project")
 
 def calculate_accuracy(classifier, predictions, X_test, y_test, N=5):
   wrongPredictions=[]  
@@ -72,6 +77,10 @@ def obtain_correctly_labelled_data(data_with_predictions,
             matched = df_relationships[(df_relationships == df_relationships_unique.loc[index]).all(axis=1)]
             input_prompt = f"For the {len(matched)}/{len(df_relationships)} samples identical to this, the model predicted: {sample[target_label]}. Is this correct? y/n "
             isPredictionCorrect = input(input_prompt)
+            if only_relabel_outliers==True:
+                logger.info(StructuredMessage(message=f"Outlier confirmed as anomalous by human",
+                operation_type="anomaly_confirmation",
+                anomaly_detection_correct=isPredictionCorrect))
             if isPredictionCorrect == "n":
                 if target_variable_is_binary:
                     # Because the target variable is binary, we don't need to ask the user to

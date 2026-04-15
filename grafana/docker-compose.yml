@@ -11,7 +11,7 @@ services:
     image: grafana/promtail:2.9.0
     volumes:
       - ./promtail-config.yml:/etc/promtail/config.yml
-      - ./logs:/logs   # your log folder
+      - ../logs:/logs   # your log folder
     command: -config.file=/etc/promtail/config.yml
 
   grafana:
