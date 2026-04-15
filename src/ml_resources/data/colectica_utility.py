@@ -126,6 +126,9 @@ def get_topics_for_items(item_identifiers,
 
 def get_all_sweeps():
     start_time_for_all_sweeps_retrieval = datetime.now()
+    logger.info(StructuredMessage(message=f"Get all sweeps...",
+        operation_type="get_all_sweeps_start",
+        status="Pending"))
     sweep_info={}
     # Get all studies...
     study_items = C.search_items([C.item_code('Series')],
@@ -154,14 +157,18 @@ def get_all_sweeps():
                     sweep_info[study['AgencyId']][sweep_name]=sweep_item['Identifier']
     duration_of_all_sweeps_retrieval=datetime.now()-start_time_for_all_sweeps_retrieval
     logger.info(StructuredMessage(message=f"Time for getting all {len(study_items)} sweeps data",
-    operation_type="get_all_sweeps",
-    number_of_records=len(study_items),
-    status="Success",
-    duration=duration_of_all_sweeps_retrieval.seconds))
+        operation_type="get_all_sweeps_end",
+        number_of_records=len(study_items),
+        status="Success",
+        duration=duration_of_all_sweeps_retrieval.seconds))
     return sweep_info
 
 def get_latest_versions_of_project_sweeps(project_config):
-    start_time_for_latests_sweeps_retrieval = datetime.now()     
+    # Get the latest versions of sweeps defined in the project config...
+    start_time_for_latests_sweeps_retrieval = datetime.now()
+    logger.info(StructuredMessage(message=f"Get latest versions of sweeps...",
+        operation_type="get_latest_versions_of_project_sweeps_start",
+        status="Pending"))
     sweep_items = []
     for study, sweeps in project_config["ItemsForTrainingAndTest"]["Sweeps"].items():
         for sweep_name, sweep_id in sweeps.items():
@@ -177,7 +184,7 @@ def get_latest_versions_of_project_sweeps(project_config):
              })
     duration_of_new_sweeps_check=datetime.now()-start_time_for_latests_sweeps_retrieval
     logger.info(StructuredMessage(message=f"Time for getting latest versions of {len(sweep_items)} sweeps",
-    operation_type="get_latest_versions_of_project_sweeps",
+    operation_type="get_latest_versions_of_project_sweeps_end",
     number_of_records=len(sweep_items),
     status="Success",
     duration=duration_of_new_sweeps_check.seconds))
@@ -185,7 +192,10 @@ def get_latest_versions_of_project_sweeps(project_config):
 
 
 def obtain_items_from_colectica(item_types=[], search_set_items=[]):
-    start_time_for_items_retrieval = datetime.now()     
+    start_time_for_items_retrieval = datetime.now()   
+    logger.info(StructuredMessage(message=f"Obtain items from sweep...",
+        operation_type="obtain_items_from_colectica_end",
+        status="Pending"))  
     all_items=[]
     item_types_for_project = [C.item_code(item_type) for item_type in item_types]
     items= C.search_items(item_types_for_project,
@@ -195,7 +205,7 @@ def obtain_items_from_colectica(item_types=[], search_set_items=[]):
             SearchSets=search_set_items)['Results']
     duration_of_items_retrieval=datetime.now()-start_time_for_items_retrieval
     logger.info(StructuredMessage(message=f"Time for getting items of type {item_types}",
-    operation_type="obtain_items_from_colectica",
+    operation_type="obtain_items_from_colectica_end",
     number_of_records=len(items),
     status="Success",
     duration=duration_of_items_retrieval.seconds))
