@@ -296,7 +296,7 @@ def check_for_newly_available_data(project_config):
         for item_type, model in all_models.items():
             all_urns_in_current_dataset.extend(model['metadata']["training_item_ids"])
     except Exception as e:
-        raise FileNotFoundError(f"File not found error: {e}")
+        raise FileNotFoundError(f"File not found error: {e}")    
     sweep_items=get_latest_versions_of_project_sweeps(project_config)
     items=obtain_items_from_colectica(project_config["ItemTypes"], sweep_items)
     all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"

@@ -61,7 +61,9 @@ def check_for_new_sweeps(project_config, all_sweeps):
     return sweeps_not_in_project
 
 def main(args):
-    logger.info(StructuredMessage(description='Checking for newly available data in Colectica repository'))
+    logger.info(StructuredMessage(description='Checking for newly available data in Colectica repository'),
+        operation_type="data_check_start",
+        )
     start_time_for_input_creation=datetime.now()
     try:
         from src.slack.utility import send_message_to_slack
@@ -88,9 +90,10 @@ def main(args):
         all_item_models=read_dataset_from_file(file_path)
 
         # Your core logic here
-        logging.info(StructuredMessage(description="Creating input features..."))
+        #logging.info(StructuredMessage(description="Creating input features..."))
         with open("./projects/am2_project/config/am2_config.json") as f:
             project_config = json.load(f)
+        # Check for new data...    
         results = check_for_newly_available_data(project_config)
         if len(results['new_item_urns'])>0:
             items = [create_item_object(x) for x in results['new_item_urns']][0:1000]
@@ -101,10 +104,14 @@ def main(args):
                 items_of_a_type = [x for x in items 
                     if x['ItemType']==colectica_client.item_code(item_type)]
                 start_time_for_input_feature=datetime.now()
+                # Create new input features...
+                logger.info(StructuredMessage(message=f"Creating input features...",
+                    operation_type="input_feature_creation_start",
+                    status="Pending"))
                 new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, colectica_client)
                 duration_input_creation=datetime.now()-start_time_for_input_feature
                 logger.info(StructuredMessage(description=f"Time for input creation for {len(items_of_a_type)} items of type {item_type}",
-                    operation_type=f"input feature creation",
+                    operation_type=f"input feature creation_end",
                     item_type=item_type,
                     number_of_records=len(items_of_a_type),
                     status="Success",
@@ -114,12 +121,17 @@ def main(args):
                     order=list(all_item_models['Category_classifier_for_error_detection']['model'].feature_names_in_)
                     new_am2_relationships_data_single_type=new_am2_relationships_data_single_type.reindex(
                         columns=order).replace({np.nan: 0}) 
+                    # Make predictions on new data...
                     start_time_for_model_predictions=datetime.now()
+                    logger.info(StructuredMessage(message=f"Making predictions on data...",
+                        operation_type="predictions_start",
+                        status="Pending"))
                     predictions=all_item_models['Category_classifier_for_error_detection']['model'].predict(
                         new_am2_relationships_data_single_type
                         )
                     duration_model_prediction=datetime.now()-start_time_for_model_predictions
                     logger.info(StructuredMessage(description=f"Time for AM2 model predictions for {len(new_am2_relationships_data_single_type)} items of type {item_type}",
+                        operation_type="predictions_start",
                         status="Success",
                         duration=duration_model_prediction.seconds))
                     indices_flagged = [i for i, x in enumerate(predictions) if x == -1]    
@@ -127,8 +139,13 @@ def main(args):
                     if len(anomalies)>0:
                         print("ANOMALIES PREDICTED")
                         print(anomalies)
+                        logger.info(StructuredMessage(description=f"{len(anomalies)} anomalies detected for items of type {item_type}",
+                        operation_type="anomalies_detected",
+                        number_number_of_anomalies=len(anomalies),
+                        item_type=item_type))
                         #send_message_to_slack(str(anomalies))
                 all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
+            # Save data we just retrieved for use in training a new model
             save_versioned_pickle_file(
                 all_new_am2_relationships_data,
                 'am2_relationships_data_for_future_model',
@@ -137,8 +154,8 @@ def main(args):
         duration_input_creation=datetime.now()-start_time_for_input_creation
         logger.info(StructuredMessage(description="Time for entire data check process",
             status="Success",
+            operation_type="data_check_end",
             duration=duration_input_creation.seconds))
-        
         all_sweeps=get_all_sweeps()
         sweeps_not_in_project=check_for_new_sweeps(project_config, all_sweeps)
         if len(sweeps_not_in_project)>0:
