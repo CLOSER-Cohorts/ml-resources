@@ -137,6 +137,7 @@ def train_semi_supervised_model(
                 input(f"Do you want to process the {item_type} items? ") in ['y', 'Y']):
             print(f"Creating semi-supervised model for {item_type}")
             print(f"There are {len(all_relationships_data[item_type])} items of this type")
+            # need to add check below that we are entering float value
             test_size_value=input("What proportion of the items do you want to put aside for testing? ")
             # Generate training data, and train a decision tree
             df_relationships = all_relationships_data[item_type]

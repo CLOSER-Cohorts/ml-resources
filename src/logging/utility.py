@@ -19,3 +19,4 @@ def setup_logging():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.propagate = False
+    return logger

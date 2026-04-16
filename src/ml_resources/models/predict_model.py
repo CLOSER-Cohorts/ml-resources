@@ -3,9 +3,8 @@ import pandas as pd
 from sklearn.metrics import classification_report
 from src.ml_resources import save_versioned_pickle_file
 import logging
-from src.logging.utility import StructuredMessage, setup_logging
+from src.logging.utility import StructuredMessage
 
-setup_logging()
 logger = logging.getLogger("am2_project")
 
 def calculate_accuracy(classifier, predictions, X_test, y_test, N=5):
@@ -77,14 +76,11 @@ def obtain_correctly_labelled_data(data_with_predictions,
             matched = df_relationships[(df_relationships == df_relationships_unique.loc[index]).all(axis=1)]
             input_prompt = f"For the {len(matched)}/{len(df_relationships)} samples identical to this, the model predicted: {sample[target_label]}. Is this correct? y/n "
             isPredictionCorrect = input(input_prompt)
-            if only_relabel_outliers==True:
-                logger.info(StructuredMessage(message=f"Outlier confirmed as anomalous by human",
-                operation_type="anomaly_confirmation",
-                anomaly_detection_correct=isPredictionCorrect))
             reasons_for_anomaly_labels=["Not rendering on portal",
                     "Incorrect API results",
                     "Missing relationship"]
             reason_for_anomaly=""
+            type_of_missing_related_item=""
             if isPredictionCorrect == "n":
                 if target_variable_is_binary:
                     # Because the target variable is binary, we don't need to ask the user to
@@ -110,13 +106,16 @@ def obtain_correctly_labelled_data(data_with_predictions,
                             2. REST API queries involving this item delivering unexpected results
                             3. Item is not referencing/referenced by another item that it should
                             """)
-                    type_of_missing_related_item=""
                     if reason_for_anomaly=="3":
                         type_of_missing_related_item=input("What type of item is missing from the relationships? ")
-                logger.info(StructuredMessage(message=f"Reason for item being flagged as anomaly: ",
-                        operation_type="anomaly_reason",
-                        reason_for_anomaly=reasons_for_anomaly_labels[int(reason_for_anomaly)-1],
-                        type_of_missing_related_item=type_of_missing_related_item.lower()
+                    if only_relabel_outliers==True:
+                        logger.info(StructuredMessage(message=f"Outlier confirmed as anomalous by human",
+                            operation_type="anomaly_confirmation",
+                            item_id=index,
+                            item_type=item_type,
+                            anomaly_detection_correct=isPredictionCorrect,
+                            reason_for_anomaly=reasons_for_anomaly_labels[int(reason_for_anomaly)-1],
+                            type_of_missing_related_item=type_of_missing_related_item.lower()
                         ))
     if generate_classification_report:
         indices_flagged = [i for i, x in enumerate(data_with_predictions['Flagged']) if x == -1]
