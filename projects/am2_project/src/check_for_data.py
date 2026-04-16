@@ -5,11 +5,10 @@ import json
 from pathlib import Path
 from datetime import datetime
 import numpy as np
-from src.logging.utility import StructuredMessage, setup_logging    
+from src.logging.utility import StructuredMessage, setup_logging
 from collections import Counter;
 
-setup_logging()
-logger = logging.getLogger("am2_project")
+logger=setup_logging()
 
 def get_summary_stats(data):
     summary = {
@@ -23,12 +22,17 @@ def get_summary_stats(data):
     }
     return summary
 
-def get_data():    
-    with open("logs/am2_log.json") as f:
-        data = [json.loads(line) for line in f]
-    return data
+def get_logs():
+    with open("./logs/am2_log.json") as f:
+        records = [
+            json.loads(line)
+            for line in f
+            if line.strip()
+        ]
+        return records
 
-log_entries=get_data()
+"""
+log_entries=get_logs()
 operation_messages=[x['message'] for x in log_entries if "operation_type" in x['message'].keys()]
 message_types=set([x['operation_type'] for x in operation_messages])
 for x in message_types:
@@ -39,6 +43,7 @@ for x in message_types:
     success_rate=dict(Counter(statuses))
     print(f"Success rate: {success_rate}")
     print(f"Durations: {get_summary_stats(np.array(duration))}")
+"""
 
 def create_item_object(urn_and_item_type):
     return {
@@ -61,9 +66,9 @@ def check_for_new_sweeps(project_config, all_sweeps):
     return sweeps_not_in_project
 
 def main(args):
-    logger.info(StructuredMessage(description='Checking for newly available data in Colectica repository'),
-        operation_type="data_check_start",
-        )
+    logger.info(StructuredMessage(message='Checking for newly available data in Colectica repository',
+        operation_type="data_check_start"
+        ))
     start_time_for_input_creation=datetime.now()
     try:
         from src.slack.utility import send_message_to_slack
@@ -89,6 +94,14 @@ def main(args):
         file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
         all_item_models=read_dataset_from_file(file_path)
 
+        records=get_logs()
+
+        # Get anomalies already flagged in logging data
+        items_already_flagged=[x['message']['item_id'].split(":")[2:-1] for x in records if
+                'operation_type' in x['message'].keys() and
+                x['message']['operation_type']=="anomaly_confirmation" and 
+                'item_id' in x['message'].keys()]
+        print(items_already_flagged)
         # Your core logic here
         #logging.info(StructuredMessage(description="Creating input features..."))
         with open("./projects/am2_project/config/am2_config.json") as f:
@@ -96,7 +109,16 @@ def main(args):
         # Check for new data...    
         results = check_for_newly_available_data(project_config)
         if len(results['new_item_urns'])>0:
-            items = [create_item_object(x) for x in results['new_item_urns']][0:1000]
+            items = [create_item_object(x) for x in results['new_item_urns']][0:10]
+            items_agency_ids=[[x['AgencyId'], x['Identifier']] for x in items]
+            flagged_anomalies_that_were_updated=[x for x in items_already_flagged if 
+                x in items_agency_ids]
+            for updated_item in flagged_anomalies_that_were_updated:
+                logger.info(StructuredMessage(message=f"Found updated anomaly",
+                    operation_type="anomaly potentially fixed",
+                    agency_id=updated_item[0],
+                    identifier=updated_item[1],
+                    status="potentially_fixed_anomaly"))
             item_types = sorted(set([colectica_client.item_code_inv(item['ItemType']) 
                 for item in items]))
             all_new_am2_relationships_data={}

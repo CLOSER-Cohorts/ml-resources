@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import logging
 from pathlib import Path
 from sklearn.ensemble import IsolationForest
 from sklearn.decomposition import PCA
@@ -17,11 +16,6 @@ from src.ml_resources import (
     get_latest_versions_of_project_sweeps,
     obtain_items_from_colectica,
     get_all_sweeps )
-from src.logging.utility import StructuredMessage, setup_logging
-import json
-
-setup_logging()
-logger = logging.getLogger("am2_project")
 
 def create_am2_input_features(items, colectica_client):    
     df_relationships = pd.DataFrame()
@@ -137,27 +131,10 @@ def train_semi_supervised_model(
     all_test_reports={}
     print(item_types)
     model = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
-    with open("./logs/am2_log.json") as f:
-        records = [
-            json.loads(line)
-            for line in f
-            if line.strip()
-        ]
     for item_type in item_types:
         if (item_type in all_relationships_data.keys() and 
                 len(all_relationships_data[item_type])>3 and 
                 input(f"Do you want to process the {item_type} items? ") in ['y', 'Y']):
-            items_already_flagged=[x['message']['item_id'].split(":")[2:-1] for x in records if
-                'item_type' in x['message'].keys() and x['message']['item_type']==item_type and 
-                'item_id' in x['message'].keys()]
-            items_for_analysis=[x.split(":")[2:-1] for x in all_relationships_data[item_type].index]
-            potentially_fixed_items=[x for x in items_for_analysis if x in items_already_flagged]
-            print("ITEMS ALREADY FLAGGED")
-            print(items_already_flagged)
-            print("ITEMS FOR ANALYSIS")
-            print(items_for_analysis)
-            print("POTENTIALLY FIXED ITEMS")
-            print(potentially_fixed_items)
             print(f"Creating semi-supervised model for {item_type}")
             print(f"There are {len(all_relationships_data[item_type])} items of this type")
             # need to add check below that we are entering float value
