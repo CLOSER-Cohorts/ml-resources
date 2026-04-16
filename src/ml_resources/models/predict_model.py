@@ -117,9 +117,6 @@ def obtain_correctly_labelled_data(data_with_predictions,
                             reason_for_anomaly=reasons_for_anomaly_labels[int(reason_for_anomaly)-1],
                             type_of_missing_related_item=type_of_missing_related_item.lower()
                         ))
-                #logger.info(StructuredMessage(message=f"Reason for item being flagged as anomaly: ",
-                #        operation_type="anomaly_reason",
-                #        ))
     if generate_classification_report:
         indices_flagged = [i for i, x in enumerate(data_with_predictions['Flagged']) if x == -1]
         target_values=[str(x) for x in set(user_labelled_data['Flagged']) | set(data_with_predictions['Flagged'])]
