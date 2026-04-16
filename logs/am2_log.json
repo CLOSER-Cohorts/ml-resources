@@ -1,88 +1,197 @@
-{"time": "2026-04-14 08:18:13,566", "level": ["INFO"], "message": {"description": "Checking for newly available data in Colectica repository"}}
-{"time": "2026-04-14 08:18:47,195", "level": ["INFO"], "message": {"message": "Time for getting latest versions of 1 sweeps", "operation_type": "get_latest_versions_of_project_sweeps", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:19:04,003", "level": ["INFO"], "message": {"message": "Time for getting items of type ['Action', 'Archive', 'Category', 'Category Group', 'Category Set', 'ClassificationCorrespondenceTable', 'ClassificationFamily', 'ClassificationIndex', 'ClassificationItem', 'ClassificationLevel', 'ClassificationSeries', 'Code List Group', 'Code List Set', 'Code Set', 'Concept', 'Concept Group', 'Concept Set', 'Conceptual Component', 'Conceptual Variable', 'Conceptual Variable Group', 'Conceptual Variable Set', 'Conditional', 'Control Construct Group', 'Control Construct Set', 'Data Collection', 'Data File', 'Data Layout', 'DataCollection Methodology', 'General Instruction', 'Generation Instruction', 'Individual', 'Instruction Group', 'Instrument', 'Instrument Group', 'Instrument Set', 'Interviewer Instruction', 'Interviewer Instruction Set', 'Logical Product', 'Loop', 'Managed Representation Group', 'Managed Representation Set', 'MeasurementItem', 'MeasurementConstruct', 'Metadata Package', 'NCube', 'NCube Group', 'NCube Set', 'Organization', 'Organization Group', 'Organization Set', 'OtherMaterial', 'OtherMaterialGroup', 'OtherMaterialScheme', 'Physical Data Product', 'Physical Structure', 'PhysicalStructure Set', 'Processing Event', 'Processing Event Group', 'Processing Event Set', 'Processing Instruction Group', 'Processing Instruction Scheme', 'Project', 'Quality Standard', 'Quality Statement', 'Quality Statement Group', 'Quality Statement Set', 'Question', 'Question Activity', 'Question Block', 'Question Grid', 'Question Group', 'Question Set', 'RecordLayout', 'RecordLayout Set', 'Repeat', 'Represented Variable', 'Represented Variable Group', 'Represented Variable Set', 'Reusable Missing Value', 'Sequence', 'Series', 'Statement', 'StatisticalClassification', 'Study', 'SubSeries', 'UnitType', 'UnitTypeScheme', 'UnitTypeGroup', 'Universe', 'Universe Group', 'Universe Set', 'Variable', 'Variable Group', 'Variable Set', 'Variable Statistic', 'While']", "operation_type": "obtain_items_from_colectica", "number_of_records": 25933, "status": "Success", "duration": 16}}
-{"time": "2026-04-14 08:19:07,520", "level": ["INFO"], "message": {"description": "Time for input creation for 2 items of type Data Collection", "operation_type": "input feature creation", "item_type": "Data Collection", "number_of_records": 2, "status": "Success", "duration": 3}}
-{"time": "2026-04-14 08:19:07,524", "level": ["INFO"], "message": {"description": "Time for AM2 model predictions for 2 items of type Data Collection", "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:19:07,526", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Question", "operation_type": "input feature creation", "item_type": "Question", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:19:10,553", "level": ["INFO"], "message": {"description": "Time for input creation for 2 items of type Question Set", "operation_type": "input feature creation", "item_type": "Question Set", "number_of_records": 2, "status": "Success", "duration": 3}}
-{"time": "2026-04-14 08:19:10,555", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Sequence", "operation_type": "input feature creation", "item_type": "Sequence", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:19:10,555", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Study", "operation_type": "input feature creation", "item_type": "Study", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:19:10,555", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Variable", "operation_type": "input feature creation", "item_type": "Variable", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:19:14,214", "level": ["INFO"], "message": {"description": "Time for input creation for 2 items of type Variable Statistic", "operation_type": "input feature creation", "item_type": "Variable Statistic", "number_of_records": 2, "status": "Success", "duration": 3}}
-{"time": "2026-04-14 08:19:14,228", "level": ["INFO"], "message": {"description": "Time for entire data check process", "status": "Success", "duration": 60}}
-{"time": "2026-04-14 08:20:43,200", "level": ["INFO"], "message": {"message": "Time for getting all 13 sweeps data", "operation_type": "get_all_sweeps", "number_of_records": 13, "status": "Success", "duration": 88}}
-{"time": "2026-04-14 08:22:32,364", "level": ["INFO"], "message": {"description": "Checking for newly available data in Colectica repository"}}
-{"time": "2026-04-14 08:24:41,079", "level": ["INFO"], "message": {"message": "Time for getting latest versions of 1 sweeps", "operation_type": "get_latest_versions_of_project_sweeps", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:24:46,252", "level": ["INFO"], "message": {"message": "Time for getting items of type ['Action', 'Archive', 'Category', 'Category Group', 'Category Set', 'ClassificationCorrespondenceTable', 'ClassificationFamily', 'ClassificationIndex', 'ClassificationItem', 'ClassificationLevel', 'ClassificationSeries', 'Code List Group', 'Code List Set', 'Code Set', 'Concept', 'Concept Group', 'Concept Set', 'Conceptual Component', 'Conceptual Variable', 'Conceptual Variable Group', 'Conceptual Variable Set', 'Conditional', 'Control Construct Group', 'Control Construct Set', 'Data Collection', 'Data File', 'Data Layout', 'DataCollection Methodology', 'General Instruction', 'Generation Instruction', 'Individual', 'Instruction Group', 'Instrument', 'Instrument Group', 'Instrument Set', 'Interviewer Instruction', 'Interviewer Instruction Set', 'Logical Product', 'Loop', 'Managed Representation Group', 'Managed Representation Set', 'MeasurementItem', 'MeasurementConstruct', 'Metadata Package', 'NCube', 'NCube Group', 'NCube Set', 'Organization', 'Organization Group', 'Organization Set', 'OtherMaterial', 'OtherMaterialGroup', 'OtherMaterialScheme', 'Physical Data Product', 'Physical Structure', 'PhysicalStructure Set', 'Processing Event', 'Processing Event Group', 'Processing Event Set', 'Processing Instruction Group', 'Processing Instruction Scheme', 'Project', 'Quality Standard', 'Quality Statement', 'Quality Statement Group', 'Quality Statement Set', 'Question', 'Question Activity', 'Question Block', 'Question Grid', 'Question Group', 'Question Set', 'RecordLayout', 'RecordLayout Set', 'Repeat', 'Represented Variable', 'Represented Variable Group', 'Represented Variable Set', 'Reusable Missing Value', 'Sequence', 'Series', 'Statement', 'StatisticalClassification', 'Study', 'SubSeries', 'UnitType', 'UnitTypeScheme', 'UnitTypeGroup', 'Universe', 'Universe Group', 'Universe Set', 'Variable', 'Variable Group', 'Variable Set', 'Variable Statistic', 'While']", "operation_type": "obtain_items_from_colectica", "number_of_records": 25933, "status": "Success", "duration": 5}}
-{"time": "2026-04-14 08:24:49,695", "level": ["INFO"], "message": {"description": "Time for input creation for 2 items of type Data Collection", "operation_type": "input feature creation", "item_type": "Data Collection", "number_of_records": 2, "status": "Success", "duration": 3}}
-{"time": "2026-04-14 08:24:49,699", "level": ["INFO"], "message": {"description": "Time for AM2 model predictions for 2 items of type Data Collection", "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:24:49,701", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Question", "operation_type": "input feature creation", "item_type": "Question", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:24:52,743", "level": ["INFO"], "message": {"description": "Time for input creation for 2 items of type Question Set", "operation_type": "input feature creation", "item_type": "Question Set", "number_of_records": 2, "status": "Success", "duration": 3}}
-{"time": "2026-04-14 08:24:52,745", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Sequence", "operation_type": "input feature creation", "item_type": "Sequence", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:24:52,745", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Study", "operation_type": "input feature creation", "item_type": "Study", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:24:52,745", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Variable", "operation_type": "input feature creation", "item_type": "Variable", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:24:54,842", "level": ["INFO"], "message": {"description": "Time for input creation for 2 items of type Variable Statistic", "operation_type": "input feature creation", "item_type": "Variable Statistic", "number_of_records": 2, "status": "Success", "duration": 2}}
-{"time": "2026-04-14 08:24:54,922", "level": ["INFO"], "message": {"description": "Time for entire data check process", "status": "Success", "duration": 142}}
-{"time": "2026-04-14 08:26:43,235", "level": ["INFO"], "message": {"message": "Time for getting all 13 sweeps data", "operation_type": "get_all_sweeps", "number_of_records": 13, "status": "Success", "duration": 108}}
-{"time": "2026-04-14 08:26:47,692", "level": ["INFO"], "message": {"description": "Checking for newly available data in Colectica repository"}}
-{"time": "2026-04-14 08:27:14,989", "level": ["INFO"], "message": {"message": "Time for getting latest versions of 1 sweeps", "operation_type": "get_latest_versions_of_project_sweeps", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:27:30,836", "level": ["INFO"], "message": {"message": "Time for getting items of type ['Action', 'Archive', 'Category', 'Category Group', 'Category Set', 'ClassificationCorrespondenceTable', 'ClassificationFamily', 'ClassificationIndex', 'ClassificationItem', 'ClassificationLevel', 'ClassificationSeries', 'Code List Group', 'Code List Set', 'Code Set', 'Concept', 'Concept Group', 'Concept Set', 'Conceptual Component', 'Conceptual Variable', 'Conceptual Variable Group', 'Conceptual Variable Set', 'Conditional', 'Control Construct Group', 'Control Construct Set', 'Data Collection', 'Data File', 'Data Layout', 'DataCollection Methodology', 'General Instruction', 'Generation Instruction', 'Individual', 'Instruction Group', 'Instrument', 'Instrument Group', 'Instrument Set', 'Interviewer Instruction', 'Interviewer Instruction Set', 'Logical Product', 'Loop', 'Managed Representation Group', 'Managed Representation Set', 'MeasurementItem', 'MeasurementConstruct', 'Metadata Package', 'NCube', 'NCube Group', 'NCube Set', 'Organization', 'Organization Group', 'Organization Set', 'OtherMaterial', 'OtherMaterialGroup', 'OtherMaterialScheme', 'Physical Data Product', 'Physical Structure', 'PhysicalStructure Set', 'Processing Event', 'Processing Event Group', 'Processing Event Set', 'Processing Instruction Group', 'Processing Instruction Scheme', 'Project', 'Quality Standard', 'Quality Statement', 'Quality Statement Group', 'Quality Statement Set', 'Question', 'Question Activity', 'Question Block', 'Question Grid', 'Question Group', 'Question Set', 'RecordLayout', 'RecordLayout Set', 'Repeat', 'Represented Variable', 'Represented Variable Group', 'Represented Variable Set', 'Reusable Missing Value', 'Sequence', 'Series', 'Statement', 'StatisticalClassification', 'Study', 'SubSeries', 'UnitType', 'UnitTypeScheme', 'UnitTypeGroup', 'Universe', 'Universe Group', 'Universe Set', 'Variable', 'Variable Group', 'Variable Set', 'Variable Statistic', 'While']", "operation_type": "obtain_items_from_colectica", "number_of_records": 25933, "status": "Success", "duration": 15}}
-{"time": "2026-04-14 08:28:05,116", "level": ["INFO"], "message": {"description": "Time for input creation for 33 items of type Category", "operation_type": "input feature creation", "item_type": "Category", "number_of_records": 33, "status": "Success", "duration": 33}}
-{"time": "2026-04-14 08:28:11,658", "level": ["INFO"], "message": {"description": "Time for input creation for 5 items of type Category Set", "operation_type": "input feature creation", "item_type": "Category Set", "number_of_records": 5, "status": "Success", "duration": 6}}
-{"time": "2026-04-14 08:28:16,170", "level": ["INFO"], "message": {"description": "Time for input creation for 3 items of type Code Set", "operation_type": "input feature creation", "item_type": "Code Set", "number_of_records": 3, "status": "Success", "duration": 4}}
-{"time": "2026-04-14 08:28:23,449", "level": ["INFO"], "message": {"description": "Time for input creation for 3 items of type Concept", "operation_type": "input feature creation", "item_type": "Concept", "number_of_records": 3, "status": "Success", "duration": 7}}
-{"time": "2026-04-14 08:28:32,958", "level": ["INFO"], "message": {"description": "Time for input creation for 7 items of type Conditional", "operation_type": "input feature creation", "item_type": "Conditional", "number_of_records": 7, "status": "Success", "duration": 9}}
-{"time": "2026-04-14 08:28:36,067", "level": ["INFO"], "message": {"description": "Time for input creation for 2 items of type Data Collection", "operation_type": "input feature creation", "item_type": "Data Collection", "number_of_records": 2, "status": "Success", "duration": 3}}
-{"time": "2026-04-14 08:28:36,073", "level": ["INFO"], "message": {"description": "Time for AM2 model predictions for 2 items of type Data Collection", "status": "Error", "duration": 0}}
-{"time": "2026-04-14 08:28:36,102", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Loop", "operation_type": "input feature creation", "item_type": "Loop", "number_of_records": 1, "status": "Error", "duration": 0}}
-{"time": "2026-04-14 08:29:14,324", "level": ["INFO"], "message": {"description": "Time for input creation for 24 items of type Question", "operation_type": "input feature creation", "item_type": "Question", "number_of_records": 24, "status": "Success", "duration": 38}}
-{"time": "2026-04-14 08:29:14,326", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Question Grid", "operation_type": "input feature creation", "item_type": "Question Grid", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:29:17,937", "level": ["INFO"], "message": {"description": "Time for input creation for 2 items of type Question Set", "operation_type": "input feature creation", "item_type": "Question Set", "number_of_records": 2, "status": "Success", "duration": 3}}
-{"time": "2026-04-14 08:29:35,728", "level": ["INFO"], "message": {"description": "Time for input creation for 9 items of type Sequence", "operation_type": "input feature creation", "item_type": "Sequence", "number_of_records": 9, "status": "Success", "duration": 17}}
-{"time": "2026-04-14 08:29:35,728", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Statement", "operation_type": "input feature creation", "item_type": "Statement", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:29:35,728", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Study", "operation_type": "input feature creation", "item_type": "Study", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:31:41,903", "level": ["INFO"], "message": {"description": "Time for input creation for 63 items of type Variable", "operation_type": "input feature creation", "item_type": "Variable", "number_of_records": 63, "status": "Success", "duration": 126}}
-{"time": "2026-04-14 08:32:41,506", "level": ["INFO"], "message": {"description": "Time for input creation for 45 items of type Variable Statistic", "operation_type": "input feature creation", "item_type": "Variable Statistic", "number_of_records": 45, "status": "Success", "duration": 59}}
-{"time": "2026-04-14 08:32:41,554", "level": ["INFO"], "message": {"description": "Time for entire data check process", "status": "Success", "duration": 353}}
-{"time": "2026-04-14 08:34:17,626", "level": ["INFO"], "message": {"message": "Time for getting all 13 sweeps data", "operation_type": "get_all_sweeps", "number_of_records": 13, "status": "Success", "duration": 96}}
-{"time": "2026-04-14 08:35:20,558", "level": ["INFO"], "message": {"description": "Checking for newly available data in Colectica repository"}}
-{"time": "2026-04-14 08:38:10,359", "level": ["INFO"], "message": {"message": "Time for getting latest versions of 1 sweeps", "operation_type": "get_latest_versions_of_project_sweeps", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:38:16,412", "level": ["INFO"], "message": {"message": "Time for getting items of type ['Action', 'Archive', 'Category', 'Category Group', 'Category Set', 'ClassificationCorrespondenceTable', 'ClassificationFamily', 'ClassificationIndex', 'ClassificationItem', 'ClassificationLevel', 'ClassificationSeries', 'Code List Group', 'Code List Set', 'Code Set', 'Concept', 'Concept Group', 'Concept Set', 'Conceptual Component', 'Conceptual Variable', 'Conceptual Variable Group', 'Conceptual Variable Set', 'Conditional', 'Control Construct Group', 'Control Construct Set', 'Data Collection', 'Data File', 'Data Layout', 'DataCollection Methodology', 'General Instruction', 'Generation Instruction', 'Individual', 'Instruction Group', 'Instrument', 'Instrument Group', 'Instrument Set', 'Interviewer Instruction', 'Interviewer Instruction Set', 'Logical Product', 'Loop', 'Managed Representation Group', 'Managed Representation Set', 'MeasurementItem', 'MeasurementConstruct', 'Metadata Package', 'NCube', 'NCube Group', 'NCube Set', 'Organization', 'Organization Group', 'Organization Set', 'OtherMaterial', 'OtherMaterialGroup', 'OtherMaterialScheme', 'Physical Data Product', 'Physical Structure', 'PhysicalStructure Set', 'Processing Event', 'Processing Event Group', 'Processing Event Set', 'Processing Instruction Group', 'Processing Instruction Scheme', 'Project', 'Quality Standard', 'Quality Statement', 'Quality Statement Group', 'Quality Statement Set', 'Question', 'Question Activity', 'Question Block', 'Question Grid', 'Question Group', 'Question Set', 'RecordLayout', 'RecordLayout Set', 'Repeat', 'Represented Variable', 'Represented Variable Group', 'Represented Variable Set', 'Reusable Missing Value', 'Sequence', 'Series', 'Statement', 'StatisticalClassification', 'Study', 'SubSeries', 'UnitType', 'UnitTypeScheme', 'UnitTypeGroup', 'Universe', 'Universe Group', 'Universe Set', 'Variable', 'Variable Group', 'Variable Set', 'Variable Statistic', 'While']", "operation_type": "obtain_items_from_colectica", "number_of_records": 25933, "status": "Success", "duration": 6}}
-{"time": "2026-04-14 08:48:27,052", "level": ["INFO"], "message": {"description": "Time for input creation for 538 items of type Category", "operation_type": "input feature creation", "item_type": "Category", "number_of_records": 538, "status": "Success", "duration": 610}}
-{"time": "2026-04-14 08:48:47,395", "level": ["INFO"], "message": {"description": "Time for input creation for 17 items of type Category Set", "operation_type": "input feature creation", "item_type": "Category Set", "number_of_records": 17, "status": "Success", "duration": 20}}
-{"time": "2026-04-14 08:49:38,716", "level": ["INFO"], "message": {"description": "Time for input creation for 43 items of type Code Set", "operation_type": "input feature creation", "item_type": "Code Set", "number_of_records": 43, "status": "Success", "duration": 51}}
-{"time": "2026-04-14 08:50:09,853", "level": ["INFO"], "message": {"description": "Time for input creation for 11 items of type Concept", "operation_type": "input feature creation", "item_type": "Concept", "number_of_records": 11, "status": "Success", "duration": 31}}
-{"time": "2026-04-14 08:50:36,332", "level": ["INFO"], "message": {"description": "Time for input creation for 18 items of type Conditional", "operation_type": "input feature creation", "item_type": "Conditional", "number_of_records": 18, "status": "Success", "duration": 26}}
-{"time": "2026-04-14 08:50:39,761", "level": ["INFO"], "message": {"description": "Time for input creation for 2 items of type Data Collection", "operation_type": "input feature creation", "item_type": "Data Collection", "number_of_records": 2, "status": "Success", "duration": 3}}
-{"time": "2026-04-14 08:50:39,763", "level": ["INFO"], "message": {"description": "Time for AM2 model predictions for 2 items of type Data Collection", "status": "Error", "duration": 0}}
-{"time": "2026-04-14 08:50:39,763", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Data File", "operation_type": "input feature creation", "item_type": "Data File", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:50:43,345", "level": ["INFO"], "message": {"description": "Time for input creation for 3 items of type Interviewer Instruction", "operation_type": "input feature creation", "item_type": "Interviewer Instruction", "number_of_records": 3, "status": "Success", "duration": 3}}
-{"time": "2026-04-14 08:50:45,751", "level": ["INFO"], "message": {"description": "Time for input creation for 2 items of type Loop", "operation_type": "input feature creation", "item_type": "Loop", "number_of_records": 2, "status": "Success", "duration": 2}}
-{"time": "2026-04-14 08:51:45,201", "level": ["INFO"], "message": {"description": "Time for input creation for 44 items of type Question", "operation_type": "input feature creation", "item_type": "Question", "number_of_records": 44, "status": "Success", "duration": 59}}
-{"time": "2026-04-14 08:52:04,374", "level": ["INFO"], "message": {"description": "Time for input creation for 15 items of type Question Activity", "operation_type": "input feature creation", "item_type": "Question Activity", "number_of_records": 15, "status": "Success", "duration": 19}}
-{"time": "2026-04-14 08:52:04,374", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Question Grid", "operation_type": "input feature creation", "item_type": "Question Grid", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:52:21,503", "level": ["INFO"], "message": {"description": "Time for input creation for 13 items of type Question Group", "operation_type": "input feature creation", "item_type": "Question Group", "number_of_records": 13, "status": "Success", "duration": 17}}
-{"time": "2026-04-14 08:52:24,250", "level": ["INFO"], "message": {"description": "Time for input creation for 2 items of type Question Set", "operation_type": "input feature creation", "item_type": "Question Set", "number_of_records": 2, "status": "Success", "duration": 2}}
-{"time": "2026-04-14 08:52:45,897", "level": ["INFO"], "message": {"description": "Time for input creation for 21 items of type Sequence", "operation_type": "input feature creation", "item_type": "Sequence", "number_of_records": 21, "status": "Success", "duration": 21}}
-{"time": "2026-04-14 08:52:50,951", "level": ["INFO"], "message": {"description": "Time for input creation for 5 items of type Statement", "operation_type": "input feature creation", "item_type": "Statement", "number_of_records": 5, "status": "Success", "duration": 5}}
-{"time": "2026-04-14 08:52:50,952", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Study", "operation_type": "input feature creation", "item_type": "Study", "number_of_records": 1, "status": "Success", "duratio  n": 0}}
-{"time": "2026-04-14 08:52:50,952", "level": ["INFO"], "message": {"description": "Time for input creation for 1 items of type Universe", "operation_type": "input feature creation", "item_type": "Universe", "number_of_records": 1, "status": "Success", "duration": 0}}
-{"time": "2026-04-14 08:55:34,711", "level": ["INFO"], "message": {"description": "Time for input creation for 142 items of type Variable", "operation_type": "input feature creation", "item_type": "Variable", "number_of_records": 142, "status": "Success", "duration": 163}}
-{"time": "2026-04-14 08:57:52,156", "level": ["INFO"], "message": {"description": "Time for input creation for 120 items of type Variable Statistic", "operation_type": "input feature creation", "item_type": "Variable Statistic", "number_of_records": 120, "status": "Success", "duration": 137}}
-{"time": "2026-04-14 08:57:52,178", "level": ["INFO"], "message": {"description": "Time for entire data check process", "status": "Success", "duration": 1351}}
-{"time": "2026-04-14 09:00:32,876", "level": ["INFO"], "message": {"message": "Time for getting all 13 sweeps data", "operation_type": "get_all_sweeps", "number_of_records": 13, "status": "Success", "duration": 160}}
-{"time": "2026-04-15 16:43:45,388", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "n"}}
-{"time": "2026-04-15 16:43:45,388", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "n"}}
-{"time": "2026-04-15 16:43:46,631", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "n"}}
-{"time": "2026-04-15 16:43:46,631", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "n"}}
-{"time": "2026-04-15 16:44:00,559", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "n"}}
-{"time": "2026-04-15 16:44:00,562", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "n"}}
-{"time": "2026-04-15 16:44:01,721", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "n"}}
-{"time": "2026-04-15 16:44:01,721", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "n"}}
-{"time": "2026-04-15 16:44:04,223", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "n"}}
-{"time": "2026-04-15 16:44:04,225", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "n"}}
-{"time": "2026-04-15 16:44:11,250", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "y"}}
-{"time": "2026-04-15 16:44:12,020", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "y"}}
-{"time": "2026-04-15 16:44:12,949", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "n"}}
-{"time": "2026-04-15 16:44:14,142", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "y"}}
-{"time": "2026-04-15 16:44:14,978", "level": ["INFO"], "message": {"message": "Outlier confirmed as anomalous by human", "operation_type": "anomaly_confirmation", "anomaly_detection_correct": "y"}}
+{
+    "time": "2026-04-16 17:18:52,510",
+    "level": [
+        "INFO"
+    ],
+    "message": {
+        "message": "Outlier confirmed as anomalous by human",
+        "operation_type": "anomaly_confirmation",
+        "item_id": "urn:ddi:uk.cls.bcs70:ca11e91d-6ac6-41ca-a80a-e35118575edc:1",
+        "item_type": "Instrument",
+        "other_similar_items": [
+            "urn:ddi:uk.cls.bcs70:ca11e91d-6ac6-41ca-a80a-e35118575edc:1",
+            "urn:ddi:uk.alspac:78780fae-bd4e-4e73-b67e-e2185b758a11:1",
+            "urn:ddi:uk.alspac:cb9414fb-2098-46d2-9160-a7de78435038:1",
+            "urn:ddi:uk.alspac:73d50c73-5619-40f4-b1d2-46114dd7a6db:1",
+            "urn:ddi:uk.alspac:afd4697f-d570-4682-9a87-06d1a160601c:1"
+        ],
+        "anomaly_detection_correct": "y",
+        "reason_for_anomaly": "Not rendering on portal",
+        "type_of_missing_related_item": ""
+    }
+}
+{
+    "time": "2026-04-16 17:18:54,491",
+    "level": [
+        "INFO"
+    ],
+    "message": {
+        "message": "Outlier confirmed as anomalous by human",
+        "operation_type": "anomaly_confirmation",
+        "item_id": "urn:ddi:uk.mrcleu-uos.hcs:d5dd449b-d802-4542-8c13-f8b68768cf47:2",
+        "item_type": "Instrument",
+        "other_similar_items": [
+            "urn:ddi:uk.mrcleu-uos.hcs:d5dd449b-d802-4542-8c13-f8b68768cf47:2",
+            "urn:ddi:uk.alspac:e9c807d9-9528-4a14-bc1c-f7538be9f2e9:1",
+            "urn:ddi:uk.cls.ncds:084985bf-aa16-4dfb-b47b-f538322c68fa:2",
+            "urn:ddi:uk.alspac:a2ea1325-cd4d-45a2-aa53-f4b8f56bc6c7:1",
+            "urn:ddi:uk.alspac:7f500e72-c131-4af6-96ce-f489da28886a:1",
+            "urn:ddi:uk.alspac:826bd19d-5427-4282-b48f-f3c0881bf5ac:1",
+            "urn:ddi:uk.alspac:d4cdb9c3-e020-4fdf-bf54-f225bbf480b5:1",
+            "urn:ddi:uk.alspac:03fc1a6e-bbd4-4cff-9c06-f0c28af996ae:1",
+            "urn:ddi:uk.alspac:a29b8747-0e23-46b0-a1c1-efd5846cf0f8:1",
+            "urn:ddi:uk.cls.bcs70:889299f5-0ea0-441f-905f-ebb1db7fe9b4:1",
+            "urn:ddi:uk.alspac:fd0e02a2-e4d1-42e4-a433-eaaeb5aaf5ae:2",
+            "urn:ddi:uk.alspac:e30fdfd0-3265-4fb0-b509-ea26aae71969:1",
+            "urn:ddi:uk.alspac:8a1a5077-fe27-44be-a9f4-e7bbcd92e9dd:1",
+            "urn:ddi:uk.mrcleu-uos.sws:470b335b-dd6f-4a4a-99c5-e5b4e9dc653c:2",
+            "urn:ddi:uk.alspac:22ea45a8-0687-4ea4-bd00-de696bbf45de:1",
+            "urn:ddi:uk.mrcleu-uos.heaf:325cccb1-0081-43d2-8145-dd97006f7be5:1",
+            "urn:ddi:uk.alspac:95845192-40af-49ae-b974-dd96247deb78:1",
+            "urn:ddi:uk.mrcleu-uos.sws:50a44d2f-00f6-4b05-86f2-dcf2107ce1b9:1",
+            "urn:ddi:uk.alspac:90b780c5-cfdf-448e-92e8-d9dd5d073357:1",
+            "urn:ddi:uk.alspac:19e622a2-a108-4c68-87a3-d5e045f17741:1",
+            "urn:ddi:uk.mrcleu-uos.heaf:e7e704c9-9813-4e98-b4c9-d4cbaccb09d2:2",
+            "urn:ddi:uk.cls.bcs70:5094ea22-2647-4c60-924e-d3e863f7579c:1",
+            "urn:ddi:uk.alspac:72703e0f-8d9f-46f1-9e19-d2ba5ddeb68e:1",
+            "urn:ddi:uk.lha:d284b11d-a832-4466-9ab0-d0e9fd71e062:1",
+            "urn:ddi:uk.alspac:c17ffb2b-aff8-45be-83b7-d03b207349b0:1",
+            "urn:ddi:uk.wchads:3933b5ad-f703-47a7-9c9f-cfefbe0a6fe3:1",
+            "urn:ddi:uk.cls.ncds:b8698e54-0501-46e4-962c-cf6e2906fe8e:2",
+            "urn:ddi:uk.cls.ncds:4036d450-d977-45f2-bab4-c979476aa363:2",
+            "urn:ddi:uk.iser.ukhls:ff34d85a-cb9c-4751-96e9-c40b0c7c5423:2",
+            "urn:ddi:uk.cls.bcs70:06fc9677-9e84-4dcc-877b-c3981669fc72:1",
+            "urn:ddi:uk.cls.bcs70:d91a173d-d7c9-49ed-a190-c01f161a47a9:1",
+            "urn:ddi:uk.cls.bcs70:534d20e3-1d8d-45bf-8d3b-bdd4a3efc005:1",
+            "urn:ddi:uk.lha:eeb8b590-feb7-4577-8c20-bced2f989ecb:1",
+            "urn:ddi:uk.wchads:b6c501bf-409c-46d5-9230-bcbe0cd78f63:2",
+            "urn:ddi:uk.cls.ncds:43052cb3-8935-439b-bcae-bc6871418e3e:2",
+            "urn:ddi:uk.alspac:094bc43a-e88d-4e61-b81a-bc3d466b10d9:1",
+            "urn:ddi:uk.cls.ncds:bd177b4a-c944-4df8-8443-bbb0dd0d84c3:2",
+            "urn:ddi:uk.lha:a9904fc1-08d4-4f0f-a78d-bba44a2b9cf7:1",
+            "urn:ddi:uk.alspac:886bb2f2-cb91-435d-8cce-baa7620b05f5:1",
+            "urn:ddi:uk.lha:65d72217-2da0-459b-b7e6-b981564d7561:1",
+            "urn:ddi:uk.alspac:92477dc7-9c57-49b5-9f4d-b8842f4d2dc3:1",
+            "urn:ddi:uk.cls.ncds:157199a8-dc3d-4aee-8504-b860a6c11596:2",
+            "urn:ddi:uk.lha:26538dc8-5ee0-4bc8-a39b-b7f1fb157c6e:1",
+            "urn:ddi:uk.cls.ncds:b22207e6-f094-4378-b921-b1811729a4fd:2",
+            "urn:ddi:uk.lha:21d66c1b-b9fe-43cb-ab66-b0fa1dd7933d:1",
+            "urn:ddi:uk.alspac:03431d53-f8cd-430b-8b5b-afb1511d2841:1",
+            "urn:ddi:uk.alspac:6d2cb7b3-c4e0-43a0-a58f-ae26fbfa8250:1",
+            "urn:ddi:uk.alspac:992a1fcb-ebb2-4043-ae96-ad9b25cbf3c5:1",
+            "urn:ddi:uk.wchads:f10d92d8-896b-45c6-92cf-a8374d1f4a40:5",
+            "urn:ddi:uk.cls.ncds:107fe7d5-b871-463e-853c-a592552b591a:1",
+            "urn:ddi:uk.alspac:28b7b595-4dfc-449d-b827-a2a0e198039a:1",
+            "urn:ddi:uk.cls.bcs70:19a4d23d-f931-498c-be3d-a116e40dbeb1:1",
+            "urn:ddi:uk.alspac:99119836-fe33-4eb3-827c-9f24f4d85f3d:1",
+            "urn:ddi:uk.alspac:73e8c89e-70e5-4899-8281-9c255f493e16:1",
+            "urn:ddi:uk.alspac:f252dec9-dbdb-4291-8054-9a09f45aa46b:1",
+            "urn:ddi:uk.alspac:f1fbdd91-1ddc-488e-b58a-9926a9f17609:1",
+            "urn:ddi:uk.lha:91a310f3-e41d-4630-969f-9879559eaa47:1",
+            "urn:ddi:uk.mrcleu-uos.sws:902d2c66-c163-4dcd-9140-96542ba9c4e6:1",
+            "urn:ddi:uk.iser.ukhls:effbf118-2bbc-4c2a-b9f6-95218e9b9757:1",
+            "urn:ddi:uk.cls.bcs70:6d715d5a-8363-46e6-a1cd-9354bddb7842:1",
+            "urn:ddi:uk.alspac:8d0f977b-ccb3-4f5c-98b1-913b6fa5c44a:2",
+            "urn:ddi:uk.lha:a98bb4fb-ec89-40e4-b795-8e883bce1fd4:1",
+            "urn:ddi:uk.lha:648d8c0d-8e1b-45b3-a25b-8e3ebcc1109d:1",
+            "urn:ddi:uk.cls.bcs70:acb529a4-d57e-4513-81fa-8e0ff2875580:1",
+            "urn:ddi:uk.cls.bcs70:efdef9b3-2ddc-4bcd-a429-8df98ea71254:1",
+            "urn:ddi:uk.cls.ncds:86f1272d-1898-4642-a626-8d95a43e395a:2",
+            "urn:ddi:uk.cls.ncds:47881836-2876-4361-9aab-8c595785f6d7:1",
+            "urn:ddi:uk.alspac:33574dd7-6cea-4691-be6f-89d986f44e3a:1",
+            "urn:ddi:uk.alspac:264ad2ed-1b95-48be-abb3-88fca003a488:1",
+            "urn:ddi:uk.alspac:0bc4d307-119c-407a-b195-8664cdf31dd7:1",
+            "urn:ddi:uk.lha:53b5ed04-85a8-4ec3-8e4b-8011a3c47ca9:1",
+            "urn:ddi:uk.lha:50c9d0c8-26b7-4f10-bb04-7ee832101e5a:1",
+            "urn:ddi:uk.alspac:94f74e4d-d4c1-497d-a2e8-7de7166b72e9:1",
+            "urn:ddi:uk.cls.ncds:53eb4cc9-a4d1-4786-a2ed-7989c30e22e2:1",
+            "urn:ddi:uk.cls.bcs70:7631f2a1-823c-49c5-aa50-79327f4fd0a3:1",
+            "urn:ddi:uk.mrcleu-uos.heaf:b0ceb4ee-4b5c-4b7c-b5eb-7865776b89d5:1",
+            "urn:ddi:uk.alspac:9063e416-f220-4a43-964e-74fb1912c7eb:1",
+            "urn:ddi:uk.lha:9b795b8c-b094-49b5-b730-718ed5721251:1",
+            "urn:ddi:uk.alspac:89f209ec-7e1d-4081-b7a8-6ddb9c0eccfd:1",
+            "urn:ddi:uk.alspac:5057b4b7-4dcb-4d40-8ccc-6d254cc1f602:1",
+            "urn:ddi:uk.cls.bcs70:960d0194-8f8b-42d3-aabb-6aa9345220f2:1",
+            "urn:ddi:uk.cls.bcs70:8981ace3-3ca5-46b7-99a6-6859989f17ec:1",
+            "urn:ddi:uk.lha:19caf03e-25c0-438c-841b-64fa80a30f29:1",
+            "urn:ddi:uk.lha:0f8461e8-2d5b-4818-a8e0-5bf03cb5e38a:1",
+            "urn:ddi:uk.alspac:c043a8a2-5da9-4b70-bd12-59bd55ec5cbe:1",
+            "urn:ddi:uk.lha:ec6e7d6d-a776-4520-9e57-57bc8f2ca859:1",
+            "urn:ddi:uk.wchads:88653faf-ec25-4722-af73-5111ad68be88:1",
+            "urn:ddi:uk.whitehall2:9e84a177-9d31-4b97-ac46-4f54a5a5e714:1",
+            "urn:ddi:uk.mrcleu-uos.sws:44367dc9-21c0-4749-9609-4f1adfea1b39:1",
+            "urn:ddi:uk.wchads:b175a540-b6f9-4888-9b3e-4eebf0f6bcbb:4",
+            "urn:ddi:uk.mrcleu-uos.sws:93593860-5b54-4b95-a5da-4e544867af99:1",
+            "urn:ddi:uk.mrcleu-uos.sws:34182c22-1566-4f48-abb7-4dbc7b49efb5:1",
+            "urn:ddi:uk.alspac:24b0ae66-7bd8-46ea-b50f-4d8e9cf10533:1",
+            "urn:ddi:uk.alspac:55036e6a-9909-4594-8a72-4d45bdf0c549:1",
+            "urn:ddi:uk.cls.ncds:dbe73a2d-dd7f-4bc7-8bdc-4c391cdcccfc:2",
+            "urn:ddi:uk.cls.bcs70:f77be424-06a1-4bdf-a314-4ba248ff846f:1",
+            "urn:ddi:uk.mrcleu-uos.hcs:e4561ec5-f699-4a7f-8e38-493077c06bc2:1",
+            "urn:ddi:uk.lha:a388a851-14d3-44dd-bc4e-43104aca14c9:2",
+            "urn:ddi:uk.lha:2d15dd42-7a4d-400f-b31b-42d524c8cd08:1",
+            "urn:ddi:uk.lha:e937bf9d-b3ff-49b2-93c3-3ecac213a6cb:1",
+            "urn:ddi:uk.cls.bcs70:b7caf732-11dc-43c6-860f-3cb55d8c5b48:1",
+            "urn:ddi:uk.lha:7b964926-77df-4fc7-8a7f-3c64fbd93ed3:1",
+            "urn:ddi:uk.lha:dff94795-11ff-4fc9-96e5-381ecdb667e4:1",
+            "urn:ddi:uk.alspac:43a34c45-190d-4b56-89ac-362ff2087ca8:1",
+            "urn:ddi:uk.wchads:4baaa879-deb5-4629-bb98-2f6b9e44160b:1",
+            "urn:ddi:uk.alspac:4b5baef3-5bb3-4ac0-9207-2ee89b8852af:1",
+            "urn:ddi:uk.lha:882ea605-49c7-42be-bccc-2d7890c82c5f:1",
+            "urn:ddi:uk.alspac:e7bc001c-b95e-4896-8ccf-2d5c77c0fa51:1",
+            "urn:ddi:uk.iser.ukhls:33c913ac-dac3-4efe-9346-2bf606acd3e3:1",
+            "urn:ddi:uk.cls.bcs70:4960d89c-4e2a-4b14-8c1d-2aa8f3ddaeb7:1",
+            "urn:ddi:uk.mrcleu-uos.sws:f7c57e4a-23f1-455d-9ecb-2694609b8d9c:1",
+            "urn:ddi:uk.alspac:6762db04-06da-4100-b946-24a072d8111c:1",
+            "urn:ddi:uk.alspac:b309984e-cc61-4a56-a734-248eec5595b0:1",
+            "urn:ddi:uk.genscot:c240b6a4-deda-4290-88dd-217171d2dd79:1",
+            "urn:ddi:uk.cls.bcs70:4673d6e7-cf10-435c-bbd3-1fa65dd5f535:2",
+            "urn:ddi:uk.alspac:8e726089-9d93-482e-9413-1c99b7f01916:1",
+            "urn:ddi:uk.cls.bcs70:64c36cd4-6208-4812-83b6-1bcee8d32c36:1",
+            "urn:ddi:uk.alspac:f879ad6b-b641-4358-a7f1-1ad28dd221f4:1",
+            "urn:ddi:uk.alspac:7963be90-cbea-4e28-94bc-19767b8137f0:1",
+            "urn:ddi:uk.lha:fed9231c-628c-4ad8-92b2-1904e1d7ccbb:1",
+            "urn:ddi:uk.alspac:aec481f1-4967-4d13-81bc-17a31931091c:1",
+            "urn:ddi:uk.alspac:eeb87573-9d42-4278-a840-15b14f7d4e9b:1",
+            "urn:ddi:uk.alspac:bd0123c6-1898-4a1e-b6fb-1252b79d4ab9:1",
+            "urn:ddi:uk.alspac:b6491762-8b7b-43b4-8d1d-11d3b3ad7b1d:1",
+            "urn:ddi:uk.cls.bcs70:77a0622b-b213-4728-8d5e-1193dc99fbbb:1",
+            "urn:ddi:uk.lha:0b9fb704-044f-4342-ad1e-0f6a46f140a1:1",
+            "urn:ddi:uk.lha:e06e1e80-e42f-4054-9409-0ec460a0c467:1",
+            "urn:ddi:uk.cls.ncds:caf41698-1371-4283-87ee-0ce87b1fe159:3",
+            "urn:ddi:uk.alspac:c2583cc8-fcae-494b-b5de-0b307afa94f1:1",
+            "urn:ddi:uk.alspac:1d4d787d-44d0-49ee-9e63-0a5b3a9271a9:1",
+            "urn:ddi:uk.cls.bcs70:8973058a-adc7-488d-b8ce-07c4f1a42f27:1",
+            "urn:ddi:uk.lha:fbf25ccd-5ff9-4912-a305-03039512dc5a:1",
+            "urn:ddi:uk.alspac:66c05dd6-0154-4a33-881b-02c49d8d7771:1",
+            "urn:ddi:uk.lha:e1e1dba5-14e3-46c1-b7aa-028ef682c401:1",
+            "urn:ddi:uk.lha:416c1d5c-e3e8-4e2d-831c-01e2ae3d6ca1:1",
+            "urn:ddi:uk.alspac:8cd2cf2c-07dc-4b16-9c77-014b9169ff69:1"
+        ],
+        "anomaly_detection_correct": "y",
+        "reason_for_anomaly": "Incorrect API results",
+        "type_of_missing_related_item": ""
+    }
+}
+{
+    "time": "2026-04-16 17:19:06,832",
+    "level": [
+        "INFO"
+    ],
+    "message": {
+        "message": "Outlier confirmed as anomalous by human",
+        "operation_type": "anomaly_confirmation",
+        "item_id": "urn:ddi:uk.mrcleu-uos.sws:167a32b1-81fc-4a00-8ede-8beb8005cf61:1",
+        "item_type": "Instrument",
+        "other_similar_items": [
+            "urn:ddi:uk.mrcleu-uos.sws:167a32b1-81fc-4a00-8ede-8beb8005cf61:1",
+            "urn:ddi:uk.lha:c8b4a275-b78a-46af-ba05-7346943ef834:1"
+        ],
+        "anomaly_detection_correct": "y",
+        "reason_for_anomaly": "Missing relationship",
+        "type_of_missing_related_item": "data collection"
+    }
+}{"time": "2026-04-16 17:41:03,409", "level": ["INFO"], "message": {"message": "Get latest versions of sweeps...", "operation_type": "get_latest_versions_of_project_sweeps_start", "status": "Pending"}}
+{"time": "2026-04-16 17:41:20,951", "level": ["INFO"], "message": {"message": "Time for getting latest versions of 1 sweeps", "operation_type": "get_latest_versions_of_project_sweeps_end", "number_of_records": 1, "status": "Success", "duration": 17}}
+{"time": "2026-04-16 17:41:20,951", "level": ["INFO"], "message": {"message": "Obtain items from sweep...", "operation_type": "obtain_items_from_colectica_end", "status": "Pending"}}
+{"time": "2026-04-16 17:41:27,538", "level": ["INFO"], "message": {"message": "Time for getting items of type ['Action', 'Archive', 'Category', 'Category Group', 'Category Set', 'ClassificationCorrespondenceTable', 'ClassificationFamily', 'ClassificationIndex', 'ClassificationItem', 'ClassificationLevel', 'ClassificationSeries', 'Code List Group', 'Code List Set', 'Code Set', 'Concept', 'Concept Group', 'Concept Set', 'Conceptual Component', 'Conceptual Variable', 'Conceptual Variable Group', 'Conceptual Variable Set', 'Conditional', 'Control Construct Group', 'Control Construct Set', 'Data Collection', 'Data File', 'Data Layout', 'DataCollection Methodology', 'General Instruction', 'Generation Instruction', 'Individual', 'Instruction Group', 'Instrument', 'Instrument Group', 'Instrument Set', 'Interviewer Instruction', 'Interviewer Instruction Set', 'Logical Product', 'Loop', 'Managed Representation Group', 'Managed Representation Set', 'MeasurementItem', 'MeasurementConstruct', 'Metadata Package', 'NCube', 'NCube Group', 'NCube Set', 'Organization', 'Organization Group', 'Organization Set', 'OtherMaterial', 'OtherMaterialGroup', 'OtherMaterialScheme', 'Physical Data Product', 'Physical Structure', 'PhysicalStructure Set', 'Processing Event', 'Processing Event Group', 'Processing Event Set', 'Processing Instruction Group', 'Processing Instruction Scheme', 'Project', 'Quality Standard', 'Quality Statement', 'Quality Statement Group', 'Quality Statement Set', 'Question', 'Question Activity', 'Question Block', 'Question Grid', 'Question Group', 'Question Set', 'RecordLayout', 'RecordLayout Set', 'Repeat', 'Represented Variable', 'Represented Variable Group', 'Represented Variable Set', 'Reusable Missing Value', 'Sequence', 'Series', 'Statement', 'StatisticalClassification', 'Study', 'SubSeries', 'UnitType', 'UnitTypeScheme', 'UnitTypeGroup', 'Universe', 'Universe Group', 'Universe Set', 'Variable', 'Variable Group', 'Variable Set', 'Variable Statistic', 'While']", "operation_type": "obtain_items_from_colectica_end", "number_of_records": 25933, "status": "Success", "duration": 6}}

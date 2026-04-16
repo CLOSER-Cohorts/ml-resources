@@ -97,10 +97,11 @@ def main(args):
         records=get_logs()
 
         # Get anomalies already flagged in logging data
-        items_already_flagged=[x['message']['item_id'].split(":")[2:-1] for x in records if
+        items_already_flagged=[x['message'] for x in records if
                 'operation_type' in x['message'].keys() and
                 x['message']['operation_type']=="anomaly_confirmation" and 
                 'item_id' in x['message'].keys()]
+        #items_already_flagged_ids=[x['item_id'].split(":")[2:-1] for x in items_already_flagged]
         print(items_already_flagged)
         # Your core logic here
         #logging.info(StructuredMessage(description="Creating input features..."))
@@ -112,13 +113,27 @@ def main(args):
             items = [create_item_object(x) for x in results['new_item_urns']][0:10]
             items_agency_ids=[[x['AgencyId'], x['Identifier']] for x in items]
             flagged_anomalies_that_were_updated=[x for x in items_already_flagged if 
-                x in items_agency_ids]
+                x['item_id'].split(":")[2:-1] in items_agency_ids]
             for updated_item in flagged_anomalies_that_were_updated:
-                logger.info(StructuredMessage(message=f"Found updated anomaly",
-                    operation_type="anomaly potentially fixed",
-                    agency_id=updated_item[0],
-                    identifier=updated_item[1],
-                    status="potentially_fixed_anomaly"))
+                updated_items_dict=[{"AgencyId": x.split(":")[2],
+                    "Identifier": x.split(":")[3],
+                    "Version": x.split(":")[4],
+                    "ItemType": colectica_client.item_code(updated_item['item_type'])} for x in updated_item['all_similar_items']
+                    ]
+                input_features_for_updated_items=create_am2_input_features(updated_items_dict, colectica_client)
+                #predictions=all_item_models['Instrument_classifier_for_error_detection']['model'].predict(
+                #    input_features_for_updated_items
+                #)
+                #input_features_for_updated_items = input_features_for_updated_items[all_item_models['Instrument_classifier_for_error_detection']['model'].feature_names_in_]
+                predictions=all_item_models[updated_item['item_type']]['model'].predict(
+                    input_features_for_updated_items
+                )
+                if set(predictions.tolist())=={1}:
+                    logger.info(StructuredMessage(message=f"Found updated anomaly",
+                        operation_type="anomaly potentially fixed",
+                        agency_id=updated_item[0],
+                        identifier=updated_item[1],
+                        status="potentially_fixed_anomaly"))
             item_types = sorted(set([colectica_client.item_code_inv(item['ItemType']) 
                 for item in items]))
             all_new_am2_relationships_data={}
