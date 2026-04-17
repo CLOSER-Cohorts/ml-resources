@@ -5,6 +5,7 @@ from sklearn.utils.validation import check_is_fitted
 from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
+import logging
 from src.ml_resources import (
     read_dataset_from_file,
     obtain_items_from_colectica,
@@ -20,6 +21,8 @@ from projects.am2_project.src.evidently import (
     create_schema,
     generate_drift_monitoring_report
 )
+from src.logging.utility import StructuredMessage, setup_logging
+
 from src.ml_resources.data import colectica_utility
 
 colectica_client = colectica_utility.C
@@ -114,6 +117,14 @@ object_name = "all_item_models"
 file_version = get_max_file_version(Path(f"{folder}"), object_name)
 file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
 all_item_models=read_dataset_from_file(file_path)
+
+# or if we haven't created models yet:
+
+all_item_models={}
+
+logger=setup_logging()
+
+#logger = logging.getLogger("am2_project")
 
 train_semi_supervised_model(
     relationships_data_for_training_updated_model,

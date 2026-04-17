@@ -5,8 +5,9 @@ import json
 from pathlib import Path
 from datetime import datetime
 import numpy as np
-from src.logging.utility import StructuredMessage, setup_logging
 from collections import Counter;
+import traceback
+from src.logging.utility import StructuredMessage, setup_logging
 
 logger=setup_logging()
 
@@ -91,8 +92,11 @@ def main(args):
         folder = "./projects/am2_project/models/all_item_models"
         object_name = "all_item_models"
         file_version = get_max_file_version(Path(f"{folder}"), object_name)
-        file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
-        all_item_models=read_dataset_from_file(file_path)
+        if file_version > 0:
+            file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
+            all_item_models=read_dataset_from_file(file_path)
+        else:
+            all_item_models={}
 
         records=get_logs()
 
@@ -125,15 +129,16 @@ def main(args):
                 #    input_features_for_updated_items
                 #)
                 #input_features_for_updated_items = input_features_for_updated_items[all_item_models['Instrument_classifier_for_error_detection']['model'].feature_names_in_]
-                predictions=all_item_models[updated_item['item_type']]['model'].predict(
-                    input_features_for_updated_items
-                )
-                if set(predictions.tolist())=={1}:
-                    logger.info(StructuredMessage(message=f"Found updated anomaly",
-                        operation_type="anomaly potentially fixed",
-                        agency_id=updated_item[0],
-                        identifier=updated_item[1],
-                        status="potentially_fixed_anomaly"))
+                if updated_item['item_type'] in all_item_models.keys():
+                    predictions=all_item_models[updated_item['item_type']]['model'].predict(
+                        input_features_for_updated_items
+                        )
+                    if set(predictions.tolist())=={1}:
+                        logger.info(StructuredMessage(message=f"Found updated anomaly",
+                            operation_type="anomaly potentially fixed",
+                            agency_id=updated_item[0],
+                            identifier=updated_item[1],
+                            status="potentially_fixed_anomaly"))
             item_types = sorted(set([colectica_client.item_code_inv(item['ItemType']) 
                 for item in items]))
             all_new_am2_relationships_data={}
@@ -153,9 +158,9 @@ def main(args):
                     number_of_records=len(items_of_a_type),
                     status="Success",
                     duration=duration_input_creation.seconds))
-                #if item_type in all_item_models.keys():
-                if item_type=='Data Collection':
-                    order=list(all_item_models['Category_classifier_for_error_detection']['model'].feature_names_in_)
+                if item_type in all_item_models.keys():
+                #if item_type=='Data Collection':
+                    order=list(all_item_models[item_type]['model'].feature_names_in_)
                     new_am2_relationships_data_single_type=new_am2_relationships_data_single_type.reindex(
                         columns=order).replace({np.nan: 0}) 
                     # Make predictions on new data...
@@ -163,9 +168,11 @@ def main(args):
                     logger.info(StructuredMessage(message=f"Making predictions on data...",
                         operation_type="predictions_start",
                         status="Pending"))
-                    predictions=all_item_models['Category_classifier_for_error_detection']['model'].predict(
+                    predictions=all_item_models[item_type]['model'].predict(
                         new_am2_relationships_data_single_type
                         )
+                    new_am2_relationships_data_single_type.loc[
+                            new_am2_relationships_data_single_type.index, 'Predictions']=predictions
                     duration_model_prediction=datetime.now()-start_time_for_model_predictions
                     logger.info(StructuredMessage(description=f"Time for AM2 model predictions for {len(new_am2_relationships_data_single_type)} items of type {item_type}",
                         operation_type="predictions_start",
@@ -177,9 +184,10 @@ def main(args):
                         print("ANOMALIES PREDICTED")
                         print(anomalies)
                         logger.info(StructuredMessage(description=f"{len(anomalies)} anomalies detected for items of type {item_type}",
-                        operation_type="anomalies_detected",
-                        number_number_of_anomalies=len(anomalies),
-                        item_type=item_type))
+                            operation_type="anomalies_detected",
+                            number_of_anomalies=len(anomalies),
+                            number_of_items_checked=len(new_am2_relationships_data_single_type),
+                            item_type=item_type))
                         #send_message_to_slack(str(anomalies))
                 all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
             # Save data we just retrieved for use in training a new model
@@ -220,8 +228,9 @@ def main(args):
             status="Failed"))
         #send_message_to_slack("Check for new items failed.")
         print(e)
+        print(traceback.format_exc())
         #send_message_to_slack(str(e))
-        sys.exit(1)  # important for scheduler to detect failure
+        #sys.exit(1)  # important for scheduler to detect failure
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

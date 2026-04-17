@@ -7,6 +7,8 @@ from sklearn.ensemble import IsolationForest
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import classification_report
+import logging
 from src.ml_resources import (
     obtain_correctly_labelled_data,
     create_model_package,
@@ -16,6 +18,7 @@ from src.ml_resources import (
     get_latest_versions_of_project_sweeps,
     obtain_items_from_colectica,
     get_all_sweeps )
+from src.logging.utility import StructuredMessage, setup_logging
 
 def create_am2_input_features(items, colectica_client):    
     df_relationships = pd.DataFrame()
@@ -118,6 +121,34 @@ def generate_pca_data(X,
         return {"pcaFittedToData": pca_data,
             "principalComponents": principalComponents}
 
+def check_for_concept_drift(df_relationships, item_type):
+    logger = logging.getLogger("am2_project")
+    df_relationships_unique=df_relationships.drop_duplicates().fillna(0)
+    total_correct=0
+    for index, sample in df_relationships_unique.iterrows():
+        matched = df_relationships[(df_relationships == sample).all(axis=1)]
+        input_prompt=""
+        ground_truth=[]
+        while input_prompt not in ['y', 'n']:
+            input_prompt = f"""For the {len(matched)}/{len(df_relationships)} samples identical to this, the 
+                model predicted: {sample['Predictions']}. Is this correct? y/n """
+            isPredictionCorrect = input(input_prompt)
+        if isPredictionCorrect=='y':
+            total_correct+=len(matched)
+            ground_truth.append(sample['Predictions'])
+        else:
+            ground_truth.append(int(sample['Predictions'])*-1)
+    #report = classification_report(ground_truth, df_relationships_unique['Predictions'], target_names=set(ground_truth))
+    report_dict = classification_report(ground_truth,
+            df_relationships_unique['Predictions'],
+            target_names=set(ground_truth),
+            output_dict=True)
+    logger.info(StructuredMessage(description=f"Accuracy for decision tree models on new batch of {item_type} data",
+            operation_type="concept_drift_performance",
+            report=report_dict,
+            number_of_unique_items_checked=len(df_relationships_unique),
+            item_type=item_type))
+
 def train_semi_supervised_model(
     all_relationships_data,
     item_types,
@@ -140,8 +171,7 @@ def train_semi_supervised_model(
             # need to add check below that we are entering float value
             test_size_value=input("What proportion of the items do you want to put aside for testing? ")
             # Generate training data, and train a decision tree
-            df_relationships = all_relationships_data[item_type]
-            df_relationships_unique=df_relationships.drop_duplicates().fillna(0)
+            check_for_concept_drift(all_relationships_data[item_type], item_type)
             print(df_relationships_unique)
             if len(df_relationships_unique)>4:
                 X_train, X_test = train_test_split(
@@ -172,7 +202,7 @@ def train_semi_supervised_model(
             print("TRAINING DATASET ISOLATION FOREST")
             print(training_dataset_isolation_forest)
             data_for_model=X_train_copy.join(training_dataset_isolation_forest)
-            model_name_version=f"{item_type}_classifier_for_error_detection"
+            model_name_version=f"{item_type}"
             training_data_description=f"{len(X_train)}_{item_type}_items"
             human_labelled_training_data=obtain_correctly_labelled_data(
                 data_for_model,
