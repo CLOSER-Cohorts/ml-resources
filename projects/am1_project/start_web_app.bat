@@ -1,0 +1,1 @@
+python -m uvicorn projects.am1_project.api.main:app --reload
