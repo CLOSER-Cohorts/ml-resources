@@ -7,20 +7,20 @@ from sklearn.compose import ColumnTransformer
 import copy
 
 def convert_dictionary_to_dataframe(dict_obj):
-    dataset=pd.DataFrame({})
-    feature_names=[]
-    for study_agency_id in dict_obj.keys():
-        for item in dict_obj[study_agency_id].items():
-            for key in item[1].keys():
-                if key not in feature_names:
-                    feature_names.append(key)
+    data = []
+    count=0
+    for study_agency_id, items in dict_obj.items():
+        for item_id, item_data in items.items():
+            print(count)
+            count=count+1
+            row = {"id": item_id}
+            for key, value in item_data.items():
                 if key == "ItemCategories":
-                    feature_value=(" ".join(sorted(item[1][key])).lower())
+                    row[key] = " ".join(sorted(value)).lower()
                 else:
-                    feature_value = item[1][key]
-                print(feature_value)
-                dataset.loc[item[0], key] = feature_value
-    return dataset
+                    row[key] = value
+            data.append(row)
+    return pd.DataFrame(data).set_index("id")
 
 def update_dataset(study_agency_id,
     identifiers,
