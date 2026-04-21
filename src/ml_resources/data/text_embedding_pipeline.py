@@ -25,6 +25,7 @@ def apply_pipeline(data, columns):
     transformed_embeddings = pd.DataFrame({"summary_embeddings": [x[0:embedding_length] for x in transformed_data],
      "category_embeddings": [x[embedding_length:embedding_length*2] for x in transformed_data],
      "item_type": [x[embedding_length*2] for x in transformed_data],
-     "topic": [x[embedding_length*2+1] for x in transformed_data]}
+     "topic": [x[embedding_length*2+1] for x in transformed_data],
+     "has_categories": [x[embedding_length*2+2] for x in transformed_data]}
      )
     return transformed_embeddings
