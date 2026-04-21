@@ -12,7 +12,7 @@ from src.ml_resources import (
 # v
 # e
 
-modelfile = open('./projects/am1_project/model/trainedModel/trainedModel_2.pickle', 'rb')
+modelfile = open('./projects/am1_project/model/trainedModelAllStudies/trainedModelAllStudies_1.pickle', 'rb')
 trainedModel = pickle.load(modelfile)
 """
 testDataFile = open('./projects/am1_project/data/testData/testData_1.pickle', 'rb')
@@ -54,12 +54,13 @@ async def categorise_questions(item: Item):
     df = pd.DataFrame(item.dict())
     print(item)
     print(df)
-    transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories', 'ItemType'])
+    transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories'])
     print(transformed_embeddings)
     X = np.hstack([
      np.vstack(transformed_embeddings['summary_embeddings']),
      np.vstack(transformed_embeddings['category_embeddings']),
-     np.vstack(transformed_embeddings['item_type'])
+     np.vstack(transformed_embeddings['item_type']),
+     np.vstack(transformed_embeddings['has_categories'])
     ])
     result = trainedModel.predict(X)
     print(result)
