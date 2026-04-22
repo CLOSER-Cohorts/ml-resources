@@ -27,7 +27,8 @@ X = np.hstack([
 class Item(BaseModel):
     TextLabel: list[str] | None = None
     ItemCategories: list[str] | None = None
-    ItemType: list[str] | None = None
+    ItemType: list[int] | None = None
+    HasCategories: list[int] | None = None
     
 app = FastAPI()
 
@@ -52,10 +53,7 @@ async def create_item(item: Item):
 @app.post("/categorise_questions/")
 async def categorise_questions(item: Item):
     df = pd.DataFrame(item.dict())
-    print(item)
-    print(df)
     transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories'])
-    print(transformed_embeddings)
     X = np.hstack([
      np.vstack(transformed_embeddings['summary_embeddings']),
      np.vstack(transformed_embeddings['category_embeddings']),
