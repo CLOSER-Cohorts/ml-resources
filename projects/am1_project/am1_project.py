@@ -101,7 +101,9 @@ print(level_one_class_proportions)
 
 # If we have already calculated the embeddings and saved them to a pickle file, we read them in...
 
-transformed_embeddings = read_dataset_from_file('./projects/am1_project/data/transformed_embeddings_1.pickle')
+alspac_raw=read_dataset_from_file('./projects/am1_project/data/am1_data_alspac/am1_Data_alspac_1.pickle')
+alspac_embeddings=read_dataset_from_file('./projects/am1_project/data/transformed_embeddings_alspac/transformed_embeddings_alspac_1.pickle')
+transformed_embeddings = read_dataset_from_file('./projects/am1_project/data/transformed_embeddings_all_studies/transformed_embeddings_all_studies_1.pickle')
 
 # ...otherwise we can calculate them from scratch, and save them to a file...
 
@@ -111,6 +113,7 @@ transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories'])
 save_versioned_pickle_file(transformed_embeddings, 'transformed_embeddings_usoc', folder='./projects/am1_project/data')
 
 #6. split data into training and test
+
 
 y=transformed_embeddings['topic']
 X=transformed_embeddings.drop('topic', axis=1)
@@ -125,13 +128,15 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 lr_model_data=create_model_data_object(X_train, X_test, y_train, y_test)
 trainedModel=train_model(lr_model_data,
-    selected_input_features=['summary_embeddings', 'category_embeddings', 'item_type', 'Agency'])
+    selected_input_features=['summary_embeddings', 'category_embeddings', 'item_type', 'has_categories'])
 
 # Save the model...
 
 save_versioned_pickle_file(trainedModel, 'trainedModel', folder='./projects/am1_project/model')
 save_versioned_pickle_file(all_df, 'embeddings_with_two_agency', folder='./projects/am1_project/data')
 save_versioned_pickle_file(df, 'trainingDataDf', folder='./projects/am1_project/data')
+
+trained_model = read_dataset_from_file('./projects/am1_project/model/trainedModelAllStudies/trainedModelAllStudies_1.pickle')
 
 input_feature_list=[]
 for input_feature in ['summary_embeddings', 'category_embeddings', 'item_type', 'Agency']:
