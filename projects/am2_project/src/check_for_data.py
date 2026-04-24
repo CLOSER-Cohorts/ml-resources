@@ -7,6 +7,7 @@ from datetime import datetime
 import numpy as np
 from src.logging.utility import StructuredMessage, setup_logging
 from collections import Counter;
+import traceback
 
 logger=setup_logging()
 
@@ -91,8 +92,11 @@ def main(args):
         folder = "./projects/am2_project/models/all_item_models"
         object_name = "all_item_models"
         file_version = get_max_file_version(Path(f"{folder}"), object_name)
-        file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
-        all_item_models=read_dataset_from_file(file_path)
+        if file_version>0:
+            file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
+            all_item_models=read_dataset_from_file(file_path)
+        else:
+            all_item_models={}
 
         records=get_logs()
 
@@ -103,14 +107,13 @@ def main(args):
                 'item_id' in x['message'].keys()]
         #items_already_flagged_ids=[x['item_id'].split(":")[2:-1] for x in items_already_flagged]
         print(items_already_flagged)
-        # Your core logic here
-        #logging.info(StructuredMessage(description="Creating input features..."))
         with open("./projects/am2_project/config/am2_config.json") as f:
             project_config = json.load(f)
         # Check for new data...    
         results = check_for_newly_available_data(project_config)
+        # GET RID OF [0:10] TO GET EVERYTHING
         if len(results['new_item_urns'])>0:
-            items = [create_item_object(x) for x in results['new_item_urns']][0:10]
+            items = [create_item_object(x) for x in results['new_item_urns']]
             items_agency_ids=[[x['AgencyId'], x['Identifier']] for x in items]
             flagged_anomalies_that_were_updated=[x for x in items_already_flagged if 
                 x['item_id'].split(":")[2:-1] in items_agency_ids]
@@ -121,10 +124,6 @@ def main(args):
                     "ItemType": colectica_client.item_code(updated_item['item_type'])} for x in updated_item['all_similar_items']
                     ]
                 input_features_for_updated_items=create_am2_input_features(updated_items_dict, colectica_client)
-                #predictions=all_item_models['Instrument_classifier_for_error_detection']['model'].predict(
-                #    input_features_for_updated_items
-                #)
-                #input_features_for_updated_items = input_features_for_updated_items[all_item_models['Instrument_classifier_for_error_detection']['model'].feature_names_in_]
                 predictions=all_item_models[updated_item['item_type']]['model'].predict(
                     input_features_for_updated_items
                 )
@@ -153,9 +152,8 @@ def main(args):
                     number_of_records=len(items_of_a_type),
                     status="Success",
                     duration=duration_input_creation.seconds))
-                #if item_type in all_item_models.keys():
-                if item_type=='Data Collection':
-                    order=list(all_item_models['Category_classifier_for_error_detection']['model'].feature_names_in_)
+                if item_type in all_item_models.keys():
+                    order=list(all_item_models[item_type]['model'].feature_names_in_)
                     new_am2_relationships_data_single_type=new_am2_relationships_data_single_type.reindex(
                         columns=order).replace({np.nan: 0}) 
                     # Make predictions on new data...
@@ -163,7 +161,7 @@ def main(args):
                     logger.info(StructuredMessage(message=f"Making predictions on data...",
                         operation_type="predictions_start",
                         status="Pending"))
-                    predictions=all_item_models['Category_classifier_for_error_detection']['model'].predict(
+                    predictions=all_item_models[item_type]['model'].predict(
                         new_am2_relationships_data_single_type
                         )
                     duration_model_prediction=datetime.now()-start_time_for_model_predictions
@@ -180,7 +178,7 @@ def main(args):
                         operation_type="anomalies_detected",
                         number_number_of_anomalies=len(anomalies),
                         item_type=item_type))
-                        #send_message_to_slack(str(anomalies))
+                        send_message_to_slack(str(anomalies))
                 all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
             # Save data we just retrieved for use in training a new model
             save_versioned_pickle_file(
@@ -200,27 +198,24 @@ def main(args):
                 The following sweeps are present in the repository, but are not included in the project:
                 {sweeps_not_in_project} 
                 """)
-            #send_message_to_slack(f"""
-            #    The following sweeps are present in the repository, but are not included in the project:
-            #    {sweeps_not_in_project} 
-            #    """)
+            send_message_to_slack(f"""
+                The following sweeps are present in the repository, but are not included in the project:
+                {sweeps_not_in_project} 
+                """)
 
-        # Example task
-        print(f"Hello at {datetime.now()}")
-
-        #logging.info("Script completed successfully")
+        logging.info("Script completed successfully")
         # The command below works, but just to minimise noise on the channel, we 
         # will comment it out for now.
         #send_message_to_slack("This is a test message from code that polls the Colectica repo.")
 
     except Exception as e:
         #logger.exception("Script failed")
-        #time_for_new_sweeps_check=datetime.now()-start_time_for_new_sweep_detection
-        logger.info(StructuredMessage(description=f"Script failed: {e}",
-            status="Failed"))
+        #logger.info(StructuredMessage(description=f"Script failed: {e}",
+        #    status="Failed"))
         #send_message_to_slack("Check for new items failed.")
-        print(e)
-        #send_message_to_slack(str(e))
+        stack_trace = traceback.format_exc()
+        print(stack_trace)
+        #send_message_to_slack(str(stack_trace))
         sys.exit(1)  # important for scheduler to detect failure
 
 if __name__ == "__main__":
