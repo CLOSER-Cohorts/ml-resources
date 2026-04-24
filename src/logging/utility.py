@@ -9,12 +9,12 @@ class StructuredMessage:
         #return str(self.kwargs)
 
 
-def setup_logging():
-    logger = logging.getLogger("am2_project")
+def setup_logging(project="am2_project", log_file="logs/am2_log.json"):
+    logger = logging.getLogger(project)
     print("NAME IN UTILITY")
     print(logger.name)
     logger.setLevel(logging.INFO)    
-    handler=logging.FileHandler("logs/am2_log.json")
+    handler=logging.FileHandler(log_file)
     formatter=logging.Formatter("{\"time\": \"%(asctime)s\", \"level\": [\"%(levelname)s\"], \"message\": %(message)s}")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
