@@ -14,6 +14,7 @@ from src.ml_resources import (
     create_model_data_object,
     calculate_accuracy)
 from src.ml_resources.data import colectica_utility
+from projects.am1_project.api import api_client
 
 #PROCESS: 
 #1. GET DATA FROM COLECTICA
@@ -208,3 +209,13 @@ for i in range(0,20):
 
 genscot_df=read_dataset_from_file('./projects/am1_project/data/transformed_embeddings_genscot/transformed_embeddings_genscot_1.pickle')    
 training_df=read_dataset_from_file('./projects/am1_project/data/trainingDataDf/trainingDataDf_1.pickle')
+
+
+request_body={
+    "TextLabel": ["How often do you play sports?", "Number of drinks per week"],
+    "ItemCategories": ["every day every week twice a week", "dog"],
+    "ItemType": [1, 0],
+    "HasCategories": [1, 1]
+}
+
+api_client.execute_query(request_body)
