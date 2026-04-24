@@ -1,6 +1,6 @@
 # Hard code the branch variable...
 
-$Branch = "issue-91-create-powershell-script-for-ci-cd"
+$Branch = "main"
 
 # Go to your repository
 cd ..
