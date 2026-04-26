@@ -5,7 +5,8 @@
     "Studies": [],
     "Sweeps": {
     "uk.iser.ukhls": {
-        "Wave 1": "f0633c8c-66c3-4b3a-90fa-a863d8967f46"
+        "Wave 1": "f0633c8c-66c3-4b3a-90fa-a863d8967f46",
+	      "Wave 2": "d5ce421f-3020-4602-8de1-5aa00e826239"
     }
     }
   },
