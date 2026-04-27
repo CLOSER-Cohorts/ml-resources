@@ -148,89 +148,33 @@ def train_semi_supervised_model(
                     df_relationships_unique, # this needs to be specific to data type it's not at present
                     test_size=float(test_size_value)
                 )
-                only_relabel_outliers=True
             else:
                 X_train=df_relationships_unique
                 X_test=pd.DataFrame()
-                only_relabel_outliers=False
             pca_output=generate_pca_data(X_train,
                 item_type, 
                 dataset_name=f"{dataset_name}_training")
-            pca_data = pca_output['principalComponents']
-            fitted_pca = pca_output['pcaFittedToData']    
-            clf = IsolationForest(max_samples=100, random_state=0)
-            clf.fit(pca_data)
-            training_dataset_isolation_forest=generate_data_for_classification(item_type,
-                pca_data,
-                X_train,
-                clf,
-                dataset_name=dataset_name)
-            training_dataset_isolation_forest.index = X_train.index
-            X_train_copy=X_train.copy()
-            print("X_train")
-            print(X_train)
-            print("TRAINING DATASET ISOLATION FOREST")
-            print(training_dataset_isolation_forest)
-            data_for_model=X_train_copy.join(training_dataset_isolation_forest)
-            model_name_version=f"{item_type}_classifier_for_error_detection"
-            training_data_description=f"{len(X_train)}_{item_type}_items"
-            human_labelled_training_data=obtain_correctly_labelled_data(
-                data_for_model,
-                'We are correcting the pseudo-labelled datasets created with isolation forests',
-                'Flagged',
-                model_name_version,
-                training_data_description,
-                df_relationships_unique,
-                df_relationships,
-                item_type=item_type,
-                target_variable_is_binary=True,
-                categories=[-1,1],
-                only_relabel_outliers=only_relabel_outliers,
-                generate_classification_report=generate_classification_report,
-                all_reports=all_training_reports
-                )
-            all_human_labelled_data=pd.concat([all_human_labelled_data,
-                human_labelled_training_data])
-            #human_labelled_training_data["ItemType"] = human_labelled_training_data["ItemType"].astype("category").cat.codes
-            #X=pd.DataFrame(human_labelled_training_data.drop(columns=['Flagged']))
-            X=pd.DataFrame(human_labelled_training_data.drop(columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'Flagged']))
-            y=human_labelled_training_data[['Flagged']]
-            print("FITTING MODEL")
-            print(X)
-            print(y)
-            X["ItemType"] = X["ItemType"].astype("category").cat.codes
-            model.fit(X, y)
-            # Generate test data, and calculate the accuracy of the decision tree
-            if len(X_test)>3:
-                print("Now we will run tests on the data we set aside...")
-                input_for_test_pca=X_test.drop_duplicates().fillna(0)
-                pca_output = generate_pca_data(input_for_test_pca,
-                    item_type,
-                    dataset_name=f"{dataset_name}_test",
-                    fit_data=False,
-                    pca_data=fitted_pca)
-                test_pca_data = pca_output['principalComponents']    
-                test_dataset_isolation_forest = generate_data_for_classification(item_type,
-                    test_pca_data,
-                    X_test,
+            if pca_output is not None:
+                pca_data = pca_output['principalComponents']
+                fitted_pca = pca_output['pcaFittedToData']    
+                clf = IsolationForest(max_samples=100, random_state=0)
+                clf.fit(pca_data)
+                training_dataset_isolation_forest=generate_data_for_classification(item_type,
+                    pca_data,
+                    X_train,
                     clf,
-                    dataset_name="test_data")
-                test_dataset_isolation_forest.index = input_for_test_pca.index
-                #test_dataset_isolation_forest["ItemType"] = test_dataset_isolation_forest["ItemType"].astype("category").cat.codes
-                test_dataset_for_model=X_test.join(test_dataset_isolation_forest)
-                test_dataset_for_model["ItemType"] = test_dataset_for_model["ItemType"].astype("category").cat.codes
-                y_pred=model.predict(pd.DataFrame(
-                        test_dataset_for_model.drop(
-                            columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'Flagged'])))
-                # We replace the 'Flagged' target variable in the test dataset which contains values
-                # calculated by an IsolationForest with the predictions produced by the supervised
-                # model.
-                test_dataset_isolation_forest['Flagged']=y_pred
-                print(test_dataset_for_model)
-                test_dataset_isolation_forest=X_test.join(test_dataset_isolation_forest)
-                human_labelled_test_data=obtain_correctly_labelled_data(
-                    test_dataset_isolation_forest,
-                    'We are testing isolation forests',
+                    dataset_name=dataset_name)
+                training_dataset_isolation_forest.index = X_train.index
+                if 'ItemType' in X_train.columns:
+                    X_train_copy=X_train.copy().drop('ItemType', axis=1)
+                else:
+                    X_train_copy=X_train.copy()
+                data_for_model=X_train_copy.join(training_dataset_isolation_forest)
+                model_name_version=f"{item_type}_classifier_for_error_detection"
+                training_data_description=f"{len(X_train)}_{item_type}_items"
+                human_labelled_training_data=obtain_correctly_labelled_data(
+                    data_for_model,
+                    'We are correcting the pseudo-labelled datasets created with isolation forests',
                     'Flagged',
                     model_name_version,
                     training_data_description,
@@ -238,27 +182,83 @@ def train_semi_supervised_model(
                     df_relationships,
                     item_type=item_type,
                     target_variable_is_binary=True,
-                    only_relabel_outliers=False,
                     categories=[-1,1],
+                    only_relabel_outliers=only_relabel_outliers,
                     generate_classification_report=generate_classification_report,
-                    all_reports=all_test_reports
+                    all_reports=all_training_reports
                     )
                 all_human_labelled_data=pd.concat([all_human_labelled_data,
-                    human_labelled_test_data])
-            if save_model_in_package_file == True:
-                notes=input("Write any notes you want to include in the model metadata here, or press 'Enter' to leave the notes field empty. ")
-                model_package=create_model_package(model,
-                    human_labelled_training_data,
-                    'Flagged', 
-                    preprocessing=["PCA"],
-                    notes=notes,
-                    model_version=model_name_version,
-                    training_data_version=training_data_description,
-                    training_item_ids=list(df_relationships.index))
-                save_versioned_pickle_file(model_package,
-                    model_name_version,
-                    folder='./projects/am2_project/models')
-            all_models[model_name_version]=model_package
+                    human_labelled_training_data])
+                #human_labelled_training_data["ItemType"] = human_labelled_training_data["ItemType"].astype("category").cat.codes
+                #X=pd.DataFrame(human_labelled_training_data.drop(columns=['Flagged']))
+                X=pd.DataFrame(human_labelled_training_data.drop(columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'Flagged']))
+                y=human_labelled_training_data[['Flagged']]
+                print("FITTING MODEL")
+                X["ItemType"] = X["ItemType"].astype("category").cat.codes
+                model.fit(X, y)
+                # Generate test data, and calculate the accuracy of the decision tree
+                if len(X_test)>3:
+                    print("Now we will run tests on the data we set aside...")
+                    input_for_test_pca=X_test.drop_duplicates().fillna(0)
+                    pca_output = generate_pca_data(input_for_test_pca,
+                        item_type,
+                        dataset_name=f"{dataset_name}_test",
+                        fit_data=False,
+                        pca_data=fitted_pca)
+                    test_pca_data = pca_output['principalComponents']    
+                    test_dataset_isolation_forest = generate_data_for_classification(item_type,
+                        test_pca_data,
+                        X_test,
+                        clf,
+                        dataset_name="test_data")
+                    test_dataset_isolation_forest.index = input_for_test_pca.index
+                    #test_dataset_isolation_forest["ItemType"] = test_dataset_isolation_forest["ItemType"].astype("category").cat.codes
+                    if 'ItemType' in X_test.columns:
+                        X_test_copy=X_test.copy().drop('ItemType', axis=1)
+                    else:
+                        X_test_copy=X_test.copy()
+                    test_dataset_for_model=X_test_copy.join(test_dataset_isolation_forest)
+                    test_dataset_for_model["ItemType"] = test_dataset_for_model["ItemType"].astype("category").cat.codes
+                    y_pred=model.predict(pd.DataFrame(
+                        test_dataset_for_model.drop(
+                            columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'Flagged'])))
+                    # We replace the 'Flagged' target variable in the test dataset which contains values
+                    # calculated by an IsolationForest with the predictions produced by the supervised
+                    # model.
+                    test_dataset_isolation_forest['Flagged']=y_pred
+                    print(test_dataset_for_model)
+                    test_dataset_isolation_forest=X_test_copy.join(test_dataset_isolation_forest)
+                    human_labelled_test_data=obtain_correctly_labelled_data(
+                        test_dataset_isolation_forest,
+                        'We are testing isolation forests',
+                        'Flagged',
+                        model_name_version,
+                        training_data_description,
+                        df_relationships_unique,
+                        df_relationships,
+                        item_type=item_type,
+                        target_variable_is_binary=True,
+                        only_relabel_outliers=False,
+                        categories=[-1,1],
+                        generate_classification_report=generate_classification_report,
+                        all_reports=all_test_reports
+                        )
+                    all_human_labelled_data=pd.concat([all_human_labelled_data,
+                        human_labelled_test_data])
+                if save_model_in_package_file == True:
+                    notes=input("Write any notes you want to include in metadata here, or press 'Enter' to leave the notes field empty. ")
+                    model_package=create_model_package(model,
+                        human_labelled_training_data,
+                        'Flagged', 
+                        preprocessing=["PCA"],
+                        notes=notes,
+                        model_version=model_name_version,
+                        training_data_version=training_data_description,
+                        training_item_ids=list(df_relationships.index))
+                    save_versioned_pickle_file(model_package,
+                        model_name_version,
+                        folder='./projects/am2_project/models')
+                all_models[item_type]=model_package
     if save_model_in_package_file == True:
         # Move columns to the end of the dataframe...
         cols_to_move=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'ItemType', 'Flagged']

@@ -71,7 +71,6 @@ def obtain_correctly_labelled_data(data_with_predictions,
                     num_instances=len([x2 for x2 in (df_relationships[i]==val).values.tolist() if x2==True])
                     num_not_instances=len(df_relationships)
                     print(f"Number of {i} with value {val} in the data: {num_instances}, {num_instances/num_not_instances}")
-            #print(df_relationships_unique.loc[index])
             matched = df_relationships[(df_relationships == df_relationships_unique.loc[index]).all(axis=1)]
             input_prompt = f"For the {len(matched)}/{len(df_relationships)} samples identical to this, the model predicted: {sample[target_label]}. Is this correct? y/n "
             isPredictionCorrect = input(input_prompt)

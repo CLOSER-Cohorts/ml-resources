@@ -105,9 +105,25 @@ with open("./projects/am2_project/config/am2_config.json") as f:
 
 folder = "./projects/am2_project/data/pending_training_data/am2_relationships_data_for_future_model"
 object_name = "am2_relationships_data_for_future_model"
-file_version = get_max_file_version(Path(f"{folder}"), object_name)
-file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
-relationships_data_for_training_updated_model=read_dataset_from_file(file_path)
+current_file_version=1
+max_file_version = get_max_file_version(Path(f"{folder}"), object_name)
+dicts=[]
+while current_file_version<=max_file_version:
+    file_path = Path(f"{folder}/{object_name}_{current_file_version}.pickle")
+    relationships_data_for_training_updated_model=read_dataset_from_file(file_path)
+    dicts.append(relationships_data_for_training_updated_model)
+    current_file_version +=1
+
+"""
+result = {
+    k: pd.concat([d[k] for d in (relationships_data_for_training_updated_model, relationships_data_for_training_updated_model_2) if k in d]).fillna(0.0)
+    for k in set(relationships_data_for_training_updated_model) | set(relationships_data_for_training_updated_model_2)
+}
+"""
+relationships_data_for_training_updated_model = {
+    k: pd.concat([d[k] for d in dicts if k in d]).fillna(0.0)
+    for k in set().union(*dicts)
+}
 
 folder = "./projects/am2_project/models/all_item_models"
 object_name = "all_item_models"
@@ -121,7 +137,8 @@ train_semi_supervised_model(
     dataset_name="wip",
     generate_classification_report=True,
     save_model_in_package_file=True,
-    all_models=all_item_models)
+    all_models=all_item_models
+    )
 
 # The get_summary_data command is used to check in older versions of the pickles for summary
 # stats (note that folder and object_name should be defined as above)
