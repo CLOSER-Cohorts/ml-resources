@@ -121,7 +121,7 @@ result = {
 }
 """
 relationships_data_for_training_updated_model = {
-    k: pd.concat([d[k] for d in dicts if k in d]).fillna(0.0)
+    k: pd.concat([d[k] for d in dicts if k in d]).loc[lambda df: ~df.index.duplicated(keep='first')].fillna(0.0)
     for k in set().union(*dicts)
 }
 
