@@ -178,6 +178,7 @@ def main(args):
                         operation_type="anomalies_detected",
                         number_number_of_anomalies=len(anomalies),
                         item_type=item_type))
+                        send_message_to_slack(f"The following possible anomalies of type {item_type} were detected:")
                         send_message_to_slack(str(anomalies))
                 all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
             # Save data we just retrieved for use in training a new model
