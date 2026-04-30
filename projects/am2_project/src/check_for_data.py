@@ -152,7 +152,7 @@ def main(args):
                     number_of_records=len(items_of_a_type),
                     status="Success",
                     duration=duration_input_creation.seconds))
-                if item_type in all_item_models.keys():
+                if item_type in all_item_models.keys() and len(new_am2_relationships_data_single_type)>0:
                     order=list(all_item_models[item_type]['model'].feature_names_in_)
                     new_am2_relationships_data_single_type=new_am2_relationships_data_single_type.reindex(
                         columns=order).replace({np.nan: 0}) 
@@ -178,6 +178,7 @@ def main(args):
                         operation_type="anomalies_detected",
                         number_number_of_anomalies=len(anomalies),
                         item_type=item_type))
+                        send_message_to_slack(f"The following possible anomalies of type {item_type} were detected:")
                         send_message_to_slack(str(anomalies))
                 all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
             # Save data we just retrieved for use in training a new model
@@ -210,12 +211,12 @@ def main(args):
 
     except Exception as e:
         #logger.exception("Script failed")
-        #logger.info(StructuredMessage(description=f"Script failed: {e}",
-        #    status="Failed"))
-        #send_message_to_slack("Check for new items failed.")
+        send_message_to_slack("Check for new items failed.")
         stack_trace = traceback.format_exc()
         print(stack_trace)
-        #send_message_to_slack(str(stack_trace))
+        logger.info(StructuredMessage(description=f"Script failed: {str(stack_trace)}",
+            status="Failed"))
+        send_message_to_slack(str(stack_trace))
         sys.exit(1)  # important for scheduler to detect failure
 
 if __name__ == "__main__":

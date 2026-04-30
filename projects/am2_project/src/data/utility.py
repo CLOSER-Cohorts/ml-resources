@@ -130,8 +130,8 @@ def train_semi_supervised_model(
     all_training_reports={}
     all_test_reports={}
     print(item_types)
-    model = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
     for item_type in item_types:
+        model = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
         if (item_type in all_relationships_data.keys() and 
                 len(all_relationships_data[item_type])>3 and 
                 input(f"Do you want to process the {item_type} items? ") in ['y', 'Y']):
