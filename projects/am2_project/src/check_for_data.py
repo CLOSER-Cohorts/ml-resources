@@ -112,8 +112,10 @@ def main(args):
         # Check for new data...    
         results = check_for_newly_available_data(project_config)
         # GET RID OF [0:10] TO GET EVERYTHING
-        if len(results['new_item_urns'])>0:
-            items = [create_item_object(x) for x in results['new_item_urns']]
+        #if len(results['new_item_urns'])>0:
+        if True:    
+            #items = [create_item_object(x) for x in results['new_item_urns']]
+            items = [create_item_object(x) for x in results['all_item_urns']]
             items_agency_ids=[[x['AgencyId'], x['Identifier']] for x in items]
             flagged_anomalies_that_were_updated=[x for x in items_already_flagged if 
                 x['item_id'].split(":")[2:-1] in items_agency_ids]
