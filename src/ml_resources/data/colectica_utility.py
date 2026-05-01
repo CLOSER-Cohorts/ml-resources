@@ -56,7 +56,8 @@ def get_items_in_containing_items(containing_items,
     a list of items."""
     if not isinstance(containing_items, list):
             containing_items = [containing_items]
-    print(f"Getting labels/summaries for {[f"Agency: {item['AgencyId']}, Identifier: {item['Identifier']}, Version: {item['Version']}" for item in containing_items]}...")
+    print("Getting labels/summaries for: ")
+    print(containing_items)
     # all_question_summaries will be updated in place with the values of question summaries...
     get_item_text(item_type,
                 text_field,
