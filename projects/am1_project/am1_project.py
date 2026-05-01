@@ -25,6 +25,14 @@ from projects.am1_project.api import api_client
 # We assume the code is being run from the repository root directory (ml-resources).
 
 am1_data=read_dataset_from_file('./projects/am1_project/data/am1_data_4.pickle')
+study_names=['alspac', 'bcs70', 'genscot', 'hcs', 'heaf', 'lha', 'ncds', 'nextsteps', 'sws', 'usoc', 'wchads', 'whitehall2']
+all_raw_data={"all_data": {}}
+for study_name in study_names:
+    raw_data=read_dataset_from_file(f"./projects/am1_project/data/am1_data_{study_name}/am1_Data_{study_name}_1.pickle")
+    for key, subdict in raw_data[list(raw_data.keys())[0]].items():
+        subdict["AgencyId"] = list(raw_data.keys())[0]
+    all_raw_data["all_data"].update(raw_data[list(raw_data.keys())[0]])
+
 
 # We can check if there is newly available data...
 with open("./projects/am1_project/config/am1_config.json") as f:
@@ -73,6 +81,7 @@ filtered_questions=filtered_questions_by_number_of_categories
 #3. Convert the JSON dictionary to an dataframe that is suitable for use with pipelines etc
 
 df=convert_dictionary_to_dataframe(filtered_questions)
+df['HasCategories']=[int(x) for x in (df['ItemCategories']!='').tolist()]
 
 #4. Now we perform some data cleaning. Resetting the index is important so the pipeline
 # operations will work (the indices have to be continuous numeric values with no gaps)
@@ -111,13 +120,13 @@ transformed_embeddings = read_dataset_from_file('./projects/am1_project/data/tra
 transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories'])
 
 
-save_versioned_pickle_file(transformed_embeddings, 'transformed_embeddings_usoc', folder='./projects/am1_project/data')
+save_versioned_pickle_file(transformed_embeddings, 'transformed_embeddings_with_ids', folder='./projects/am1_project/data')
 
 #6. split data into training and test
 
 
-y=transformed_embeddings['topic']
-X=transformed_embeddings.drop('topic', axis=1)
+y=transformed_embeddings_sample['topic']
+X=transformed_embeddings_sample.drop('topic', axis=1)
 X_train, X_test, y_train, y_test = train_test_split(
     X, y,
     test_size=0.2,       # 20% test set
@@ -129,7 +138,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 lr_model_data=create_model_data_object(X_train, X_test, y_train, y_test)
 trainedModel=train_model(lr_model_data,
-    selected_input_features=['summary_embeddings', 'category_embeddings', 'item_type', 'has_categories'])
+    selected_input_features=['summary_embeddings', 'category_embeddings', 'item_type', 'agency_id', 'has_categories'])
 
 # Save the model...
 
@@ -140,7 +149,7 @@ save_versioned_pickle_file(df, 'trainingDataDf', folder='./projects/am1_project/
 trained_model = read_dataset_from_file('./projects/am1_project/model/trainedModelAllStudies/trainedModelAllStudies_1.pickle')
 
 input_feature_list=[]
-for input_feature in ['summary_embeddings', 'category_embeddings', 'item_type', 'Agency']:
+for input_feature in ['summary_embeddings', 'category_embeddings', 'item_type', 'agency_id', 'has_categories']:
         input_feature_list.append(np.vstack(lr_model_data['X_test'][input_feature]))
         X_test = np.hstack(
         input_feature_list
