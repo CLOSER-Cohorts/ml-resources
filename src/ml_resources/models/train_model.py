@@ -21,13 +21,13 @@ def train_model(data_for_model, selected_input_features=None,
     X_train = np.hstack(
         input_feature_list
     )
-   # prediction_model2=LogisticRegression(max_iter=1000)
-    
+    prediction_model2=LogisticRegression(max_iter=1000)
+    """
     prediction_model2=LogisticRegression(max_iter=1000,
         class_weight='balanced',
         penalty='l2',
         C=86.26)
-    
+    """
     """
     model = LogisticRegression(max_iter=1000)
     prediction_model2 = RandomizedSearchCV(

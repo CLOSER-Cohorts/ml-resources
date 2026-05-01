@@ -110,8 +110,9 @@ max_file_version = get_max_file_version(Path(f"{folder}"), object_name)
 dicts=[]
 while current_file_version<=max_file_version:
     file_path = Path(f"{folder}/{object_name}_{current_file_version}.pickle")
-    relationships_data_for_training_updated_model=read_dataset_from_file(file_path)
-    dicts.append(relationships_data_for_training_updated_model)
+    if file_path.exists():
+        relationships_data_for_training_updated_model=read_dataset_from_file(file_path)
+        dicts.append(relationships_data_for_training_updated_model)
     current_file_version +=1
 
 """
@@ -156,7 +157,7 @@ reports=read_dataset_from_file('./projects/am2_project/experiments/all_items/cla
 
 all_labelled_data=read_dataset_from_file('projects/am2_project/data/human_labelled_data/all_human_labelled_data_4.pickle')
 all_relationships=read_dataset_from_file('projects/am2_project/data/all_am2_relationships_data/all_am2_relationships_data_88.pickle')
-future_data=read_dataset_from_file('projects/am2_project/data/pending_training_data/am2_relationships_data_for_future_model/am2_relationships_data_for_future_model_3.pickle')
+future_data=read_dataset_from_file('projects/am2_project/data/pending_training_data/am2_relationships_data_for_future_model/am2_relationships_data_for_future_model_11.pickle')
 # The commands below are useful for reading the supervised model trained by
 # train_semi_supervised_model above into memory for inspection
 model_package=read_dataset_from_file(
@@ -167,7 +168,7 @@ tree.plot_tree(
     dtc,
     class_names=["2", "3"],
     filled=True,
-    feature_names=['x', 'y', 'ItemType', 'Distance']
+    #feature_names=['x', 'y', 'ItemType', 'Distance']
 )
 plt.show()
 
@@ -198,3 +199,12 @@ generate_drift_monitoring_report(reference_dataset,
     project,
     schema
     )
+
+
+
+
+question_schemes2 = C.search_items([C.item_code('Category Set')],
+            ReturnIdentifiersOnly=True,
+            SearchLatestVersion=True,
+            MaxResults=10)['Results']
+question_schemes_relationships=create_am2_input_features(question_schemes2, colectica_client)
