@@ -139,6 +139,7 @@ def main(args):
                 for item in items]))
             all_new_am2_relationships_data={}
             for item_type in item_types:
+              if item_type=='Question':
                 items_of_a_type = [x for x in items 
                     if x['ItemType']==colectica_client.item_code(item_type)]
                 start_time_for_input_feature=datetime.now()
