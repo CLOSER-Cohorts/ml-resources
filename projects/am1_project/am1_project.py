@@ -24,7 +24,7 @@ from projects.am1_project.api import api_client
 # categories, topics, etc. This code is in get_data_from_colectica.py.
 # We assume the code is being run from the repository root directory (ml-resources).
 
-am1_data=read_dataset_from_file('./projects/am1_project/data/am1_data_4.pickle')
+am1_data=read_dataset_from_file('./projects/am1_project/data/am1_data_heaf/am1_data_heaf_1.pickle')
 study_names=['alspac', 'bcs70', 'genscot', 'hcs', 'heaf', 'lha', 'ncds', 'nextsteps', 'sws', 'usoc', 'wchads', 'whitehall2']
 all_raw_data={"all_data": {}}
 for study_name in study_names:
@@ -33,6 +33,9 @@ for study_name in study_names:
         subdict["AgencyId"] = list(raw_data.keys())[0]
     all_raw_data["all_data"].update(raw_data[list(raw_data.keys())[0]])
 
+
+for key, subdict in raw_data[list(raw_data.keys())[0]].items():
+        subdict["AgencyId"] = 'uk.mrcleu-uos.heaf'
 
 # We can check if there is newly available data...
 with open("./projects/am1_project/config/am1_config.json") as f:
@@ -113,7 +116,7 @@ print(level_one_class_proportions)
 
 alspac_raw=read_dataset_from_file('./projects/am1_project/data/am1_data_alspac/am1_Data_alspac_1.pickle')
 alspac_embeddings=read_dataset_from_file('./projects/am1_project/data/transformed_embeddings_alspac/transformed_embeddings_alspac_1.pickle')
-transformed_embeddings = read_dataset_from_file('./projects/am1_project/data/transformed_embeddings_all_studies/transformed_embeddings_all_studies_1.pickle')
+transformed_embeddings = read_dataset_from_file('./projects/am1_project/data/transformed_embeddings_with_ids/transformed_embeddings_with_ids_1.pickle')
 
 # ...otherwise we can calculate them from scratch, and save them to a file...
 
@@ -125,11 +128,15 @@ save_versioned_pickle_file(transformed_embeddings, 'transformed_embeddings_with_
 #6. split data into training and test
 
 
+transformed_embeddings_sample['item_type']=transformed_embeddings_sample["item_type"].astype("category").cat.codes
+transformed_embeddings_sample = transformed_embeddings_sample.dropna(subset=["topic"]).reset_index(drop=True)
 y=transformed_embeddings_sample['topic']
 X=transformed_embeddings_sample.drop('topic', axis=1)
+X=transformed_embeddings_sample.drop('agency_id', axis=1)
+
 X_train, X_test, y_train, y_test = train_test_split(
     X, y,
-    test_size=0.2,       # 20% test set
+    test_size=0.99,       # 20% test set
     random_state=42,     # for reproducibility
     stratify=y           # ensures balanced class proportions
 )
@@ -140,6 +147,9 @@ lr_model_data=create_model_data_object(X_train, X_test, y_train, y_test)
 trainedModel=train_model(lr_model_data,
     selected_input_features=['summary_embeddings', 'category_embeddings', 'item_type', 'agency_id', 'has_categories'])
 
+trainedModel=train_model(lr_model_data,
+    selected_input_features=['summary_embeddings', 'category_embeddings', 'item_type', 'has_categories'])
+
 # Save the model...
 
 save_versioned_pickle_file(trainedModel, 'trainedModel', folder='./projects/am1_project/model')
@@ -149,7 +159,8 @@ save_versioned_pickle_file(df, 'trainingDataDf', folder='./projects/am1_project/
 trained_model = read_dataset_from_file('./projects/am1_project/model/trainedModelAllStudies/trainedModelAllStudies_1.pickle')
 
 input_feature_list=[]
-for input_feature in ['summary_embeddings', 'category_embeddings', 'item_type', 'agency_id', 'has_categories']:
+#for input_feature in ['summary_embeddings', 'category_embeddings', 'item_type', 'agency_id', 'has_categories']:
+for input_feature in ['summary_embeddings', 'category_embeddings', 'item_type', 'has_categories']:
         input_feature_list.append(np.vstack(lr_model_data['X_test'][input_feature]))
         X_test = np.hstack(
         input_feature_list
@@ -218,6 +229,8 @@ for i in range(0,20):
 
 genscot_df=read_dataset_from_file('./projects/am1_project/data/transformed_embeddings_genscot/transformed_embeddings_genscot_1.pickle')    
 training_df=read_dataset_from_file('./projects/am1_project/data/trainingDataDf/trainingDataDf_1.pickle')
+
+df = read_dataset_from_file('./projects/am1_project/data/pending_training_data/am2_relationships_data_for_future_model/am2_relationships_data_for_future_model_11.pickle')
 
 
 request_body={
