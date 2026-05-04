@@ -34,7 +34,6 @@
   "ItemTypes": [
     "Action",
     "Archive",
-    "Category",
     "Category Group",
     "Category Set",
     "ClassificationCorrespondenceTable",
