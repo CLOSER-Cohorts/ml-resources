@@ -21,7 +21,10 @@ def calculate_accuracy(classifier, predictions, X_test, y_test, N=5):
          wrongPredictions.append({"TopNPredictions": list(top_N_results), "True": list(y_test[j])[0]})
   print(f"Accuracy: {correct_predictions/len(predictions)}.")
   print(f"Correct or in top {N} results:{correct_prediction_in_top_N_results/len(predictions)}")
-  return wrongPredictions
+  return  {"Accuracy": correct_predictions/len(predictions),
+           "N": N,
+           "TopNAccuracy": correct_prediction_in_top_N_results/len(predictions),
+           "WrongPredictions": wrongPredictions}
 
 def set_value_with_dtype(df, column, index, value_str):
     dtype = df[column].dtype
@@ -89,7 +92,8 @@ def obtain_correctly_labelled_data(data_with_predictions,
                         correct_prediction=categories[0]
                 else:
                     correct_prediction = ""
-                    changePrediction = input(f"Do you want to provide the correct value for this prediction? {("", "Correct prediction:")[len("") == 0]} {correct_prediction} y/n ")
+                    ##changePrediction = input(f"Do you want to provide the correct value for this prediction? {("", "Correct prediction:")[len("") == 0]} {correct_prediction} y/n ")
+                    changePrediction = input("Provide correct value?")
                     if changePrediction == "y":
                         if not target_variable_is_binary:
                             correctPrediction = input(f"What is the correct value for this prediction? {correct_prediction}")
