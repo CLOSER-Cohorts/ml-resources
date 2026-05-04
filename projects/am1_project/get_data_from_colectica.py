@@ -24,6 +24,25 @@ colectica_utility.get_items_in_containing_items(project_config['Studies'],
 
 
 am1_data_new=get_topics(am1_data)
+
+# The above example presumes you are defining the items in your data set by
+# specifying a containing item, but if you wanted to just specify a list of items,
+# here is how you do it...abs
+items = read_dataset_from_file('./projects/am1_project/data/sensitive_10103_ethnic_items/sensitive_10103_ethnic_items_1.pickle')
+question_items=[x for x in items if x['ItemType']==C.item_code('Question')]
+variable_items=[x for x in items if x['ItemType']==C.item_code('Variable')]
+am1_data={}
+get_item_text(C.item_code("Question"), "Summary", items_text=am1_data, study_items=question_items)
+get_item_text(C.item_code("Variable"), "Label", items_text=am1_data, study_items=variable_items)
+am1_data_new=get_topics(am1_data)
+filtered_items=filter_values_by_length(am1_data, "TextLabel", 10)
+df=convert_dictionary_to_dataframe(filtered_items)
+df['HasCategories']=[int(x) for x in (df['ItemCategories']!='').tolist()]
+df['ItemType']=df["ItemType"].astype("category").cat.codes
+transformed_embeddings_10103 = apply_pipeline(df, ['TextLabel', 'ItemCategories'])
+save_versioned_pickle_file(transformed_embeddings_10103, 'transformed_embeddings_10103', folder='./projects/am1_project/data')
+
+
 def get_topics(am1_data):
     # We get the topics for questions in the usoc study...
     #for study in project_config['Studies']:
