@@ -136,7 +136,7 @@ X=transformed_embeddings_sample.drop('agency_id', axis=1)
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y,
-    test_size=0.99,       # 20% test set
+    test_size=0.2,       # 20% test set
     random_state=42,     # for reproducibility
     stratify=y           # ensures balanced class proportions
 )

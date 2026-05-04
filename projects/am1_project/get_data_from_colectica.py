@@ -26,10 +26,17 @@ colectica_utility.get_items_in_containing_items(project_config['Studies'],
 am1_data_new=get_topics(am1_data)
 def get_topics(am1_data):
     # We get the topics for questions in the usoc study...
-    for study in project_config['Studies']:
-        print(f"Getting topics for items in {study['AgencyId']}...")
-        if study['AgencyId'] in am1_data.keys():
-            colectica_utility.get_topics_for_items(list(am1_data[study['AgencyId']].keys()), study['AgencyId'], [colectica_client.item_code('Variable Group'), colectica_client.item_code('Question Group')], colectica_client, topics=am1_data, verbose=True)
+    #for study in project_config['Studies']:
+    #    print(f"Getting topics for items in {study['AgencyId']}...")
+    #    if study['AgencyId'] in am1_data.keys():
+    #        colectica_utility.get_topics_for_items(list(am1_data[study['AgencyId']].keys()), study['AgencyId'], [colectica_client.item_code('Variable Group'), colectica_client.item_code('Question Group')], colectica_client, topics=am1_data, verbose=True)
+    for agency_id in am1_data.keys():
+        colectica_utility.get_topics_for_items(list(am1_data[agency_id].keys()),
+            agency_id,
+            [colectica_client.item_code('Variable Group'), colectica_client.item_code('Question Group')], 
+            colectica_client,
+            topics=am1_data,
+            verbose=True)
     # We get the categories for questions in our dataset (from all studies)...
     for study_agency_id in am1_data.keys():
         print(f"Getting categories for items in {study_agency_id}...")
