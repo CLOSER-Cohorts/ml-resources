@@ -141,6 +141,8 @@ for i, x in enumerate(age_results["SensitivePredictions"]):
 [x for x in age_results["SensitiveItems"] if x['Identifier']==age_results["ModelData"]["X_test"].index[460]]
 
 transformed_embeddings['item_type']=transformed_embeddings["item_type"].astype("category").cat.codes
+transformed_embeddings = transformed_embeddings.dropna(subset=["topic"])
+
 y=transformed_embeddings['topic']
 X=transformed_embeddings.drop('topic', axis=1)
 X=transformed_embeddings.drop('agency_id', axis=1)
@@ -176,3 +178,22 @@ report_bias = classification_report(lr_model_data['y_test'].values,
     output_dict=True)
 
 save_versioned_pickle_file(report_bias, "report_bias", folder='./projects/am1_project/data')
+
+save_versioned_pickle_file(df_raw_text, 'raw_text', folder='./projects/am1_project/data')
+
+y_pred==y_true.tolist() and y_true=='10102'
+
+sensitive_categories=['10102', '10103', '10107']
+for category in sensitive_categories:
+    indices = [i for i, x in enumerate(y_true.tolist()) if x == category]
+    print(f"Category: {category}, accuracy {sum([int(x==category) for x in y_pred[indices]])/len(indices)}")
+
+df = pd.DataFrame({
+    "predicted": y_pred,
+    "true": y_true.tolist()
+})
+df.index=y_test.index
+df_10107=df[df['true']=='10107']
+df_wrong=df_10107[df_10107['predicted']!=df_10107['true']]
+df2=df_wrong.join(transformed_embeddings['agency_id'])
+df3=df2.join(df_raw_text['TextLabel'])
