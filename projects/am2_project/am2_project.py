@@ -126,11 +126,15 @@ relationships_data_for_training_updated_model = {
     for k in set().union(*dicts)
 }
 
+
 folder = "./projects/am2_project/models/all_item_models"
 object_name = "all_item_models"
 file_version = get_max_file_version(Path(f"{folder}"), object_name)
-file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
-all_item_models=read_dataset_from_file(file_path)
+if file_version >0:
+    file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
+    all_item_models=read_dataset_from_file(file_path)
+else:
+    all_item_models={}
 
 train_semi_supervised_model(
     relationships_data_for_training_updated_model,

@@ -32,16 +32,18 @@ PASSWORD = secrets["COLECTICA_PASSWORD"]
 HOSTNAME = secrets["COLECTICA_HOSTNAME"]
 C = ColecticaObject(HOSTNAME, USERNAME, PASSWORD, verify_ssl=False)
 
-def get_item_text(item_type, text_field, search_set=[], items_text={}):
-    study_items = C.search_items(item_type,
-        SearchSets=search_set,
-        SearchLatestVersion=True)['Results']
+def get_item_text(item_type, text_field, search_set=[], items_text={}, study_items=None):
+    if study_items==None:
+        study_items = C.search_items(item_type,
+            SearchSets=search_set,
+            SearchLatestVersion=True)['Results']
     for item in study_items:
         if item['AgencyId'] not in items_text.keys():
             items_text[item['AgencyId']] = {}
         if item['Identifier'] not in items_text[item['AgencyId']].keys():
             items_text[item['AgencyId']][item['Identifier']]={}
             items_text[item['AgencyId']][item['Identifier']]['ItemType'] = item_type
+            items_text[item['AgencyId']][item['Identifier']]['AgencyId'] = item['AgencyId']
             if 'en-GB' in item[text_field].keys():
                 items_text[item['AgencyId']][item['Identifier']]['TextLabel'] = item[text_field]['en-GB']
             elif item[text_field]!={} and len(item[text_field].keys())==0:
