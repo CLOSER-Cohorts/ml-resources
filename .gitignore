@@ -5,4 +5,5 @@ projects/am2_project/models/*
 !projects/am2_project/models/all_item_models/
 projects/am2_project/graphs
 config/secrets.json
-logs/
+logs/*
+!logs/readme.txt
