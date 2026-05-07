@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 from pathlib import Path
+import re
 from sklearn.ensemble import IsolationForest
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
@@ -17,7 +18,19 @@ from src.ml_resources import (
     obtain_items_from_colectica,
     get_all_sweeps )
 
-def create_am2_input_features(items, colectica_client):    
+def is_float_string(value):
+    float_pattern = re.compile(r"""
+    ^[+-]?              # optional sign
+    (
+        \.\d+           # .23
+        |
+        0\.\d+           # 0.23
+    )
+    $
+""", re.VERBOSE)
+    return bool(float_pattern.match(value))
+
+def create_am2_input_features(items, colectica_client):
     df_relationships = pd.DataFrame()
     # Using 'enumerate(items)' to create an index may be slow due to the complexity
     # of the item objects
@@ -138,7 +151,9 @@ def train_semi_supervised_model(
             print(f"Creating semi-supervised model for {item_type}")
             print(f"There are {len(all_relationships_data[item_type])} items of this type")
             # need to add check below that we are entering float value
-            test_size_value=input("What proportion of the items do you want to put aside for testing? ")
+            test_size_value=""
+            while not is_float_string(test_size_value):
+                test_size_value=input("What proportion of the items do you want to put aside for testing? ")
             # Generate training data, and train a decision tree
             df_relationships = all_relationships_data[item_type]
             df_relationships_unique=df_relationships.drop_duplicates().fillna(0)
