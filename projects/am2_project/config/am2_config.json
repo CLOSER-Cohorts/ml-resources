@@ -28,7 +28,12 @@
       "Age 42 Survey (2012)": "5f4419cc-5f69-46bb-b775-ce82bdfc458a",
       "Age 50 COVID-19 Survey (2020) Wave 1": "0198e606-1835-4595-9105-efa3b5cb2087",
       "Age 50 COVID-19 Survey (2020) Wave 2": "e12b8645-b590-47e7-8f48-b423451db27d",
-      "Age 50 COVID-19 Survey (2021) Serology": "2dde2076-fbeb-4840-bbeb-6e5feb124511"
+      "Age 50 COVID-19 Survey (2021) Serology": "2dde2076-fbeb-4840-bbeb-6e5feb124511",
+    },
+    "uk.genscot": {
+      "STRADL (clinical)": "fc24c4ef-691e-4b80-a402-1e122252de3a",
+      "DOLORisk baseline": "ce7d8109-a95f-4e29-96eb-d33763f9b1d9",
+      "DOLORisk followup": "68084926-6cb6-4d9b-a16a-c17d3a46d6d5"
     }
     }
   },
