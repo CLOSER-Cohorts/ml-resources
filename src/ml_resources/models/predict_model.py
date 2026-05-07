@@ -3,7 +3,9 @@ import pandas as pd
 from sklearn.metrics import classification_report
 from src.ml_resources import save_versioned_pickle_file
 import logging
-from src.logging.utility import StructuredMessage
+from src.logging.utility import StructuredMessage, setup_logging
+
+logger=setup_logging()
 
 def calculate_accuracy(classifier, predictions, X_test, y_test, N=5):
   wrongPredictions=[]  
