@@ -33,7 +33,10 @@
     "uk.genscot": {
       "STRADL (clinical)": "fc24c4ef-691e-4b80-a402-1e122252de3a",
       "DOLORisk baseline": "ce7d8109-a95f-4e29-96eb-d33763f9b1d9",
-      "DOLORisk followup": "68084926-6cb6-4d9b-a16a-c17d3a46d6d5"
+      "DOLORisk followup": "68084926-6cb6-4d9b-a16a-c17d3a46d6d5",
+      "CovidLife 1": "14c0fc09-07b3-40c9-a8ce-7790cc7a7f7a",
+      "CovidLife 2": "2d6b86fd-ab24-476a-a2cd-3650539db5c3",
+      "RuralCovidLife": "fac3b19b-7bf8-4574-9a97-6f8b2a38801f"
     }
     }
   },
