@@ -37,6 +37,12 @@
       "CovidLife 1": "14c0fc09-07b3-40c9-a8ce-7790cc7a7f7a",
       "CovidLife 2": "2d6b86fd-ab24-476a-a2cd-3650539db5c3",
       "RuralCovidLife": "fac3b19b-7bf8-4574-9a97-6f8b2a38801f"
+    },
+    "uk.mrcleu-uos.heaf": {
+      "HEAF Baseline": "22fafe14-e37e-46b6-add4-33f0b7606384",
+      "HEAF Follow up 1": "7bab2e27-6046-4c42-9077-bd546a842286",
+      "HEAF Follow up 2": "e0baec5c-46a5-42da-a76b-7e71e21d0acd",
+      "HEAF Follow up 3": "c5863af2-f497-41b2-9989-e64bddd2f71a"
     }
     }
   },
@@ -51,7 +57,7 @@
       "uk.mrcleu-uos.sws": ["8-9 Years", "11-13 Years", "COVID"],
       "uk.cls.nextsteps": ["Next Steps Age 20 Survey (2010)", "Next Steps Age 25 Survey (2015)", "Next Steps Age 30 COVID-19 Survey (2021) Wave 3"],
       "uk.genscot": ["STRADL (questionnaires)", "Scottish Family Health Study", "CovidLife 3"],
-      "uk.mrcleu-uos.heaf": ["HEAF Follow up 3", "HEAF Follow up 4", "Scottish Family Health Study"],
+      "uk.mrcleu-uos.heaf": ["HEAF Follow up 4"],
       "uk.whitehall2": ["Phase 10", "Phase 11", "Phase 12"],
       "uk.mrcleu-uos.hcs": ["HCS Wellbeing Study", "HCS COVID-19"],
       "uk.cls.ncds": ["Age 55 Survey (2013)", "Age 62 (2020)", "Age 62 COVID-19 Survey (2021) Wave 3"]
