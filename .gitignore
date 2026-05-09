@@ -9,4 +9,3 @@ logs/*
 !logs/readme.txt
 # MLflow
 mlruns/
-!logs/am2_log.json
