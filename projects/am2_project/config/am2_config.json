@@ -48,6 +48,12 @@
       "Birth Records": "83e0ff54-4e40-4790-b105-4926e24648db",
       "HCS Home Interview and Clinic Visit": "d9b981f9-3a36-4f9d-a920-dfbb955461bb",
       "HCS Clinical Outcomes": "6a455b68-254b-41ef-b404-703244ea0db0"
+    },
+    "uk.cls.ncds": {
+      "Perinatal Mortality Survey": "b679d52c-1051-420e-a692-27a52e09fd7a",
+      "Age 7 Survey (1965)": "0103e4b4-09a6-41a8-997b-3ca0b1edcafc",
+      "Age 11 Survey (1969)": "a52ee654-efa8-4839-a545-fd82bec63e71",
+      "Age 16 Survey (1974)": "fc0ee8a3-730f-4735-b7c9-782c83b3964b"
     }
     }
   },

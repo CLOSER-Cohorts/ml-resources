@@ -7,4 +7,3 @@ projects/am2_project/graphs
 config/secrets.json
 logs/*
 !logs/readme.txt
-!logs/am2_log.json
