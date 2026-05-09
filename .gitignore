@@ -7,3 +7,5 @@ projects/am2_project/graphs
 config/secrets.json
 logs/*
 !logs/readme.txt
+# MLflow
+mlruns/
