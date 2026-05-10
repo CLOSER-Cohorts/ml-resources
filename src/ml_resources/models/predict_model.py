@@ -104,6 +104,7 @@ def obtain_correctly_labelled_data(data_with_predictions,
             if (explanation_of_prediction=='We are correcting the pseudo-labelled datasets created with isolation forests'
                 and ((sample[target_label]==-1 and isPredictionCorrect == "y") or
                 (sample[target_label]==1 and isPredictionCorrect == "n"))):
+                reason_for_anomaly=0
                 while reason_for_anomaly not in ["1","2","3"]:
                     reason_for_anomaly=input("""Why do you think this outlier is anomalous?
                             1. Item is not rendering correctly on Discovery portal
