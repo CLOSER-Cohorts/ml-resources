@@ -145,6 +145,7 @@ def train_semi_supervised_model(
     all_human_labelled_data=pd.DataFrame()
     all_training_reports={}
     all_test_reports={}
+    notes=""
     print(item_types)
     for item_type in item_types:
         mlflow.set_tracking_uri("http://127.0.0.1:5001")
@@ -290,6 +291,9 @@ def train_semi_supervised_model(
                         mlflow.set_tag(
                             "training_data_url",
                             "https://s3.amazonaws.com/bucket/training-data.csv"
+                        )
+                        mlflow.set_tag(
+                            "mlflow.note.content", (notes + " https://s3.amazonaws.com/bucket/training-data.csv") 
                         )
                         # Log the sklearn model and register it
                         model_info = mlflow.sklearn.log_model(
