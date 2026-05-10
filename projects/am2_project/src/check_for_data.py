@@ -106,12 +106,10 @@ def main(args):
             #latest_versions=mlflow_client.get_latest_versions(model_name)
             model_versions=mlflow_client.search_model_versions(f"name='{item_type}_error_detection'")
             if len(model_versions)>0:
-                latest_version = max(model_versions, key=lambda v: int(v.version))
-            else:
-                latest_version = 1
-            mlflow_client.set_registered_model_alias(
-                name=model_name, alias="live", version=latest_version
-            )
+                latest_version = max(model_versions, key=lambda v: int(v.version)).version
+                mlflow_client.set_registered_model_alias(
+                name=f"{item_type}_error_detection", alias="live", version=latest_version
+                )
 
         records=get_logs()
 
@@ -121,7 +119,7 @@ def main(args):
                 x['message']['operation_type']=="anomaly_confirmation" and 
                 'item_id' in x['message'].keys()]
         #items_already_flagged_ids=[x['item_id'].split(":")[2:-1] for x in items_already_flagged]
-        print(items_already_flagged)
+        #print(items_already_flagged)
         with open("./projects/am2_project/config/am2_config.json") as f:
             project_config = json.load(f)
         # Check for new data...    
