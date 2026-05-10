@@ -8,4 +8,5 @@ projects/am2_project/data
 config/secrets.json
 logs/*
 !logs/readme.txt
-!logs/am2_log.json
+# MLflow
+mlruns/
