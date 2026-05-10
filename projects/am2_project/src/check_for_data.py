@@ -104,7 +104,7 @@ def main(args):
             # For now we just assume that the most recent version of the model in the
             # all_item_models folder contains the live version
             #latest_versions=mlflow_client.get_latest_versions(model_name)
-            model_versions=mlflow_client.search_model_versions(f"name='{item_type}'_error_detection")
+            model_versions=mlflow_client.search_model_versions(f"name='{item_type}_error_detection'")
             if len(model_versions)>0:
                 latest_version = max(model_versions, key=lambda v: int(v.version))
             else:
