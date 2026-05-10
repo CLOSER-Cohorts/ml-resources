@@ -8,6 +8,7 @@ import numpy as np
 from src.logging.utility import StructuredMessage, setup_logging
 from collections import Counter;
 import traceback
+import mlflow
 
 logger=setup_logging()
 
@@ -87,6 +88,7 @@ def main(args):
         from src.ml_resources.data import colectica_utility
 
         colectica_client = colectica_utility.C
+        mlflow_client = mlflow.MlflowClient()
 
         # Get most recent version of model...
         folder = "./projects/am2_project/models/all_item_models"
@@ -97,6 +99,19 @@ def main(args):
             all_item_models=read_dataset_from_file(file_path)
         else:
             all_item_models={}
+
+        for item_type in all_item_models.keys():
+            # For now we just assume that the most recent version of the model in the
+            # all_item_models folder contains the live version
+            #latest_versions=mlflow_client.get_latest_versions(model_name)
+            model_versions=mlflow_client.search_model_versions(f"name='{item_type}'_error_detection")
+            if len(model_versions)>0:
+                latest_version = max(model_versions, key=lambda v: int(v.version))
+            else:
+                latest_version = 1
+            mlflow_client.set_registered_model_alias(
+                name=model_name, alias="live", version=latest_version
+            )
 
         records=get_logs()
 
@@ -113,7 +128,7 @@ def main(args):
         results = check_for_newly_available_data(project_config)
         # GET RID OF [0:10] TO GET EVERYTHING
         if len(results['new_item_urns'])>0:
-        #if True:    
+        #if True:
             items = [create_item_object(x) for x in results['new_item_urns']]
             #items = [create_item_object(x) for x in results['all_item_urns']]
             items_agency_ids=[[x['AgencyId'], x['Identifier']] for x in items]
@@ -154,7 +169,9 @@ def main(args):
                     number_of_records=len(items_of_a_type),
                     status="Success",
                     duration=duration_input_creation.seconds))
-                if item_type in all_item_models.keys() and len(new_am2_relationships_data_single_type)>0:
+                registered_models = mlflow_client.search_registered_models()
+                all_registered_model_types=[model.name.removesuffix("_error_detection") for model in registered_models]
+                if item_type in all_registered_model_types and len(new_am2_relationships_data_single_type)>0:
                     order=list(all_item_models[item_type]['model'].feature_names_in_)
                     new_am2_relationships_data_single_type=new_am2_relationships_data_single_type.reindex(
                         columns=order).replace({np.nan: 0}) 
@@ -163,6 +180,8 @@ def main(args):
                     logger.info(StructuredMessage(message=f"Making predictions on data...",
                         operation_type="predictions_start",
                         status="Pending"))
+                    model = mlflow.sklearn.load_model(
+                        model_uri=f"models:/{item_type}_error_detection@live")
                     predictions=all_item_models[item_type]['model'].predict(
                         new_am2_relationships_data_single_type
                         )

@@ -22,7 +22,7 @@ versions = [
     },
     {
         "model_class": RandomForestRegressor,
-        "params": {"n_estimators": 100, "random_state": 42},
+        "params": {"n_estimators": 110, "random_state": 42},
     },
 ]
 
@@ -46,7 +46,7 @@ for version in versions:
         model_info = mlflow.sklearn.log_model(
             sk_model=model,
             artifact_path="sklearn-model",
-            input_example=X_train[:5],
+            input_example=X[:5],
             registered_model_name="california_housing_model",
         )
         print(

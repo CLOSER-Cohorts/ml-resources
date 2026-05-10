@@ -122,16 +122,20 @@ def obtain_correctly_labelled_data(data_with_predictions,
                             reason_for_anomaly=reasons_for_anomaly_labels[int(reason_for_anomaly)-1],
                             type_of_missing_related_item=type_of_missing_related_item.lower()
                         ))
-    if generate_classification_report:
-        indices_flagged = [i for i, x in enumerate(data_with_predictions['Flagged']) if x == -1]
-        target_values=[str(x) for x in set(user_labelled_data['Flagged']) | set(data_with_predictions['Flagged'])]
-        report = classification_report(user_labelled_data['Flagged'], data_with_predictions['Flagged'], target_names=target_values)
-        print(report)
-        report_dict = classification_report(user_labelled_data['Flagged'],
+    target_values=[str(x) for x in set(user_labelled_data['Flagged']) | set(data_with_predictions['Flagged'])]
+    report = classification_report(user_labelled_data['Flagged'],
+        data_with_predictions['Flagged'],
+        target_names=target_values,
+        output_dict=True
+        )
+    print(report)
+    report_dict = classification_report(user_labelled_data['Flagged'],
             data_with_predictions['Flagged'],
             target_names=target_values,
             output_dict=True)
-        all_reports[item_type]=report_dict
+    all_reports[item_type]=report_dict
+    if generate_classification_report:
+        indices_flagged = [i for i, x in enumerate(data_with_predictions['Flagged']) if x == -1]
         notes_on_experiment = input("Enter any notes on this experiment you wish to record (e.g. parameters, evaluation metrics, what did/didn't work): ")
         with open(f"{reports_directory}classification_report_{model_name_version}_{item_type}.txt", "w") as f:
             _ = f.write(f"Classification report for {item_type}\n\n")
@@ -143,4 +147,5 @@ def obtain_correctly_labelled_data(data_with_predictions,
             for index_flagged in indices_flagged:
                 _ = f.write(f"{data_with_predictions.index[index_flagged]}\n")
     print(f"\n\nFinished {item_type}")
-    return user_labelled_data
+    return {"UserLabelledData": user_labelled_data,
+            "ResultsReport": report_dict}

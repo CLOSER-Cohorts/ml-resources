@@ -8,6 +8,8 @@ from sklearn.ensemble import IsolationForest
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
+import mlflow
+import mlflow.sklearn
 from src.ml_resources import (
     obtain_correctly_labelled_data,
     create_model_package,
@@ -138,13 +140,16 @@ def train_semi_supervised_model(
     generate_classification_report=False,
     save_model_in_package_file=True,
     only_relabel_outliers=True,
-    all_models={}):
+    all_models={},
+    model_class=DecisionTreeClassifier):
     all_human_labelled_data=pd.DataFrame()
     all_training_reports={}
     all_test_reports={}
     print(item_types)
     for item_type in item_types:
-        model = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
+        mlflow.set_tracking_uri("http://127.0.0.1:5001")
+        #model = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
+        model = model_class(max_depth=10, class_weight='balanced')
         if (item_type in all_relationships_data.keys() and 
                 len(all_relationships_data[item_type])>3 and 
                 input(f"Do you want to process the {item_type} items? ") in ['y', 'Y']):
@@ -161,7 +166,7 @@ def train_semi_supervised_model(
             if len(df_relationships_unique)>4:
                 X_train, X_test = train_test_split(
                     df_relationships_unique, # this needs to be specific to data type it's not at present
-                    test_size=float(test_size_value)
+                 test_size=float(test_size_value)
                 )
             else:
                 X_train=df_relationships_unique
@@ -185,13 +190,13 @@ def train_semi_supervised_model(
                 else:
                     X_train_copy=X_train.copy()
                 data_for_model=X_train_copy.join(training_dataset_isolation_forest)
-                model_name_version=f"{item_type}_classifier_for_error_detection"
+                model_name=f"{item_type}_error_detection"
                 training_data_description=f"{len(X_train)}_{item_type}_items"
-                human_labelled_training_data=obtain_correctly_labelled_data(
+                model_training_results=obtain_correctly_labelled_data(
                     data_for_model,
                     'We are correcting the pseudo-labelled datasets created with isolation forests',
                     'Flagged',
-                    model_name_version,
+                    model_name,
                     training_data_description,
                     df_relationships_unique,
                     df_relationships,
@@ -202,6 +207,7 @@ def train_semi_supervised_model(
                     generate_classification_report=generate_classification_report,
                     all_reports=all_training_reports
                     )
+                human_labelled_training_data=model_training_results["UserLabelledData"]
                 all_human_labelled_data=pd.concat([all_human_labelled_data,
                     human_labelled_training_data])
                 #human_labelled_training_data["ItemType"] = human_labelled_training_data["ItemType"].astype("category").cat.codes
@@ -210,6 +216,7 @@ def train_semi_supervised_model(
                 y=human_labelled_training_data[['Flagged']]
                 print("FITTING MODEL")
                 X["ItemType"] = X["ItemType"].astype("category").cat.codes
+                save_versioned_pickle_file(X, 'train_input', folder='./projects/am1_project/data')
                 model.fit(X, y)
                 # Generate test data, and calculate the accuracy of the decision tree
                 if len(X_test)>3:
@@ -237,17 +244,21 @@ def train_semi_supervised_model(
                     y_pred=model.predict(pd.DataFrame(
                         test_dataset_for_model.drop(
                             columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'Flagged'])))
+                    test_input=pd.DataFrame(
+                        test_dataset_for_model.drop(
+                            columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'Flagged']))
+                    save_versioned_pickle_file(test_input, 'test_input', folder='./projects/am1_project/data')
                     # We replace the 'Flagged' target variable in the test dataset which contains values
                     # calculated by an IsolationForest with the predictions produced by the supervised
                     # model.
                     test_dataset_isolation_forest['Flagged']=y_pred
                     print(test_dataset_for_model)
                     test_dataset_isolation_forest=X_test_copy.join(test_dataset_isolation_forest)
-                    human_labelled_test_data=obtain_correctly_labelled_data(
+                    model_test_results=obtain_correctly_labelled_data(
                         test_dataset_isolation_forest,
                         'We are testing isolation forests',
                         'Flagged',
-                        model_name_version,
+                        model_name,
                         training_data_description,
                         df_relationships_unique,
                         df_relationships,
@@ -258,20 +269,49 @@ def train_semi_supervised_model(
                         generate_classification_report=generate_classification_report,
                         all_reports=all_test_reports
                         )
-                    all_human_labelled_data=pd.concat([all_human_labelled_data,
-                        human_labelled_test_data])
-                if save_model_in_package_file == True:
+                    report = model_test_results["ResultsReport"]
                     notes=input("Write any notes you want to include in metadata here, or press 'Enter' to leave the notes field empty. ")
+                    # Get rid of 'Inferred schema contains integer column(s)' warning...
+                    #input_example = X[:5].copy().to_numpy(dtype="float64")
+                    input_example = X[:5]
+                    with mlflow.start_run():
+                        # Log parameters and metrics using the MLflow APIs
+                        mlflow.log_param("model_class", model_class.__name__)
+                        mlflow.log_params(model.get_params())
+                        mlflow.log_metric("accuracy", report['accuracy'])
+                        mlflow.log_metric("macro average precision", report['macro avg']['precision'])
+                        mlflow.log_metric("macro average recall", report['macro avg']['recall'])
+                        mlflow.log_metric("macro average f1-score", report['macro avg']['f1-score'])
+                        mlflow.log_metric("macro average support", report['macro avg']['support'])
+                        mlflow.log_metric("weighted average precision", report['weighted avg']['precision'])
+                        mlflow.log_metric("weighted average recall", report['weighted avg']['recall'])
+                        mlflow.log_metric("weighted average f1-score", report['weighted avg']['f1-score'])
+                        mlflow.log_metric("weighted average support", report['weighted avg']['support'])
+                        mlflow.set_tag(
+                            "training_data_url",
+                            "https://s3.amazonaws.com/bucket/training-data.csv"
+                        )
+                        # Log the sklearn model and register it
+                        model_info = mlflow.sklearn.log_model(
+                            sk_model=model,
+                            name="sklearn-model",
+                            input_example=input_example,
+                            registered_model_name=model_name,
+                            serialization_format="skops"
+                        )
+                    all_human_labelled_data=pd.concat([all_human_labelled_data,
+                        model_test_results["UserLabelledData"]])
+                if save_model_in_package_file == True:
                     model_package=create_model_package(model,
                         human_labelled_training_data,
                         'Flagged', 
                         preprocessing=["PCA"],
                         notes=notes,
-                        model_version=model_name_version,
+                        model_version=model_name,
                         training_data_version=training_data_description,
                         training_item_ids=list(df_relationships.index))
                     save_versioned_pickle_file(model_package,
-                        model_name_version,
+                        model_name,
                         folder='./projects/am2_project/models')
                 all_models[item_type]=model_package
     if save_model_in_package_file == True:
