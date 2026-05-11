@@ -1,0 +1,49 @@
+artifact_path: file:///C:/Users/o.lyttleton/Development/aiCourse/branches_for_am1/working_dir/ml-resources/mlruns/0/models/m-5638ac61d5c44f6ba6f4c87af6bb1c41/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.12.0
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+is_signature_from_type_hint: false
+mlflow_version: 3.12.0
+model_id: m-5638ac61d5c44f6ba6f4c87af6bb1c41
+model_size_bytes: 21671
+model_uuid: m-5638ac61d5c44f6ba6f4c87af6bb1c41
+prompts: null
+run_id: 1b9cd0ba7b5340328ce32a740be7e467
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "Question Set", "required": true}, {"type":
+    "double", "name": "Instrument", "required": true}, {"type": "double", "name":
+    "Interviewer Instruction", "required": true}, {"type": "double", "name": "Conditional",
+    "required": true}, {"type": "double", "name": "Organization", "required": true},
+    {"type": "double", "name": "Question Group", "required": true}, {"type": "double",
+    "name": "Code Set", "required": true}, {"type": "double", "name": "Concept", "required":
+    true}, {"type": "double", "name": "Statement", "required": true}, {"type": "double",
+    "name": "Data Collection", "required": true}, {"type": "double", "name": "Sequence",
+    "required": true}, {"type": "double", "name": "Category", "required": true}, {"type":
+    "double", "name": "Question", "required": true}, {"type": "double", "name": "Loop",
+    "required": true}, {"type": "double", "name": "Question Activity", "required":
+    true}, {"type": "double", "name": "Study", "required": true}, {"type": "double",
+    "name": "Series", "required": true}, {"type": "double", "name": "Project", "required":
+    true}, {"type": "double", "name": "Question Grid", "required": true}, {"type":
+    "double", "name": "OtherMaterial", "required": true}, {"type": "integer", "name":
+    "ItemType", "required": true}]'
+  outputs: '[{"type": "long", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-05-10 14:01:09.821882'
