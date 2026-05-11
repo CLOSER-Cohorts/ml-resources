@@ -148,7 +148,8 @@ def train_semi_supervised_model(
     notes=""
     print(item_types)
     for item_type in item_types:
-        mlflow.set_tracking_uri("http://127.0.0.1:5001")
+        #mlflow.set_tracking_uri("http://127.0.0.1:5001")
+        mlflow.set_tracking_uri("sqlite:///mlflow.db")
         #model = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
         model = model_class(max_depth=10, class_weight='balanced')
         if (item_type in all_relationships_data.keys() and 
@@ -298,7 +299,7 @@ def train_semi_supervised_model(
                         # Log the sklearn model and register it
                         model_info = mlflow.sklearn.log_model(
                             sk_model=model,
-                            name="sklearn-model",
+                            name=model_name,
                             input_example=input_example,
                             registered_model_name=model_name,
                             serialization_format="skops"
