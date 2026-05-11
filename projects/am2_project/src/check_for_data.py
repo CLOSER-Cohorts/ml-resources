@@ -88,6 +88,8 @@ def main(args):
         from src.ml_resources.data import colectica_utility
 
         colectica_client = colectica_utility.C
+        with open("./config/config.json") as f:
+            general_config = json.load(f)
         mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
         mlflow_client = mlflow.MlflowClient()
 
