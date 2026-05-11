@@ -88,6 +88,7 @@ def main(args):
         from src.ml_resources.data import colectica_utility
 
         colectica_client = colectica_utility.C
+        mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
         mlflow_client = mlflow.MlflowClient()
 
         # Get most recent version of model...
@@ -105,8 +106,10 @@ def main(args):
             # all_item_models folder contains the live version
             #latest_versions=mlflow_client.get_latest_versions(model_name)
             model_versions=mlflow_client.search_model_versions(f"name='{item_type}_error_detection'")
+            print(f"{item_type}, {len(model_versions)}")
             if len(model_versions)>0:
                 latest_version = max(model_versions, key=lambda v: int(v.version)).version
+                print(f"SET ALIAS FOR {item_type}")
                 mlflow_client.set_registered_model_alias(
                 name=f"{item_type}_error_detection", alias="live", version=latest_version
                 )
