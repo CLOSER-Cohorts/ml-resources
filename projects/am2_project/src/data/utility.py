@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 import mlflow
 import mlflow.sklearn
+import json
 from src.ml_resources import (
     obtain_correctly_labelled_data,
     create_model_package,
@@ -19,6 +20,9 @@ from src.ml_resources import (
     get_latest_versions_of_project_sweeps,
     obtain_items_from_colectica,
     get_all_sweeps )
+
+with open("./config/config.json") as f:
+    general_config = json.load(f)
 
 def is_float_string(value):
     float_pattern = re.compile(r"""
@@ -149,7 +153,7 @@ def train_semi_supervised_model(
     print(item_types)
     for item_type in item_types:
         #mlflow.set_tracking_uri("http://127.0.0.1:5001")
-        mlflow.set_tracking_uri("sqlite:///mlflow.db")
+        mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
         #model = DecisionTreeClassifier(max_depth=10, class_weight='balanced')
         model = model_class(max_depth=10, class_weight='balanced')
         if (item_type in all_relationships_data.keys() and 
