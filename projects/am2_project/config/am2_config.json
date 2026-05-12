@@ -61,8 +61,14 @@
       "Age 44 Biomedical Survey (2002)": "8451b70c-541c-4f62-8e7b-62b04503cc88",
       "Age 46 Survey (2004)": "e2151d44-dd35-43f0-8efe-19089794ee13",
       "Age 50 Survey (2008)": "1be3a1fd-a6d8-44f1-acf9-168c92afe6a6",
-      "Age 62 COVID-19 Survey (2020) Wave 1": "90a96359-d59e-423a-8ad9-406c1e710871" 
-      }
+      "Age 62 COVID-19 Survey (2020) Wave 1": "90a96359-d59e-423a-8ad9-406c1e710871",
+      "Age 62 COVID-19 Survey (2020) Wave 2": "913c215c-1dc9-4df8-a893-e85890f1af5b",
+      "Age 62 COVID-19 Survey (2021) Serology": "259e3400-96db-4199-a0d8-7e9dc79025c2",
+      },
+    "uk.lha": {
+      "1946 The Maternity Survey": "b136b302-c853-4d90-ad81-f82aaace6eb7",
+      "1947 Premature Babies Sub-Study": "f8d235f7-49e5-4568-905e-7f1646e241eb"
+    }
     }
   },
   "ItemsForValidation":{
