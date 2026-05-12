@@ -7,5 +7,5 @@ projects/am2_project/graphs
 projects/am2_project/data
 config/secrets.json
 config/config.json
-#logs/*
+logs/*
 !logs/readme.txt
