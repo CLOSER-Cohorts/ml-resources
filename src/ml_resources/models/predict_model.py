@@ -111,10 +111,10 @@ def obtain_correctly_labelled_data(data_with_predictions,
                             2. REST API queries involving this item delivering unexpected results
                             3. Item is not referencing/referenced by another item that it should
                             """)
-                    if reason_for_anomaly=="3":
-                        type_of_missing_related_item=input("What type of item is missing from the relationships? ")
-                    if only_relabel_outliers==True:
-                        logger.info(StructuredMessage(message=f"Outlier confirmed as anomalous by human",
+                if reason_for_anomaly=="3":
+                    type_of_missing_related_item=input("What type of item is missing from the relationships? ")
+                if only_relabel_outliers==True:
+                    logger.info(StructuredMessage(message=f"Outlier confirmed as anomalous by human",
                             operation_type="anomaly_confirmation",
                             item_id=index,
                             item_type=item_type,
