@@ -86,8 +86,10 @@
       "1968 (Age 22)": "b47e8154-ca2a-485f-8621-57075a9deefa",
       "1969 (Age 23)": "5930557f-f387-401b-91bb-4d8cedb40cb8",
       "1970 (Age 24)": "f667d236-62da-4fba-9a90-131d84fc5bb9",
-      "1971 (Age 25)": "92f9f7ae-d369-409b-982d-8fd856939f93"
-    }
+      "1971 (Age 25)": "92f9f7ae-d369-409b-982d-8fd856939f93",
+      "2021 COVID 19 Survey Wave 3 (Age 74)": "1bd94f9c-7f78-4ab5-951c-8a3235556c95",
+      "2021 COVID 19 Serology": "11fc8ab8-e8ff-4364-bf18-0a99e36b048b"
+      }
     }
   },
   "ItemsForValidation":{
@@ -96,7 +98,11 @@
       "uk.cls.bcs70": ["Age 46 Survey (2016)", "Age 51 Survey (2021)", "Age 50 COVID-19 Survey (2021) Wave 3"],
       "uk.cls.mcs": ["Age 14 Survey (2015)", "Age 17 Survey (2018)", "Age 20 COVID-19 Survey (2021) Wave 3"],
       "uk.wchads": ["Phase 14", "Phase 15", "Phase 16"],
-      "uk.lha": ["2014 (Age 68)", "2015 (Age 69)", "2021 COVID 19 Survey Wave 3 (Age 74)"],
+      "uk.lha": ["2000 Women's Health in the Middle Years Sub-study (Age 54)", 
+        "2003 Women's Health in the Middle Years Sub-study (Age 57)", 
+        "2005 Hysterectomy Sub-Study (Age 59)", "2006-2010 (Age 60-64)",
+        "2014 (Age 68)", "2015 (Age 69)", "2020 COVID 19 Survey Wave 1 (Age 74)", 
+        "2020 COVID 19 Survey Wave 2 (Age 74)"],
       "uk.alspac": ["ALSPAC Adolescence (13 years – 18 years 11 months)"],
       "uk.mrcleu-uos.sws": ["8-9 Years", "11-13 Years", "COVID"],
       "uk.cls.nextsteps": ["Next Steps Age 20 Survey (2010)", "Next Steps Age 25 Survey (2015)", "Next Steps Age 30 COVID-19 Survey (2021) Wave 3"],
