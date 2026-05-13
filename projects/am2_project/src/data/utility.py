@@ -374,3 +374,42 @@ def check_for_newly_available_data(project_config):
     return {"all_item_urns": all_item_urns,
             "all_urns_in_current_dataset": all_urns_in_current_dataset,
             "new_item_urns": new_item_urns}
+
+def data_quality_checks(model_metadata, input_data, allowed_feature_values={0.0, 1.0, 5.0}):
+    # Check if there are any missing values in the data
+    # Find columns with missing values
+    missing_columns=[]
+    columns_missing_values=[]
+    columns_with_wrong_datatypes=[]
+    for input_feature in model_metadata['input_features']:
+        if input_feature not in input_data.columns:
+            missing_columns.append(input_feature)
+        elif input_data[input_feature].isna().any():
+            columns_missing_values.append(input_feature)
+    if len(missing_columns)>0:
+        print("The following input features are not present in the input: ")
+        print(missing_columns)
+    if len(columns_missing_values)>0:
+        print("The following columns contain missing values: ")
+        print(columns_missing_values)
+    input_data_types=json.loads(input_data.dtypes.astype(str).to_json())
+    for index, value in json.loads(model_metadata['feature_types']).items():
+        #print(f"{index}, {value}")
+        if index in input_data_types.keys():
+            if input_data_types[index]!=value:
+                print(f"Type mismatch between input and model for feature {index}: model is {value} but input data is {input_data_types[index]}")
+                columns_with_wrong_datatypes.append(index)
+            # While the input features representing relations between items are floats,
+            # they must have one from a fixed set of values e.g. 0.0/1.0/5.0
+            # The input features in float_input_features can have any float value, for
+            # example 2.35, 12.43, etc., while str_input_features must be strings
+            # We're not imposing limits on these float/string input features for now,
+            # but we're specifying them in case we do so at some future point.   
+            float_input_features = ['x', 'y', 'DistanceFromOrigin', 'AnomalyScore']
+            str_input_features = ['ItemType']
+            set_input_features = [x for x in model_metadata['input_features'] if 
+                x not in float_input_features and 
+                x not in str_input_features]
+            values_for_input_feature = set(input_data[index])-allowed
+            if index in set_input_features and values_for_input_feature-allowed != set():
+                print(f"The {index} input features contain the following invalid value(s): {values_for_input_feature}")
