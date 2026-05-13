@@ -13,7 +13,8 @@ from src.ml_resources import (
     get_performance_metrics)
 from projects.am2_project.src.data.utility import (
         create_am2_input_features,
-        train_semi_supervised_model
+        train_semi_supervised_model,
+        data_quality_checks
         )
 from projects.am2_project.src.evidently import (
     create_project,
@@ -115,12 +116,6 @@ while current_file_version<=max_file_version:
         dicts.append(relationships_data_for_training_updated_model)
     current_file_version +=1
 
-"""
-result = {
-    k: pd.concat([d[k] for d in (relationships_data_for_training_updated_model, relationships_data_for_training_updated_model_2) if k in d]).fillna(0.0)
-    for k in set(relationships_data_for_training_updated_model) | set(relationships_data_for_training_updated_model_2)
-}
-"""
 relationships_data_for_training_updated_model = {
     k: pd.concat([d[k] for d in dicts if k in d]).loc[lambda df: ~df.index.duplicated(keep='first')].fillna(0.0)
     for k in set().union(*dicts)
@@ -144,6 +139,11 @@ train_semi_supervised_model(
     save_model_in_package_file=True,
     all_models=all_item_models
     )
+
+# You can validate the input to a model using this function:
+
+data_quality_checks(all_item_models['Instrument']['metadata'], df)
+
 
 # The get_summary_data command is used to check in older versions of the pickles for summary
 # stats (note that folder and object_name should be defined as above)
