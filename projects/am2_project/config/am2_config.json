@@ -100,6 +100,17 @@
         "Next Steps Age 30 COVID-19 Survey (2020) Wave 1": "78572059-2541-4ce6-813f-10250a53c91b",
         "Next Steps Age 30 COVID-19 Survey (2020) Wave 2": "86d59c4b-38d3-4754-894f-fde2c60306a8",
         "Next Steps Age 30 COVID-19 Survey (2021) Serology": "9d0143c6-2e82-4bf6-b8b9-832e1ed3d562"
+      },
+      "uk.mrcleu-uos.sws": {
+        "Initial Interview": "497d446f-a3d2-4d43-8e0b-da29cf048115",
+        "Pregnancy": "aea14c7c-3f3e-44d1-9e94-6cd55ce89d6c",
+        "Obstetrics": "1f2a66e6-570d-4c83-858c-a919a919bc9e",
+        "6 Months": "9cd2d3bc-4596-423b-b239-25426bee4295",
+        "12 Months": "420a7207-eec6-4ade-947a-3ddf6a2f8f0d",
+        "24 Months": "31392e3c-2396-41ff-9c43-7a5985884d10",
+        "3 Years": "bf6bbcc5-fe13-424b-9446-c5bf895eab95",
+        "4 Years": "cb593ad3-d914-4f3b-a2d5-4b00ab5f95bf",
+        "6-7 Years": "08a641f1-526a-4c8f-a7d1-f8b5a73881f4"
       }
     }
   },
