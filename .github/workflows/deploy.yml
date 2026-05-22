@@ -38,19 +38,9 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
-          powershell -Command "
-
           cd C:\Users\qtnzoly\Development\fastApi\ml-resources
-
           git pull origin main
-
           ..\.venv\Scripts\activate
-
           pip install -r requirements.txt
-
           Get-Process python -ErrorAction SilentlyContinue | Stop-Process -Force
-
-          Start-Process powershell `
-            -ArgumentList '-File C:\Users\qtnzoly\Development\fastApi\ml-resources\scripts\run_api.ps1'
-
-          "
+          C:\Users\qtnzoly\Development\fastApi\ml-resources\scripts\run_api.ps1
