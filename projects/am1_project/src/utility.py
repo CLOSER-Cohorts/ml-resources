@@ -155,31 +155,6 @@ def get_item_from_topic_name(topic_name,
                 })
     return [x for x in topic_groups if x['ItemName']['en-GB']==str(topic_name)]
 
-def get_items_with_no_labels(colectica_client):
-    items_with_no_labels = []
-    all_questions_variables = colectica_client.search_items(
-            [colectica_client.item_code('Question'), colectica_client.item_code('Variable')],
-            ReturnIdentifiersOnly=True,
-            SearchLatestVersion=True,
-            MaxResults=0)['Results']
-    count = 0        
-    for item in all_questions_variables:
-        count = count + 1
-        group_type=[]
-        if item['ItemType']==colectica_client.item_code('Question'):
-            group_type=colectica_client.item_code('Question Group')
-        elif item['ItemType']==colectica_client.item_code('Variable'):
-            group_type=colectica_client.item_code('Variable Group')
-        topic=colectica_client.search_relationship_byobject(item['AgencyId'],
-                item['Identifier'],
-                item_types=group_type,
-                Version=item['Version'],
-                Descriptions=False)
-        if len(topic)==0:
-            items_with_no_labels.append(item)
-        print(f"Found {len(items_with_no_labels)} items with no topics in {count} items")
-    return items_with_no_labels
-
 def convert_df_to_ndarray(df_data):
     input_feature_list=[]
     for input_feature in ['summary_embeddings',
