@@ -2,6 +2,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import RandomizedSearchCV
 from scipy.stats import loguniform, randint
 import numpy as np
+from projects.am1_project.src.utility import convert_df_to_ndarray
 
 param_dist = {
     "C": loguniform(7.5e1, 1e2),              # regularisation strength (log scale)
@@ -13,14 +14,17 @@ param_dist = {
 }
 
 
-def train_model(data_for_model, selected_input_features=None, 
+def train_model(data_for_model, 
     prediction_model=LogisticRegression(max_iter=1000)):
+    X_train=convert_df_to_ndarray(data_for_model['X_train'])
+    """
     input_feature_list=[]
     for input_feature in selected_input_features:
         input_feature_list.append(np.vstack(data_for_model['X_train'][input_feature]))
     X_train = np.hstack(
         input_feature_list
     )
+    """
     prediction_model2=LogisticRegression(max_iter=1000)
     """
     prediction_model2=LogisticRegression(max_iter=1000,

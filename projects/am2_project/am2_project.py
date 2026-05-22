@@ -170,9 +170,10 @@ dtc=model_package['model']
 plt.figure(figsize=(10, 10))
 tree.plot_tree(
     dtc,
-    class_names=["2", "3"],
+    class_names=["OK", "Anomaly"],
     filled=True,
-    #feature_names=['x', 'y', 'ItemType', 'Distance']
+    fontsize=6,
+    feature_names=all_item_models['Question Group']['metadata']['input_features']
 )
 plt.show()
 
@@ -206,9 +207,15 @@ generate_drift_monitoring_report(reference_dataset,
 
 
 
+search_set = [{
+                 "agencyId": "uk.wchads",
+                 "identifier": "1503038e-c369-4912-a198-85e504c332e7",
+                 "version": 60
+                }]
 
-question_schemes2 = C.search_items([C.item_code('Category Set')],
+question_schemes2 = colectica_client.search_items([],
             ReturnIdentifiersOnly=True,
             SearchLatestVersion=True,
-            MaxResults=10)['Results']
+            SearchSets=search_set,
+            MaxResults=0)['Results']
 question_schemes_relationships=create_am2_input_features(question_schemes2, colectica_client)
