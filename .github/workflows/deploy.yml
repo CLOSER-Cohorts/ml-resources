@@ -1,3 +1,6 @@
+# Note that due to VPN issues the deployment to Windows staging server 
+# stage won't work if this process is not run from a self-hosted runner 
+# within our VPN
 name: Deploy FastAPI (No Docker)
 
 on:
