@@ -28,6 +28,9 @@ jobs:
       run: |
         pytest
 
+    - name: Debug DNS
+      run: nslookup ${{ secrets.SERVER_HOST }}    
+
     - name: Deploy to Windows server
       uses: appleboy/ssh-action@v1
       with:
