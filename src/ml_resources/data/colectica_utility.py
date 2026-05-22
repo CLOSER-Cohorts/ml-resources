@@ -102,6 +102,25 @@ def get_variables_for_studies(studies, all_variable_labels):
             search_set = study_search_set,
             items_text = all_variable_labels)
 
+def get_topics(am1_data):
+    # We get the topics for questions in the usoc study...
+    #for study in project_config['Studies']:
+    #    print(f"Getting topics for items in {study['AgencyId']}...")
+    #    if study['AgencyId'] in am1_data.keys():
+    #        colectica_utility.get_topics_for_items(list(am1_data[study['AgencyId']].keys()), study['AgencyId'], [C.item_code('Variable Group'), C.item_code('Question Group')], C, topics=am1_data, verbose=True)
+    for agency_id in am1_data.keys():
+        get_topics_for_items(list(am1_data[agency_id].keys()),
+            agency_id,
+            [C.item_code('Variable Group'), C.item_code('Question Group')], 
+            C,
+            topics=am1_data,
+            verbose=True)
+    # We get the categories for questions in our dataset (from all studies)...
+    for study_agency_id in am1_data.keys():
+        print(f"Getting categories for items in {study_agency_id}...")
+        get_categories_for_items(study_agency_id, list(am1_data[study_agency_id].keys()), all_items=am1_data, verbose=True)
+    return am1_data
+
 def get_topics_for_items(item_identifiers,
     study_agency_id, topic_types, C, verbose=False, topics={}):
     if not isinstance(topic_types, list):

@@ -23,7 +23,7 @@ colectica_utility.get_items_in_containing_items(project_config['Studies'],
     colectica_client.item_code('Variable'))
 
 
-am1_data_new=get_topics(am1_data)
+am1_data_new=colectica_utility.get_topics(am1_data)
 
 # The above example presumes you are defining the items in your data set by
 # specifying a containing item, but if you wanted to just specify a list of items,
@@ -43,24 +43,6 @@ transformed_embeddings_10103 = apply_pipeline(df, ['TextLabel', 'ItemCategories'
 save_versioned_pickle_file(transformed_embeddings_10103, 'transformed_embeddings_10103', folder='./projects/am1_project/data')
 
 
-def get_topics(am1_data):
-    # We get the topics for questions in the usoc study...
-    #for study in project_config['Studies']:
-    #    print(f"Getting topics for items in {study['AgencyId']}...")
-    #    if study['AgencyId'] in am1_data.keys():
-    #        colectica_utility.get_topics_for_items(list(am1_data[study['AgencyId']].keys()), study['AgencyId'], [colectica_client.item_code('Variable Group'), colectica_client.item_code('Question Group')], colectica_client, topics=am1_data, verbose=True)
-    for agency_id in am1_data.keys():
-        colectica_utility.get_topics_for_items(list(am1_data[agency_id].keys()),
-            agency_id,
-            [colectica_client.item_code('Variable Group'), colectica_client.item_code('Question Group')], 
-            colectica_client,
-            topics=am1_data,
-            verbose=True)
-    # We get the categories for questions in our dataset (from all studies)...
-    for study_agency_id in am1_data.keys():
-        print(f"Getting categories for items in {study_agency_id}...")
-        colectica_utility.get_categories_for_items(study_agency_id, list(am1_data[study_agency_id].keys()), all_items=am1_data, verbose=True)
-    return am1_data
 
 with open("./config/config.json") as f:
     general_config = json.load(f)

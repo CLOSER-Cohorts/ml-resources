@@ -219,3 +219,16 @@ question_schemes2 = colectica_client.search_items([],
             SearchSets=search_set,
             MaxResults=0)['Results']
 question_schemes_relationships=create_am2_input_features(question_schemes2, colectica_client)
+
+with open("./projects/am1_project/config/am1_config.json") as f:
+    project_config = json.load(f)
+
+actual_labelled_items={}
+    colectica_utility.get_items_in_containing_items(project_config['Studies'],
+        actual_labelled_items, 
+        "Summary",
+        colectica_client.item_code('Question'))
+actual_labelled_items=colectica_utility.get_topics(item_data)
+# getting predicted_item_labels could be a task for calling 
+# a headless version of the model
+get_mislabelled_items(predicted_item_labels, actual_labelled_items)
