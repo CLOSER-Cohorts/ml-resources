@@ -1,3 +1,5 @@
+import numpy as np
+
 def get_urn_from_item(item):
    return f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{str(item['Version'])}"
 
@@ -176,5 +178,18 @@ def get_items_with_no_labels(colectica_client):
         if len(topic)==0:
             items_with_no_labels.append(item)
         print(f"Found {len(items_with_no_labels)} items with no topics in {count} items")
-    return items_with_no_labels    
+    return items_with_no_labels
+
+def convert_df_to_ndarray(df_data):
+    input_feature_list=[]
+    for input_feature in ['summary_embeddings',
+        'category_embeddings',
+        'item_type',
+        'agency_id',
+        'has_categories']:
+        input_feature_list.append(np.vstack(df_data[input_feature]))
+        X_test = np.hstack(
+            input_feature_list
+        )
+    return X_test
 

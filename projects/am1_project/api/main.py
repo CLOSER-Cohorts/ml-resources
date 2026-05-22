@@ -21,11 +21,23 @@ import logging
 from src.ml_resources import (
     apply_pipeline)
 from src.logging.utility import StructuredMessage, setup_logging
+from projects.am1_project.src.utility import convert_df_to_ndarray
 
 logger=setup_logging(project="am1_project", log_file="logs/am1_log.json")
 
-modelfile = open('./projects/am1_project/model/trainedModelAllStudies/trainedModelAllStudies_1.pickle', 'rb')
-trainedModel = pickle.load(modelfile)
+
+
+#YOU NEED TO CHANGE THE CODE HERE SO IT IS GETTING THE LIVE VERSION OF THE MODEL FROM
+#MLFLOW
+with open("./config/config.json") as f:
+            general_config = json.load(f)
+mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
+mlflow_client = mlflow.MlflowClient()
+trainedModel = mlflow.sklearn.load_model(
+        model_uri="models:/logistic_regression_for_topic_classification@live")
+                    
+#modelfile = open('./projects/am1_project/model/trainedModelAllStudies/trainedModelAllStudies_1.pickle', 'rb')
+#trainedModel = pickle.load(modelfile)
 categories=trainedModel.classes_.tolist()
 
 class Item(BaseModel):
@@ -69,7 +81,14 @@ app = FastAPI()
 
 @app.get("/")
 async def root():
-    return {"message": "message_value"}
+    return {"message": "API running"}
+
+@app.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "model_loaded": trainedModel is not None
+    }
 
 @app.post("/categorise_items/")
 async def categorise_items(api_request: InferenceRequest):
@@ -92,12 +111,15 @@ async def categorise_items(api_request: InferenceRequest):
         'uk.cls.ncds' : 12})
     print(df)
     transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories'], training=False)
+    X = convert_df_to_ndarray(transformed_embeddings)
+    """
     X = np.hstack([
      np.vstack(transformed_embeddings['summary_embeddings']),
      np.vstack(transformed_embeddings['category_embeddings']),
      np.vstack(transformed_embeddings['item_type']),
      np.vstack(transformed_embeddings['has_categories'])
     ])
+    """
     #result = trainedModel.predict(X)
     results=trainedModel.predict_proba(X)
     predictions=[]

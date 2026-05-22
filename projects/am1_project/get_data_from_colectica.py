@@ -62,6 +62,47 @@ def get_topics(am1_data):
         colectica_utility.get_categories_for_items(study_agency_id, list(am1_data[study_agency_id].keys()), all_items=am1_data, verbose=True)
     return am1_data
 
+with open("./config/config.json") as f:
+    general_config = json.load(f)
+
+mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
+mlflow_client = mlflow.MlflowClient()
+trainedModel = mlflow.sklearn.load_model(
+        model_uri="models:/logistic_regression_for_topic_classification/2")
+
+
+def check_for_new_am1_data():
+    with open("projects/am1_project/config/am1_config.json") as f:
+        project_config = json.load(f)
+    mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
+    mlflow_client = mlflow.MlflowClient()
+    model_version = mlflow_client.get_model_version(
+    name="logistic_regression_for_topic_classification",
+    version="5"
+    )
+    training_data_file = run.data.tags.get("mlflow.note.content")
+    deployed_model_data=read_dataset_from_file(training_data_file)
+    am1_data={}
+    colectica_utility.get_items_in_containing_items(project_config['Studies'],
+        am1_data,
+        "Summary",
+        colectica_client.item_code('Question'))
+    colectica_utility.get_items_in_containing_items(project_config['Studies'],
+        am1_data,
+        "Label",
+        colectica_client.item_code('Variable'))
+    all_colectica_ids=[]
+    for subdict in am1_data.values():
+        for key in subdict.keys():
+            all_colectica_ids.append(key)
+    all_training_data_ids=[]
+    for subdict in deployed_model_data.values():
+        for key in subdict.keys():
+            all_training_data_ids.append(key)
+    colectica_data_not_in_training_data=[x for x in all_colectica_ids if x not in all_training_data_ids]
+    return(colectica_data_not_in_training_data)
+
+
 # Assuming that we got the topics for usoc questions, here is how we would save them into a 
 # versioned pickle file... 
 

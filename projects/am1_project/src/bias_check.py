@@ -14,7 +14,7 @@ from src.ml_resources.data import colectica_utility
 colectica_client = colectica_utility.C
 
 def generate_prediction_input(test_data):
-    input_feature_list=[]
+    igenerate_prediction_inpnput_feature_list=[]
     for input_feature in ['summary_embeddings', 'category_embeddings', 'item_type', 'has_categories']:
         input_feature_list.append(np.vstack(test_data[input_feature]))
         X_test = np.hstack(

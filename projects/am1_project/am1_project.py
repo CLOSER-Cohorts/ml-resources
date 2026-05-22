@@ -1,6 +1,7 @@
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
+from sklearn.linear_model import LogisticRegression
 import numpy as np
 import pandas as pd
 import json
@@ -15,6 +16,7 @@ from src.ml_resources import (
     calculate_accuracy)
 from src.ml_resources.data import colectica_utility
 from projects.am1_project.api import api_client
+from projects.am1_project.src.am1_mlflow import register_model_and_metrics
 
 #PROCESS: 
 #1. GET DATA FROM COLECTICA
@@ -32,6 +34,7 @@ for study_name in study_names:
     for key, subdict in raw_data[list(raw_data.keys())[0]].items():
         subdict["AgencyId"] = list(raw_data.keys())[0]
     all_raw_data["all_data"].update(raw_data[list(raw_data.keys())[0]])
+save_versioned_pickle_file(all_raw_data, 'all_raw_data', folder='./projects/am1_project/data')
 
 
 for key, subdict in raw_data[list(raw_data.keys())[0]].items():
@@ -85,6 +88,8 @@ filtered_questions=filtered_questions_by_number_of_categories
 
 df=convert_dictionary_to_dataframe(filtered_questions)
 df['HasCategories']=[int(x) for x in (df['ItemCategories']!='').tolist()]
+df = df[['TextLabel', 'ItemCategories', 'ItemType', 'AgencyId', 'HasCategories']]
+    
 
 #4. Now we perform some data cleaning. Resetting the index is important so the pipeline
 # operations will work (the indices have to be continuous numeric values with no gaps)
@@ -127,7 +132,7 @@ save_versioned_pickle_file(transformed_embeddings, 'transformed_embeddings_with_
 
 #6. split data into training and test
 
-
+transformed_embeddings_sample=transformed_embeddings
 transformed_embeddings_sample['item_type']=transformed_embeddings_sample["item_type"].astype("category").cat.codes
 transformed_embeddings_sample = transformed_embeddings_sample.dropna(subset=["topic"]).reset_index(drop=True)
 y=transformed_embeddings_sample['topic']
@@ -175,9 +180,39 @@ wrong_predictions=calculate_accuracy(trainedModel,
 
 #b=obtain_correct_data_labels(final_dataset_copy, "do this", "Flagged")
 
-report = classification_report(lr_model_data['y_test'].values, y_pred, target_names=set(lr_model_data['y_test'].values))
+selected_input_features=['summary_embeddings', 'category_embeddings', 'item_type', 'has_categories']
+input_feature_list=[]
+for input_feature in selected_input_features:
+        input_feature_list.append(np.vstack(lr_model_data['X_train'][input_feature]))
+X_train = np.hstack(
+        input_feature_list
+    )
+    
+
+
+model_data_ids = (
+    transformed_embeddings['agency_id'] + ':' + transformed_embeddings.index.astype(str)
+)
+
+model_data_ids = transformed_embeddings['agency_id']
+
+
+report = classification_report(lr_model_data['y_test'].values,
+    y_pred,
+    target_names=set(lr_model_data['y_test'].values),
+    output_dict=True)
+model_name_version=f"logistic_regression_for_topic_classification"
+notes="Logistic regression for topic classification"
+input_example=X_train[:5]
+register_model_and_metrics(trained_model, 
+    LogisticRegression,
+    model_name_version,
+    report,
+    notes,
+    input_example,
+    "./projects/am1_project/data/am1_data_ncds/am1_data_ncds_1.pickle")
+
 print(report)
-model_name_version=f"logistic_regression_for_topic_classification_v2"
 training_data=f"Summaries and categories for {len(X_train)} questions"
 notes_on_experiment = input("Enter any notes on this experiment you wish to record (e.g. parameters, evaluation metrics, what did/didn't work): ")
 with open(f"projects/am1_project/reports/classification_report_topic_classification_v2.txt", "w") as f:
@@ -241,3 +276,4 @@ request_body={
 }
 
 api_client.execute_query(request_body)
+from projects.am1_project.src.full_process import run_full_model_generation
