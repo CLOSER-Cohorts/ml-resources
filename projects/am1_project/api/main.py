@@ -18,6 +18,9 @@ import numpy as np
 import pandas as pd
 import time
 import logging
+import json
+import mlflow
+import mlflow.sklearn
 from src.ml_resources import (
     apply_pipeline)
 from src.logging.utility import StructuredMessage, setup_logging
@@ -75,7 +78,7 @@ class InferenceRequest(BaseModel):
     items: list[Item]
     
 class PredictionResponse(BaseModel):
-    predictions: list[int]
+    predictions: list[str]
 
 app = FastAPI()
 
@@ -142,5 +145,6 @@ async def categorise_items(api_request: InferenceRequest):
         results=predictions,
         confidence=confidence_scores
         ))
+    print(predictions)
     return PredictionResponse(predictions=predictions)
     
