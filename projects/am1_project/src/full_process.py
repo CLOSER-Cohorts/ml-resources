@@ -5,6 +5,8 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.linear_model import LogisticRegression
+from sklearn.decomposition import PCA
+from sklearn.metrics import top_k_accuracy_score, make_scorer
 from src.ml_resources import (
     read_dataset_from_file,
     filter_values_by_length,
@@ -19,9 +21,9 @@ from projects.am1_project.src.utility import convert_df_to_ndarray
 from src.logging.utility import StructuredMessage, setup_logging
 
 logger=setup_logging(project="am1_project", log_file="logs/am1_log.json")
-raw_data_file = './projects/am1_project/data/all_raw_data/all_raw_data_1.pickle'
+raw_data_filename = './projects/am1_project/data/all_raw_data/all_raw_data_1.pickle'
 
-def data_preprocessing(raw_data, smoke_test=False):
+def data_preprocessing(raw_data, smoke_test_N=1000):
     # We now run quality control code to filter items which don't meet certain criteria. 
     # E.g. the question summary is too short, the question has fewer than N categories
     # associated with it, the question summary contains text, a question has a set of
@@ -58,8 +60,8 @@ def data_preprocessing(raw_data, smoke_test=False):
     # Save the ids in our data for future use when deciding if there is data available
     # on the Colectica repository that isn't in our training/testing data
     df=df.reset_index(drop=True)
-    if smoke_test==True:
-        df=df[0:1000]
+    if smoke_test_N!=None:
+        df=df[0:smoke_test_N]
     # We need to remove items that have topics for which there are less than two instances,
     # in order for the stratified splitting performed by train_test_split
     # to be possible.
@@ -81,10 +83,18 @@ def data_preprocessing(raw_data, smoke_test=False):
         ))
     return df
 
-def create_model_data(embeddings):
+def create_model_data(embeddings, pca_feature_reduction=False):
     y=embeddings['topic']
     X=embeddings.drop('topic', axis=1)
     #X=transformed_embeddings_sample.drop('agency_id', axis=1)
+    if pca_feature_reduction:
+        pca = PCA(n_components=128)
+        reduced_summary_embeddings = pca.fit_transform(convert_df_to_ndarray(
+            X, input_features=['summary_embeddings']))
+        reduced_category_embeddings = pca.fit_transform(convert_df_to_ndarray(
+            X, input_features=['category_embeddings']))
+        X['summary_embeddings']=reduced_summary_embeddings.tolist()
+        X['category_embeddings']=reduced_summary_embeddings.tolist()
     X_train, X_test, y_train, y_test = train_test_split(
         X, y,
         test_size=0.2,       # 20% test set
@@ -120,15 +130,18 @@ def test_model(trainedModel, lr_model_data):
             "prediction_results": prediction_results
         })
     
-def run_full_model_generation():
+def run_full_model_generation(smoke_test_N=None, 
+    pca_feature_reduction=False,
+    notes="Logistic regression for topic classification",
+    upload_raw_data=False):
     tracemalloc.start()
     print("Read in data...")
-    all_raw_data=read_dataset_from_file(raw_data_file)
+    all_raw_data=read_dataset_from_file(raw_data_filename)
     print("Preprocess data...")
-    df=data_preprocessing(all_raw_data, smoke_test=False)
+    df=data_preprocessing(all_raw_data, smoke_test_N)
     df = df[['TextLabel', 'ItemCategories', 'ItemType', 'AgencyId', 'HasCategories', 'Topic']]
     start = time.perf_counter()
-    print("Generate embeddings...")
+    print(f"Generate embeddings for {smoke_test_N} items...")
     transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories'])
     current, peak = tracemalloc.get_traced_memory()
     embeddings_generation_time = time.perf_counter() - start
@@ -143,10 +156,11 @@ def run_full_model_generation():
         peak_memory_usage=peak,
         embeddings_generation_time=embeddings_generation_time
         ))
-    print("Create model data...")    
-    lr_model_data=create_model_data(transformed_embeddings)
+    print(f"Create model data for {smoke_test_N} items...")    
+    lr_model_data=create_model_data(transformed_embeddings, pca_feature_reduction)
+    #lr_model_data=create_model_data(reduced_embeddings)
     start = time.perf_counter()
-    print("Train model...")
+    print(f"Train model for {smoke_test_N} items...")
     trained_model=train_model(lr_model_data)
     model_training_time = time.perf_counter() - start
     current, peak = tracemalloc.get_traced_memory()
@@ -159,19 +173,89 @@ def run_full_model_generation():
         size_of_categories=lr_model_data['X_train']['category_embeddings'].memory_usage(deep=True),
         current_memory_usage=current,
         peak_memory_usage=peak,
-        model_training_time=embeddings_generation_time
+        model_training_time=model_training_time,
+        pca_feature_reduction=pca_feature_reduction,
+        model_notes=notes
         ))
     print("Test model...")    
     test_results=test_model(trained_model, lr_model_data)
     model_name_version=f"logistic_regression_for_topic_classification"
-    notes="Logistic regression for topic classification"
+    notes=notes
     input_example=lr_model_data['X_train'][:5]
     print("Register model on MLFlow...")
+    """
+    if upload_raw_data==True:
+        file_for_upload=raw_data_file
+    else:
+        file_for_upload=None
+    """ 
+    print(notes)
+    if report_type="classification_report":
     register_model_and_metrics(trained_model,
         LogisticRegression,
         model_name_version,
         test_results["report"],
         notes,
         input_example,
-        raw_data_file,
-        test_results["prediction_results"])
+        test_results["prediction_results"],
+        raw_data_filename)
+
+
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+
+
+scores = cross_val_score(
+    trained_model,
+    lr_model_data['X_test'],
+    lr_model_data['y_test'],
+    cv=5
+)#
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import StratifiedKFold
+
+skf = StratifiedKFold(
+    n_splits=5,
+    shuffle=True,
+    random_state=42
+)
+
+scores = cross_val_score(
+    trained_model,
+    convert_df_to_ndarray(lr_model_data['X_train']),
+    lr_model_data['y_train'],
+    cv=skf,
+    scoring="accuracy"
+)
+
+all_classes = np.unique(lr_model_data['y_train'])
+top5_scorer = make_scorer(
+    top_k_accuracy_score,
+    k=5,
+    labels=all_classes,
+    response_method="predict_proba"
+)
+
+scores=cross_validate(
+    trained_model,
+    convert_df_to_ndarray(lr_model_data['X_train']),
+    lr_model_data['y_train'],
+    cv=skf,
+    scoring={
+        "accuracy": "accuracy",
+        "precision_macro": "precision_macro",
+        "recall_macro": "recall_macro",
+        "f1_macro": "f1_macro",
+        "precision_weighted": "precision_weighted",
+        "recall_weighted": "recall_weighted",
+        "f1_weighted": "f1_weighted",      
+        "top_5_accuracy": top5_scorer
+    }
+)
+
+register_model_and_cross_validation_metrics(trained_model,
+        LogisticRegression,
+        model_name_version,
+        scores,
+        notes,
+        lr_model_data['X_train'][:5],
+        raw_data_filename)
