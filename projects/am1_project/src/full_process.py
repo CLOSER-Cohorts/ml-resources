@@ -7,6 +7,10 @@ from sklearn.metrics import classification_report
 from sklearn.linear_model import LogisticRegression
 from sklearn.decomposition import PCA
 from sklearn.metrics import top_k_accuracy_score, make_scorer
+from sklearn.model_selection import cross_validate
+from sklearn.model_selection import StratifiedKFold
+from sklearn.preprocessing import LabelEncoder
+from xgboost import XGBClassifier
 from src.ml_resources import (
     read_dataset_from_file,
     filter_values_by_length,
@@ -16,7 +20,10 @@ from src.ml_resources import (
     train_model,
     calculate_accuracy
     )
-from projects.am1_project.src.am1_mlflow import register_model_and_metrics
+from projects.am1_project.src.am1_mlflow import (
+    register_model_and_metrics,
+    register_model_and_cross_validation_metrics
+    )
 from projects.am1_project.src.utility import convert_df_to_ndarray    
 from src.logging.utility import StructuredMessage, setup_logging
 
@@ -56,7 +63,7 @@ def data_preprocessing(raw_data, smoke_test_N=1000):
         "683889c6-f74b-4d5e-92ed-908c0a42bb2d": 0})
     # Now we perform some data cleaning. Resetting the index is important so the pipeline
     # operations will work (the indices have to be continuous numeric values with no gaps)
-    df = df.dropna(subset=["Topic"])
+    df = df.dropna(subset=["topic"])
     # Save the ids in our data for future use when deciding if there is data available
     # on the Colectica repository that isn't in our training/testing data
     df=df.reset_index(drop=True)
@@ -70,6 +77,7 @@ def data_preprocessing(raw_data, smoke_test_N=1000):
     df=df[~df['Topic'].isin(items_with_unique_topics)].reset_index(drop=True)
     data_preprocessing_time = time.perf_counter() - start
     current, peak = tracemalloc.get_traced_memory()
+    tracemalloc.reset_peak()
     logger.info(StructuredMessage(message='Data preprocessing',
         application="am1",
         operation_type="data_preprocessing",
@@ -133,35 +141,38 @@ def test_model(trainedModel, lr_model_data):
 def run_full_model_generation(smoke_test_N=None, 
     pca_feature_reduction=False,
     notes="Logistic regression for topic classification",
-    upload_raw_data=False):
-    tracemalloc.start()
-    print("Read in data...")
-    all_raw_data=read_dataset_from_file(raw_data_filename)
-    print("Preprocess data...")
-    df=data_preprocessing(all_raw_data, smoke_test_N)
-    df = df[['TextLabel', 'ItemCategories', 'ItemType', 'AgencyId', 'HasCategories', 'Topic']]
-    start = time.perf_counter()
-    print(f"Generate embeddings for {smoke_test_N} items...")
-    transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories'])
-    current, peak = tracemalloc.get_traced_memory()
-    embeddings_generation_time = time.perf_counter() - start
-    tracemalloc.reset_peak()
-    logger.info(StructuredMessage(message='Generate embeddings',
-        application="am1",
-        operation_type="generate_embeddings",
-        number_of_embeddings=len(transformed_embeddings),
-        size_of_labels=transformed_embeddings['summary_embeddings'].memory_usage(deep=True),
-        size_of_categories=transformed_embeddings['category_embeddings'].memory_usage(deep=True),
-        current_memory_usage=current,
-        peak_memory_usage=peak,
-        embeddings_generation_time=embeddings_generation_time
-        ))
+    upload_raw_data=False,
+    model=LogisticRegression(max_iter=1000),
+    transformed_embeddings=None):
+    if transformed_embeddings is None:
+        tracemalloc.start()
+        print("Read in data...")
+        all_raw_data=read_dataset_from_file(raw_data_filename)
+        print("Preprocess data...")
+        df=data_preprocessing(all_raw_data, smoke_test_N)
+        df = df[['TextLabel', 'ItemCategories', 'ItemType', 'AgencyId', 'HasCategories', 'Topic']]
+        start = time.perf_counter()
+        print(f"Generate embeddings for {smoke_test_N} items...")
+        transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories'])
+        current, peak = tracemalloc.get_traced_memory()
+        embeddings_generation_time = time.perf_counter() - start
+        tracemalloc.reset_peak()
+        logger.info(StructuredMessage(message='Generate embeddings',
+            application="am1",
+            operation_type="generate_embeddings",
+            number_of_embeddings=len(transformed_embeddings),
+            size_of_labels=transformed_embeddings['summary_embeddings'].memory_usage(deep=True),
+            size_of_categories=transformed_embeddings['category_embeddings'].memory_usage(deep=True),
+            current_memory_usage=current,
+            peak_memory_usage=peak,
+            embeddings_generation_time=embeddings_generation_time
+            ))
     print(f"Create model data for {smoke_test_N} items...")    
     lr_model_data=create_model_data(transformed_embeddings, pca_feature_reduction)
     #lr_model_data=create_model_data(reduced_embeddings)
     start = time.perf_counter()
     print(f"Train model for {smoke_test_N} items...")
-    trained_model=train_model(lr_model_data)
+    trained_model=train_model(lr_model_data, prediction_model=model)
     model_training_time = time.perf_counter() - start
     current, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
@@ -190,7 +201,6 @@ def run_full_model_generation(smoke_test_N=None,
         file_for_upload=None
     """ 
     print(notes)
-    if report_type="classification_report":
     register_model_and_metrics(trained_model,
         LogisticRegression,
         model_name_version,
@@ -200,62 +210,97 @@ def run_full_model_generation(smoke_test_N=None,
         test_results["prediction_results"],
         raw_data_filename)
 
-
-from sklearn.model_selection import StratifiedKFold, cross_val_score
-
-
-scores = cross_val_score(
-    trained_model,
-    lr_model_data['X_test'],
-    lr_model_data['y_test'],
-    cv=5
-)#
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import StratifiedKFold
-
-skf = StratifiedKFold(
+def run_full_model_generation_with_cross_validation(smoke_test_N=None, 
+    pca_feature_reduction=False,
+    notes="Logistic regression for topic classification",
+    upload_raw_data=False,
+    model=LogisticRegression(max_iter=1000)):
+    tracemalloc.start()
+    print("Read in data...")
+    all_raw_data=read_dataset_from_file(raw_data_filename)
+    print("Preprocess data...")
+    df=data_preprocessing(all_raw_data, smoke_test_N)
+    df = df[['TextLabel', 'ItemCategories', 'ItemType', 'AgencyId', 'HasCategories', 'Topic']]
+    start = time.perf_counter()
+    print(f"Generate embeddings for {smoke_test_N} items...")
+    transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories'])
+    current, peak = tracemalloc.get_traced_memory()
+    embeddings_generation_time = time.perf_counter() - start
+    tracemalloc.reset_peak()
+    logger.info(StructuredMessage(message='Generate embeddings',
+        application="am1",
+        operation_type="generate_embeddings",
+        number_of_embeddings=len(transformed_embeddings),
+        size_of_labels=transformed_embeddings['summary_embeddings'].memory_usage(deep=True),
+        size_of_categories=transformed_embeddings['category_embeddings'].memory_usage(deep=True),
+        current_memory_usage=current,
+        peak_memory_usage=peak,
+        embeddings_generation_time=embeddings_generation_time
+        ))
+    skf = StratifiedKFold(
     n_splits=5,
     shuffle=True,
     random_state=42
-)
-
-scores = cross_val_score(
-    trained_model,
-    convert_df_to_ndarray(lr_model_data['X_train']),
-    lr_model_data['y_train'],
-    cv=skf,
-    scoring="accuracy"
-)
-
-all_classes = np.unique(lr_model_data['y_train'])
-top5_scorer = make_scorer(
-    top_k_accuracy_score,
-    k=5,
-    labels=all_classes,
-    response_method="predict_proba"
-)
-
-scores=cross_validate(
-    trained_model,
-    convert_df_to_ndarray(lr_model_data['X_train']),
-    lr_model_data['y_train'],
-    cv=skf,
-    scoring={
-        "accuracy": "accuracy",
-        "precision_macro": "precision_macro",
-        "recall_macro": "recall_macro",
-        "f1_macro": "f1_macro",
-        "precision_weighted": "precision_weighted",
-        "recall_weighted": "recall_weighted",
-        "f1_weighted": "f1_weighted",      
-        "top_5_accuracy": top5_scorer
-    }
-)
-
-register_model_and_cross_validation_metrics(trained_model,
+    )
+    y=transformed_embeddings['topic']
+    X=transformed_embeddings.drop('topic', axis=1)
+    scoring_object={
+            "accuracy": "accuracy",
+            "precision_macro": "precision_macro",
+            "recall_macro": "recall_macro",
+            "f1_macro": "f1_macro",
+            "precision_weighted": "precision_weighted",
+            "recall_weighted": "recall_weighted",
+            "f1_weighted": "f1_weighted"
+        }
+    if isinstance(model, LogisticRegression):
+        all_classes = np.unique(y)
+        top5_scorer = make_scorer(
+            top_k_accuracy_score,
+            k=5,
+            labels=all_classes,
+            response_method="predict_proba"
+        )
+        scoring_object["top_5_accuracy"] = top5_scorer
+    if isinstance(model, XGBClassifier):
+        le = LabelEncoder()
+        y = le.fit_transform(y)
+    scores=cross_validate(
+        model,
+        convert_df_to_ndarray(X),
+        y,
+        cv=skf,
+        scoring=scoring_object
+        )
+    start = time.perf_counter()
+    print(f"Train model for {smoke_test_N} items...")
+    trained_model=LogisticRegression(max_iter=1000)
+    trained_model.fit(convert_df_to_ndarray(X), y)
+    model_training_time = time.perf_counter() - start
+    current, peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    logger.info(StructuredMessage(message='Train model',
+        application="am1",
+        operation_type="train_am1_model",
+        number_of_training_records=len(X),
+        size_of_labels=X['summary_embeddings'].memory_usage(deep=True),
+        size_of_categories=X['category_embeddings'].memory_usage(deep=True),
+        current_memory_usage=current,
+        peak_memory_usage=peak,
+        model_training_time=model_training_time,
+        pca_feature_reduction=pca_feature_reduction,
+        model_notes=notes
+        ))
+    model_name_version=f"logistic_regression_for_topic_classification"
+    register_model_and_cross_validation_metrics(trained_model,
         LogisticRegression,
         model_name_version,
         scores,
         notes,
-        lr_model_data['X_train'][:5],
+        X[:5],
         raw_data_filename)
+
+
+
+    
+    

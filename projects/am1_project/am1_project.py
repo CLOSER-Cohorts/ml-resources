@@ -1,6 +1,7 @@
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
+from xgboost import XGBClassifier
 import numpy as np
 import pandas as pd
 import json
@@ -15,6 +16,10 @@ from src.ml_resources import (
     calculate_accuracy)
 from src.ml_resources.data import colectica_utility
 from projects.am1_project.api import api_client
+from projects.am1_project.src.full_process import (
+    run_full_model_generation,
+    run_full_model_generation_with_cross_validation
+)
 
 #PROCESS: 
 #1. GET DATA FROM COLECTICA
@@ -241,3 +246,31 @@ request_body={
 }
 
 api_client.execute_query(request_body)
+
+run_full_model_generation(smoke_test_N=1500)
+xgb = XGBClassifier()
+lr=LogisticRegression()
+
+remember you don't have to generate embeddings all the time, if I'm just
+testing features, hyperparams, etc. have a flag which disables the embeddings.
+generate the embeddings once, save them,
+
+# Compare times for running experiment for different N, with/without feature reduction
+for N in [1500, 5000, 10000, 20000, 40000]:
+    for pca_reduce in [True, False]:
+        run_full_model_generation(smoke_test_N=N,
+            model=lr,
+            pca_feature_reduction=pca_reduce,
+            transformed_embeddings=data_preprocessing(transformed_embeddings[0:N], smoke_test_N=N), 
+            notes=f"Logistic regression for topic classification with {N} samples. PCA feature reduction: {pca_reduce}")
+
+for N in [500]:
+    run_full_model_generation_with_cross_validation(smoke_test_N=N, 
+        pca_feature_reduction=True, 
+        notes=f"Logistic regression for topic classification with {N} samples, PCA feature reduction and cross validation")
+
+for N in [500]:
+    run_full_model_generation_with_cross_validation(smoke_test_N=N, 
+        model=xgb,
+        pca_feature_reduction=True, 
+        notes=f"XGBoost for topic classification with {N} samples, PCA feature reduction and cross validation")
