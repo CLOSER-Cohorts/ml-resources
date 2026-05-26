@@ -2,6 +2,11 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from xgboost import XGBClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier
+from sklearn.metrics import roc_auc_score
 import numpy as np
 import pandas as pd
 import json
@@ -18,7 +23,9 @@ from src.ml_resources.data import colectica_utility
 from projects.am1_project.api import api_client
 from projects.am1_project.src.full_process import (
     run_full_model_generation,
-    run_full_model_generation_with_cross_validation
+    run_full_model_generation_with_cross_validation,
+    generate_all_embeddings,
+    remove_single_instances
 )
 
 #PROCESS: 
@@ -162,6 +169,7 @@ save_versioned_pickle_file(all_df, 'embeddings_with_two_agency', folder='./proje
 save_versioned_pickle_file(df, 'trainingDataDf', folder='./projects/am1_project/data')
 
 trained_model = read_dataset_from_file('./projects/am1_project/model/trainedModelAllStudies/trainedModelAllStudies_1.pickle')
+trained_model = read_dataset_from_file('./projects/am1_project/model/Logistic Regression Model/Logistic Regression Model_2.pickle')
 
 input_feature_list=[]
 #for input_feature in ['summary_embeddings', 'category_embeddings', 'item_type', 'agency_id', 'has_categories']:
@@ -170,6 +178,7 @@ for input_feature in ['summary_embeddings', 'category_embeddings', 'item_type', 
         X_test = np.hstack(
         input_feature_list
 )
+
 y_pred=trainedModel.predict(X_test)
 predictions_with_probabilities=trainedModel.predict_proba(X_test)
 wrong_predictions=calculate_accuracy(trainedModel,
@@ -248,21 +257,109 @@ request_body={
 api_client.execute_query(request_body)
 
 run_full_model_generation(smoke_test_N=1500)
-xgb = XGBClassifier()
-lr=LogisticRegression()
 
 remember you don't have to generate embeddings all the time, if I'm just
 testing features, hyperparams, etc. have a flag which disables the embeddings.
 generate the embeddings once, save them,
 
+
+# this is a hack, as the code that generates embeddings doesn't have the same colnames
+# def. perhaps fix this later
+transformed_embeddings = transformed_embeddings.rename(columns={
+        "text_label": "TextLabel",
+        "item_categories": "ItemCategories",
+        "item_type": "ItemType",
+        "agency_id": "AgencyId",
+        "has_categories": "HasCategories",
+        "topic": "Topic"
+        })
+    
+
+a=remove_single_instances(transformed_embeddings[0:N], 'topic'), 
+            
+df=remove_single_instances(df, topic_column)
+
+
+generate_all_embeddings()
+
+a=data_preprocessing(transformed_embeddings[0:N], smoke_test_N=N, topic_column='topic')
+preprocessed_embeddings=transformed_embeddings
+for N in [1500, 2000]:
+
 # Compare times for running experiment for different N, with/without feature reduction
+transformed_embeddings = read_dataset_from_file('./projects/am1_project/data/transformed_embeddings_dedup/transformed_embeddings_dedup_1.pickle')
+xgb = XGBClassifier()
+lr=LogisticRegression(max_iter=1000)
+clf = DecisionTreeClassifier(max_depth=500,
+   max_features=None,
+   min_samples_split=10,
+   splitter="random")
+rfc = RandomForestClassifier(
+    n_estimators = 100,
+    max_depth=200,             # deep trees (unpruned)
+    max_features='sqrt',        # number of features per split
+    bootstrap=True,             # bootstrap sampling
+    random_state=42
+)
+ada = AdaBoostClassifier(
+    estimator=DecisionTreeClassifier(max_depth=1),
+    n_estimators=100,
+    random_state=42
+)
+gb = GradientBoostingClassifier(
+    learning_rate=0.1,
+    n_estimators=100,
+    random_state=42
+)
+# Do 80,000 as well
+# I paused this at 40000,False.
 for N in [1500, 5000, 10000, 20000, 40000]:
+    embeddings=pd.DataFrame(transformed_embeddings[0:N])
     for pca_reduce in [True, False]:
-        run_full_model_generation(smoke_test_N=N,
-            model=lr,
-            pca_feature_reduction=pca_reduce,
-            transformed_embeddings=data_preprocessing(transformed_embeddings[0:N], smoke_test_N=N), 
-            notes=f"Logistic regression for topic classification with {N} samples. PCA feature reduction: {pca_reduce}")
+        for model in [clf, rfc, ada]:
+            if isinstance(model, LogisticRegression):
+                model_type="Logistic Regression"
+            if isinstance(model, XGBClassifier):
+                model_type="XGB"
+            if isinstance(model, DecisionTreeClassifier):
+                model_type="Decision Tree"
+            if isinstance(model, RandomForestClassifier):
+                model_type="Random Forest"
+            if isinstance(model, AdaBoostClassifier):
+                model_type="Ada Boost"
+            if isinstance(model, GradientBoostingClassifier):
+                model_type="Gradient Boost"
+            run_full_model_generation(smoke_test_N=N,
+                model=model,
+                pca_feature_reduction=pca_reduce,
+                transformed_embeddings=remove_single_instances(embeddings, 'topic'), 
+                notes=f"{model_type}, {N} samples. PCA feature reduction: {pca_reduce}")
+
+try lr, xgb with no feature reduction next
+I can do it with feature reduction when i have time
+
+for N in [len(transformed_embeddings)]:
+    embeddings=pd.DataFrame(transformed_embeddings[['summary_embeddings', 'category_embeddings', 'item_type', 'has_categories', 'topic']])
+    for pca_reduce in [False]:
+        for model in [xgb]:
+            if isinstance(model, LogisticRegression):
+                model_type="Logistic Regression"
+            if isinstance(model, XGBClassifier):
+                model_type="XGB"
+            if isinstance(model, DecisionTreeClassifier):
+                model_type="Decision Tree"
+            if isinstance(model, RandomForestClassifier):
+                model_type="Random Forest"
+            if isinstance(model, AdaBoostClassifier):
+                model_type="Ada Boost"
+            if isinstance(model, GradientBoostingClassifier):
+                model_type="Gradient Boost"
+            run_full_model_generation(smoke_test_N=N,
+                model=model,
+                pca_feature_reduction=pca_reduce,
+                transformed_embeddings=remove_single_instances(embeddings, 'topic'), 
+                notes=f"{model_type}, {N} samples. AgencyId: No. PCA feature reduction: {pca_reduce}")
+
 
 for N in [500]:
     run_full_model_generation_with_cross_validation(smoke_test_N=N, 
