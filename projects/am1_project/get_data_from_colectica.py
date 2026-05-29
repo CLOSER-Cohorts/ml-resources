@@ -1,10 +1,12 @@
 from src.ml_resources.data import colectica_utility
 from src.ml_resources import read_dataset_from_file, save_versioned_pickle_file
+import mlflow
 import json
+
 colectica_client = colectica_utility.C
 
 with open("projects/am1_project/config/am1_config.json") as f:
-    project_config = json.load(f)
+    project_config_am1 = json.load(f)
 
 # If you're starting from scratch, create the am1_data object...
 am1_data={}

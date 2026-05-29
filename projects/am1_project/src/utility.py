@@ -155,16 +155,16 @@ def get_item_from_topic_name(topic_name,
                 })
     return [x for x in topic_groups if x['ItemName']['en-GB']==str(topic_name)]
 
-def convert_df_to_ndarray(df_data):
-    input_feature_list=[]
-    for input_feature in ['summary_embeddings',
+def convert_df_to_ndarray(df_data, input_features=['summary_embeddings',
         'category_embeddings',
         'item_type',
-        'agency_id',
-        'has_categories']:
+        #'agency_id',
+        'has_categories']):
+    input_feature_list=[]
+    for input_feature in input_features:
         input_feature_list.append(np.vstack(df_data[input_feature]))
-        X_test = np.hstack(
+        X = np.hstack(
             input_feature_list
         )
-    return X_test
+    return X
 

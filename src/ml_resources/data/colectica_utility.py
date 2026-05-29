@@ -37,7 +37,10 @@ def get_item_text(item_type, text_field, search_set=[], items_text={}, study_ite
         study_items = C.search_items(item_type,
             SearchSets=search_set,
             SearchLatestVersion=True)['Results']
+    count=0
     for item in study_items:
+        print(count)
+        count=count+1
         if item['AgencyId'] not in items_text.keys():
             items_text[item['AgencyId']] = {}
         if item['Identifier'] not in items_text[item['AgencyId']].keys():
