@@ -228,7 +228,8 @@ def run_full_model_generation(smoke_test_N=None,
     upload_raw_data=False,
     model=LogisticRegression(max_iter=1000),
     raw_model_data=None,
-    model_data=None):
+    model_data=None,
+    embeddings_file_name=""):
     if isinstance(model, LogisticRegression):
                 model_type="Logistic Regression"
     elif isinstance(model, XGBClassifier):
@@ -244,24 +245,30 @@ def run_full_model_generation(smoke_test_N=None,
     else:
         model_type=""
     tracemalloc.start()
-    if model_data is not None:
-        print("Read in data...")
-        all_raw_data=read_dataset_from_file(raw_data_filename)
+    if raw_model_data is not None:
         print(f"Preprocess data for {model_type}...")
-        df=data_preprocessing(all_raw_data, smoke_test_N)
+        if set(raw_model_data.keys()) == {'test', 'training'}:
+            df_training=data_preprocessing(raw_model_data['training'], smoke_test_N)
+            df_test=data_preprocessing(raw_model_data['test'], smoke_test_N)
+            model_data=create_model_data_for_new_wave_model(df_training, 
+                df_test,
+                model=model)
+        else:
+            df=data_preprocessing(raw_model_data, smoke_test_N)
+            model_data=create_model_data(df, model=model)
         tracemalloc.reset_peak()
-        model_data=create_model_data(df, model=model)
         start = time.perf_counter()
-        print(f"Generate embeddings for {len(df)} items for {model_type}. Feature reduction: {pca_feature_reduction}")
+        print(f"Generate embeddings for {len(model_data['X_train']) + len(model_data['X_test'])} items for {model_type}. Feature reduction: {pca_feature_reduction}")
         current, peak = tracemalloc.get_traced_memory()
         model_data['X_train'] = encode_columns_narrow(model_data['X_train'], ['TextLabel', 'ItemCategories'])
         model_data['X_test'] = encode_columns_narrow(model_data['X_test'], ['TextLabel', 'ItemCategories'])
+        save_versioned_pickle_file(model_data, f'{embeddings_file_name}_model_embeddings', folder='./projects/am1_project/data')
         embeddings_generation_time = time.perf_counter() - start
         tracemalloc.reset_peak()
         logger.info(StructuredMessage(message='Generate embeddings',
             application="am1",
             operation_type="generate_embeddings",
-            number_of_embeddings=len(df),
+            number_of_embeddings=len(model_data['X_train']) + len(model_data['X_test']),
             size_of_training_labels=model_data['X_train']['TextLabel_embeddings'].memory_usage(deep=True),
             size_of_test_labels=model_data['X_test']['TextLabel_embeddings'].memory_usage(deep=True),
             size_of_training_categories=model_data['X_train']['ItemCategories_embeddings'].memory_usage(deep=True),
