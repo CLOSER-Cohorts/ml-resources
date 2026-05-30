@@ -134,6 +134,26 @@ def create_model_data(data_for_model, model=None, smoke_test_N=None):
     model_data=create_model_data_object(X_train, X_test, y_train, y_test)
     return model_data
 
+def create_model_data_for_new_wave_model(training_data_for_model, 
+    test_data_for_model,
+    model=None, smoke_test_N=None):
+    if smoke_test_N is not None:
+        data_for_model = data_for_model.iloc[:smoke_test_N]
+    y_train=training_data_for_model['Topic']
+    X_train=training_data_for_model.drop('Topic', axis=1)
+    y_test=test_data_for_model['Topic']
+    X_test=test_data_for_model.drop('Topic', axis=1)
+    
+    
+    if isinstance(model, XGBClassifier):
+        le = LabelEncoder()
+        y_train = le.fit_transform(y_train)
+        y_test = le.fit_transform(y_test)  
+    
+    model_data=create_model_data_object(X_train, X_test, y_train, y_test)
+    return model_data
+
+
 def preprocess_data_frame(df, 
     item_categories_col='ItemCategories',
     has_categories_col='HasCategories', 
@@ -207,6 +227,7 @@ def run_full_model_generation(smoke_test_N=None,
     notes="Logistic regression for topic classification",
     upload_raw_data=False,
     model=LogisticRegression(max_iter=1000),
+    raw_model_data=None,
     model_data=None):
     if isinstance(model, LogisticRegression):
                 model_type="Logistic Regression"
@@ -223,7 +244,7 @@ def run_full_model_generation(smoke_test_N=None,
     else:
         model_type=""
     tracemalloc.start()
-    if model_data is None:
+    if model_data is not None:
         print("Read in data...")
         all_raw_data=read_dataset_from_file(raw_data_filename)
         print(f"Preprocess data for {model_type}...")
