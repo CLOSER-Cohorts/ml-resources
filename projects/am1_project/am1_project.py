@@ -455,44 +455,95 @@ text2="Post-C19: New benefit claims- Carers allowance, Personal independence pay
 
 : [[0.9999999]]
 
+GET TRAINING+TEST BASED ON SWEEPS
+
 with open("./projects/am2_project/config/am2_config.json") as f:
     project_config = json.load(f)
-
-all_items_by_sweep={}
 from src.ml_resources import (
     get_latest_versions_of_project_sweeps,
     obtain_items_from_colectica)
-sweep_items=get_latest_versions_of_project_sweeps(project_config)
-usoc_sweeps=[x for x in sweep_items if x['agencyId']=='uk.iser.ukhls']
-item_types_for_project=['Question', 'Variable']
-training_items = obtain_items_from_colectica(item_types_for_project, usoc_sweeps)
-get_item_text(colectica_client.item_code('Question'),
-                "Summary",
-                study_items = training_items,
-                items_text = all_items_by_sweep
-                )
+training_sweep_items=get_latest_versions_of_project_sweeps(project_config)
+am1_data={}
+usoc_training_sweeps=[x for x in training_sweep_items if x['agencyId']=='uk.iser.ukhls']
+colectica_utility.get_items_in_containing_items(usoc_training_sweeps,
+    am1_data,
+    "Summary",
+    colectica_client.item_code('Question'))
+colectica_utility.get_items_in_containing_items(usoc_training_sweeps,
+    am1_data,
+    "Label",
+    colectica_client.item_code('Variable'))
+am1_data_new=colectica_utility.get_topics(am1_data)
 
 
+all_study_series=colectica_client.search_items(C.item_code('Series'),
+            ReturnIdentifiersOnly=True,
+            MaxResults=0,
+            SearchLatestVersion=True)['Results']
 
-for sweep_item in items:
-    items = C.search_items(item_types_for_project,
+test_sweeps_dict={}
+for series in all_study_series:
+    series_item_id=[{"AgencyId": series['AgencyId'],
+            "Identifier": series['Identifier'],
+            "Version": series['Version']
+    }]
+    print(series_item_id)
+    series_training_sweeps=[x for x in training_sweep_items 
+        if x['agencyId']==series['AgencyId']]
+    all_series_sweeps=C.search_items(C.item_code('Study'),
             ReturnIdentifiersOnly=True,
             MaxResults=0,
             SearchLatestVersion=True,
-            SearchSets=sweep)['Results']
-    all_items_by_sweep[item]
+            SearchSets=series_item_id)['Results']
+    # because some genscot are in heaf
+    filtered_sweeps=[x for x in all_series_sweeps if x['AgencyId']==series['AgencyId']]
+    series_study_ids=[{'agencyId': x['AgencyId'], 
+        "identifier": x['Identifier'], 
+        "version": x['Version']} for x in filtered_sweeps]
+    test_sweeps = [x for x in series_study_ids if x not in series_training_sweeps]
+    test_sweeps_dict[series['AgencyId']]=test_sweeps
 
-GET TRAINING+TEST BASED ON SWEEPS
-usoc_study=[{"AgencyId": "uk.iser.ukhls",
-"Identifier": "44a7a09e-4703-498c-96f7-0131b296c917",
-"Version": "341"
-}]
-all_usoc=C.search_items(item_types_for_project,
-            ReturnIdentifiersOnly=True,
-            MaxResults=0,
-            SearchLatestVersion=True,
-            SearchSets=usoc_study)['Results']
+agency='uk.alspac'
+len([x for x in test_sweeps_dict[agency]])
+len([x for x in training_sweep_items if x['agencyId']==agency])
+titles=[]
+for x in test_sweeps_dict[agency]:
+    y=C.get_item_json(x['agencyId'], x['identifier'])
+    titles.append(y["DublinCoreMetadata"]["Title"]["en-GB"])
+for x in sorted(titles):
+    print(x)
+
+# as an initial test, just do a pass through one training/test sweep...
+for series in all_study_series:
+    if x['agencyId']!='uk.iser.ukhls':
+        training_data={}
+        test_data={}
+        training_sweeps=[x for x in training_sweep_items if x['agencyId'] == series['agencyId']]
+        colectica_utility.get_items_in_containing_items(training_sweeps,
+            training_data,
+            "Summary",
+            colectica_client.item_code('Question'))
+        colectica_utility.get_items_in_containing_items(training_sweeps,
+            training_data,
+            "Label",
+            colectica_client.item_code('Variable'))
+        save_versioned_pickle_file(training_data, f'training_sweeps{series['agencyId']}', folder='./projects/am1_project/data')
+        test_sweeps=test_sweeps_dict[series[agencyId]]
+        colectica_utility.get_items_in_containing_items(test_sweeps,
+            test_data,
+            "Summary",
+            colectica_client.item_code('Question'))
+        colectica_utility.get_items_in_containing_items(test_sweeps,
+            test_data,
+            "Label",
+            colectica_client.item_code('Variable'))
+        save_versioned_pickle_file(test_data, f'test_sweeps{series['agencyId']}', folder='./projects/am1_project/data')
+        
+    
+save_versioned_pickle_file(am1_data, 'training_sweeps_usoc', folder='./projects/am1_project/data')
+
 all_usoc_ids= [x['Identifier'] for x in all_usoc]
+
 sweep_items=[]
 am1_data={}
 agency_id='uk.iser.ukhls'

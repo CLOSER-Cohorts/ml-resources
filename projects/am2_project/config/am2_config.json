@@ -22,7 +22,7 @@
       "Age 5 Survey (1975)": "210db3c9-b0a5-45bc-b911-80779e79d1a8",
       "Age 10 Survey (1980)": "769f42d4-c0bf-421a-b004-a33355291748",
       "Age 16 Survey (1986)": "1d8bcf37-5d47-4af9-8b7a-d2807b3e4591",
-      "Age 26 Survey (1996)": "75fe4705-0c94-4f75-b1e6-ad9c61ffde26",
+      "Age 26 Survey (1996)": "e4afc442-dfbc-4292-8a7f-835b31ca89e0",
       "Age 30 Survey (2000)": "c5355d32-6dd7-448f-83a1-08c9fd8034a9",
       "Age 34 Survey (2004)": "f67b0300-538b-4086-8d5f-75ad05be7e90",
       "Age 38 Survey (2008)": "8c1ae633-e59d-41ef-b476-4251b4ee0515",
@@ -67,7 +67,7 @@
       },
     "uk.lha": {
       "1946 The Maternity Survey": "b136b302-c853-4d90-ad81-f82aaace6eb7",
-      "1947 Premature Babies Sub-Study": "f8d235f7-49e5-4568-905e-7f1646e241eb",
+      "1947 Premature Babies Sub-Study": "1ca0e989-31aa-4eec-aeef-d77524e67c92",
       "1948 Follow-up Survey (Age 2)": "8e31ad1e-32da-481c-9b69-3b5f4ea10169",
       "1950 (Age 4)": "f9046fa0-a314-4c4a-a633-2179784c9657",
       "1952 (Age 6)": "d885d116-584e-4371-94b9-55bf4d631b37",
@@ -113,7 +113,7 @@
         "6-7 Years": "08a641f1-526a-4c8f-a7d1-f8b5a73881f4"
       },
       "uk.whitehall2": {
-        "Phase 1": "2764a197-ab56-4cc6-aca8-2072cd9a0685",
+        "Phase 1": "2eda656d-b320-4b3c-a8a7-1c5110ee47b2",
         "Phase 2": "0c1eb834-0ffd-4f6c-a0d3-abfc69e6b6b8",
         "Phase 3": "a3bcc9ee-f88c-4809-986e-766c49c5d3b2",
         "Phase 4": "ce5b0c92-3600-4e16-a0ab-254dc755f05a",
@@ -131,14 +131,16 @@
         "Phase 05": "f8473669-de04-48da-ae38-c45862a8a1d0",
         "Phase 06": "362ba73d-aa1c-415a-87d4-1a40ec313dd0",
         "Phase 07 and 08": "eeb6361e-e21d-4f36-8956-e950d79fa279",
-        "Phase 09": "eeb6361e-e21d-4f36-8956-e950d79fa279",
+        "Phase 09": "1eda1f9e-0aac-47f4-be2e-e7e0f61f08ba",
         "Phase 10": "03317b5f-7fbe-4d19-9c58-45e14ba94009",
         "Phase 11 and 12": "117574c4-b058-4dbb-af65-10683e23c834",
         "Phase 13": "5647e697-47b0-4f53-956a-c767197dcc8e"
       },
       "uk.alspac": {
         "ALSPAC Pregnancy Birth and Infancy": "e9ae5d70-a3db-470f-9e9e-e1ed4636f1e6",
-        "ALSPAC Early Years (13 months to 4 years 11 months)": "44f09e85-fb71-4244-bd29-2afaf3e51373"
+        "ALSPAC Early Years (13 months to 4 years 11 months)": "44f09e85-fb71-4244-bd29-2afaf3e51373",
+        "ALSPAC Childhood (5 years to 12 years 11 months)": "1875cf33-84fd-4420-ae8a-84677a4656be",
+        "ALSPAC Adolescence (13 years – 18 years 11 months)": "92ed6175-bbdf-4649-b11c-42e6edb6e99f"
       }
     }
   },
