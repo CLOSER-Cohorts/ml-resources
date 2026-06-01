@@ -497,7 +497,7 @@ for series in all_study_series:
             SearchSets=series_item_id)['Results']
     # because some genscot are in heaf
     filtered_sweeps=[x for x in all_series_sweeps if x['AgencyId']==series['AgencyId']]
-    series_study_ids=[{'agencyId': x['AgencyId'], 
+    sees_study_ids=[{'agencyId': x['AgencyId'], 
         "identifier": x['Identifier'], 
         "version": x['Version']} for x in filtered_sweeps]
     test_sweeps = [x for x in series_study_ids if x not in series_training_sweeps]
@@ -512,33 +512,6 @@ for x in test_sweeps_dict[agency]:
     titles.append(y["DublinCoreMetadata"]["Title"]["en-GB"])
 for x in sorted(titles):
     print(x)
-
-# as an initial test, just do a pass through one training/test sweep...
-for series in all_study_series:
-    if x['agencyId']!='uk.iser.ukhls':
-        training_data={}
-        test_data={}
-        training_sweeps=[x for x in training_sweep_items if x['agencyId'] == series['agencyId']]
-        colectica_utility.get_items_in_containing_items(training_sweeps,
-            training_data,
-            "Summary",
-            colectica_client.item_code('Question'))
-        colectica_utility.get_items_in_containing_items(training_sweeps,
-            training_data,
-            "Label",
-            colectica_client.item_code('Variable'))
-        save_versioned_pickle_file(training_data, f'training_sweeps{series['agencyId']}', folder='./projects/am1_project/data')
-        test_sweeps=test_sweeps_dict[series[agencyId]]
-        colectica_utility.get_items_in_containing_items(test_sweeps,
-            test_data,
-            "Summary",
-            colectica_client.item_code('Question'))
-        colectica_utility.get_items_in_containing_items(test_sweeps,
-            test_data,
-            "Label",
-            colectica_client.item_code('Variable'))
-        save_versioned_pickle_file(test_data, f'test_sweeps{series['agencyId']}', folder='./projects/am1_project/data')
-        
     
 save_versioned_pickle_file(am1_data, 'training_sweeps_usoc', folder='./projects/am1_project/data')
 
@@ -600,6 +573,166 @@ def filter_by_topics(df1, df2, col="Topic"):
 def remove_duplicate_textlabels(df_usoc, df_usoc_test, col="TextLabel"):
     return df_usoc_test[~df_usoc_test[col].isin(df_usoc[col])]
 
+def remove_items_in_both_training_and_test(training_data, test_data, agency):
+    items_in_both_training_and_test=set([x for x,v in training_data[agency].items() 
+        if x in test_data[agency].keys()])
+    #print(items_in_both_training_and_test)
+    print(f"Number of items in both training and test: {len(items_in_both_training_and_test)}")    
+    print(f"Training data size before: {len(training_data[agency].items())}")
+    training_data[agency]={k: v for k, v in training_data[agency].items() if k not in items_in_both_training_and_test}
+    print(f"Training data size after: {len(training_data[agency].items())}")
+    print(f"Test data size before: {len(test_data[agency].items())}")
+    test_data[agency] = {k: v for k, v in test_data[agency].items() if k not in items_in_both_training_and_test}
+    print(f"Test data size after: {len(test_data[agency].items())}")
+
+def show_wave_titles(data, agency):
+    waves=sorted(set([v['ContainedIn'] for k, v in data[agency].items()]))
+    wave_titles=[]   
+    for wave in waves:
+        a=colectica_client.get_item_json(agency, wave)
+        number_items_in_wave=len([v for k, v in data[agency].items() if v['ContainedIn']==wave])
+        #print(f"{wave}, {a["DublinCoreMetadata"]["Title"]["en-GB"]}")
+        wave_titles.append(f"{a["DublinCoreMetadata"]["Title"]["en-GB"]} ({number_items_in_wave} items): {wave}")
+    for title in sorted(wave_titles):
+        print(title)
+
+def move_items(source, destination, waves_to_move,agency):
+    print("BEFORE MOVING: ")
+    print(f"Number of items in source: {len(source[agency].items())}")
+    print(f"Number of items in destination: {len(destination[agency].items())}")
+    print(f"Total items: {len(source[agency].items())+len(destination[agency].items())}")
+    items_to_move={k:v for k,v in source[agency].items() if v['ContainedIn'] in waves_to_move}
+    print(f"Number of items to move: {len(items_to_move.items())}")
+    destination[agency]=destination[agency] | items_to_move
+    source[agency]= {k:v for k, v in source[agency].items() if k not in destination[agency].keys()}
+    print("AFTER MOVING: ")
+    print(f"Number of items in source: {len(source[agency].items())}")
+    print(f"Number of items in destination: {len(destination[agency].items())}")
+    print(f"Total items: {len(source[agency].items())+len(destination[agency].items())}")
+
+
+#agencies = ['uk.cls.bcs70']
+#agencies = ['uk.wchads']
+#agencies=['uk.lha']
+#agencies=['uk.mrcleu-uos.sws'] PREPROCESSING/FILTERING REMOVES TOO MANY
+#agencies=['uk.alspac']
+#agencies=['uk.cls.nextsteps']
+#agencies=['uk.genscot'] NOT ENOUGH SAMPLES FOR SINGLE STUDY TEST
+#agencies=['uk.mrcleu-uos.hcs'] NOT ENOUGH SAMPLES FOR SINGLE STUDY TEST
+#agencies=['uk.mrcleu-uos.heaf']  NOT ENOUGH SAMPLES FOR SINGLE STUDY TEST
+agencies=['uk.whitehall2']
+agencies=['uk.cls.ncds'
+
+agencies=['uk.cls.bcs70', 'uk.wchads', 'uk.lha', 'uk.alspac', 'uk.cls.nextsteps', 'uk.whitehall2', 'uk.cls.ncds']
+agencies=['uk.cls.bcs70']
+training_data={}
+test_data={}
+for agency in agencies:
+    study_training_data = read_dataset_from_file(
+    f'./projects/am1_project/data/sweeps/training/training_sweeps_{agency}/training_sweeps_{agency}_1.pickle'
+    )
+    training_data = training_data | study_training_data
+    study_test_data = read_dataset_from_file(
+    f'./projects/am1_project/data/sweeps/test/test_sweeps_{agency}/test_sweeps_{agency}_1.pickle'
+    )
+    test_data = test_data | study_test_data
+    
+
+agency='all_studies'
+remove_items_in_both_training_and_test(training_data, test_data, agency)
+show_wave_titles(training_data, agency)
+show_wave_titles(test_data, agency)
+waves_to_move=[
+    "90a96359-d59e-423a-8ad9-406c1e710871",
+    "913c215c-1dc9-4df8-a893-e85890f1af5b",
+    "0a53e3b7-e284-4cf0-81c8-0d4c86207682"
+    ]
+move_items(test_data, training_data, waves_to_move, agency)
+
+move_items(training_data, test_data, waves_to_move, agency)
+
+save_versioned_pickle_file(training_data, 
+    f'training_sweeps_{agency}', 
+    folder=f'./projects/am1_project/data/final_sweeps/training/')
+
+save_versioned_pickle_file(test_data, 
+    f'test_sweeps_{agency}', 
+    folder=f'./projects/am1_project/data/final_sweeps/test/')
+
+raw_model_data={"training": training_data, "test": test_data}
+
+embeddings=generate_embeddings(raw_model_data, embeddings_file_name=agency)
+
+save_versioned_pickle_file(embeddings, f"{agency}_model_embeddings", folder=f'./projects/am1_project/data/model_embeddings')
+
+agencies=['uk.wchads', 'uk.cls.bcs70', 'uk.lha', 'uk.alspac', 'uk.cls.nextsteps', 'uk.whitehall2', 'uk.cls.ncds', 'uk.iser.ukhls']
+for agency in agencies:
+    print(agency)
+    embeddings=read_dataset_from_file(f'./projects/am1_project/data/model_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_1.pickle')
+    df_training_embeddings=embeddings['X_train']
+    df_training_embeddings['Topic']=embeddings['y_train']
+    df_test_embeddings=embeddings['X_test']
+    df_test_embeddings['Topic']=embeddings['y_test']
+    df_test_embeddings["TextLabel"] = df_test_embeddings["TextLabel"].str.replace("\xa0", " ", regex=False)
+    df_test_embeddings=remove_duplicate_textlabels(df_training_embeddings, df_test_embeddings, col='TextLabel')
+    df_test_embeddings=filter_by_topics(df_test_embeddings, df_training_embeddings, col="Topic")
+    df_training_embeddings=filter_by_topics(df_training_embeddings, df_test_embeddings, col="Topic")
+    embeddings['X_train']=df_training_embeddings.drop('Topic', axis=1)
+    embeddings['y_train']=df_training_embeddings['Topic']
+    embeddings['X_test']=df_test_embeddings.drop('Topic', axis=1)
+    embeddings['y_test']=df_test_embeddings['Topic']
+    feature_coLumns=['ItemType', 'HasCategories', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    lr=LogisticRegression(max_iter=5000, class_weight="balanced")
+    xgb = XGBClassifier(n_estimators=200)
+    rfc = RandomForestClassifier(
+        n_estimators = 100,
+        max_depth=200,             # deep trees (unpruned)
+        max_features='sqrt',        # number of features per split
+        bootstrap=True,             # bootstrap sampling
+        random_state=42
+    )
+    pca_reducing=[False, True]
+    for pca_reduce in pca_reducing:
+        for model in [xgb, lr, rfc]:
+            if isinstance(model, LogisticRegression):
+                model_type="Logistic Regression"
+            if isinstance(model, XGBClassifier):
+                model_type="XGB"
+            if isinstance(model, RandomForestClassifier):
+                model_type="Random Forest"
+            run_full_model_generation( 
+                model=model,
+                model_data=embeddings,
+                pca_feature_reduction=pca_reduce,
+                notes=f"{agency}, {model_type}, {len(embeddings['X_train'])} samples. AgencyId: No. PCA feature reduction: {pca_reduce}"
+                )           
+
+    
+
+
+model=LogisticRegression(max_iter=5000, class_weight="balanced")
+
+pca_reduce=False
+if isinstance(model, LogisticRegression):
+                model_type="Logistic Regression"
+if isinstance(model, XGBClassifier):
+                model_type="XGB"
+if isinstance(model, RandomForestClassifier):
+                model_type="Random Forest"
+run_full_model_generation( 
+            model=model,
+            raw_model_data=raw_model_data,
+            model_data=None,
+            pca_feature_reduction=pca_reduce,
+            notes=f"{agency}, {model_type}, {len(raw_model_data['training'][agency])} samples. AgencyId: No. PCA feature reduction: {pca_reduce}"
+            )           
+
+df=read_dataset_from_file('./projects/am1_project/data/model_embeddings/model_embeddings_1.pickle')
+
+df_training=convert_dictionary_to_dataframe(training_data)
+
+
+
 
 AGENCY =3 IS VRY GOOD
 {0, 3, 5, 6, 7, 11, 12}
@@ -620,12 +753,24 @@ df_usoc_no_covid=df_usoc_no_covid[~df_usoc['Topic'].isin(
 )]
 """
 df_usoc_test=df_test_sweeps[df_test_sweeps['AgencyId']==agency]
+
+
+df=read_dataset_from_file(
+    f'./projects/am1_project/data/{agency}model_embeddings/{agency}model_embeddings_1.pickle'
+    )
+df_usoc=df['X_train']
+df_usoc['Topic']=df['y_train']
+df_usoc_test=df['X_test']
+df_usoc_test['Topic']=df['y_test']
+
 df_usoc_test["TextLabel"] = df_usoc_test["TextLabel"].str.replace("\xa0", " ", regex=False)
 df_usoc_test=remove_duplicate_textlabels(df_usoc, df_usoc_test, col='TextLabel')
 df_usoc_test=filter_by_topics(df_usoc_test, df_usoc, col="Topic")
 df_usoc=filter_by_topics(df_usoc, df_usoc_test, col="Topic")
 
-
+feature_columns=['ItemType', 'HasCategories', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    
+lr_sweeps=LogisticRegression(max_iter=5000, class_weight="balanced")
 lr_sweeps.fit(convert_df_to_ndarray(df_usoc, feature_columns), df_usoc['Topic'])
 test=convert_df_to_ndarray(df_usoc_test, feature_columns)
 y_pred=lr_sweeps.predict(test)
@@ -635,6 +780,7 @@ prediction_results=calculate_accuracy(lr_sweeps,
             test,
             df_usoc_test['Topic'].tolist(),
             N=5)
+
 
 list(set(lr_sweeps.classes_) - set(df_usoc_test['Topic']))
 roc_auc_score(df_usoc_test['Topic'], predictions_with_probabilities, multi_class='ovr')
@@ -656,3 +802,16 @@ roc_auc_score(
     labels=filtered_classes,
     multi_class='ovr'
 )
+
+"""
+DEL THIS WHEN SURE UNNEEDED
+y_test=read_dataset_from_file('./projects/am1_project/data/delthis/y_test/y_test_5.pickle')
+predictions_with_probabilities2=read_dataset_from_file('./projects/am1_project/data/delthis/predictions_with_probabilities/predictions_with_probabilities_5.pickle')
+labels=read_dataset_from_file('./projects/am1_project/data/delthis/labels/labels_3.pickle')
+trained_model=read_dataset_from_file('./projects/am1_project/data/delthis/trained_model/trained_model_1.pickle')
+test_results=read_dataset_from_file('./projects/am1_project/data/delthis/test_results/test_results_1.pickle')
+roc_auc_result=roc_auc_score(y_test, 
+        predictions_with_probabilities2, 
+        multi_class='ovr', 
+        labels=trained_model.classes_)
+"""
