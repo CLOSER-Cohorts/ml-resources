@@ -10,7 +10,9 @@ colectica_client = colectica_utility.C
 with open("./projects/am2_project/config/am2_config.json") as f:
     project_config = json.load(f)
 
+
 training_sweep_items=get_latest_versions_of_project_sweeps(project_config)
+"""
 am1_data={}
 usoc_training_sweeps=[x for x in training_sweep_items if x['agencyId']=='uk.iser.ukhls']
 colectica_utility.get_items_in_containing_items(usoc_training_sweeps,
@@ -22,7 +24,7 @@ colectica_utility.get_items_in_containing_items(usoc_training_sweeps,
     "Label",
     colectica_client.item_code('Variable'))
 am1_data=colectica_utility.get_topics(am1_data)
-
+"""
 
 all_study_series=colectica_client.search_items(colectica_client.item_code('Series'),
             ReturnIdentifiersOnly=True,
@@ -51,6 +53,8 @@ for series in all_study_series:
     test_sweeps = [x for x in series_study_ids if x not in series_training_sweeps]
     test_sweeps_dict[series['AgencyId']]=test_sweeps
 
+"""
+CHECK TITLES OF SWEEPS
 agency='uk.alspac'
 len([x for x in test_sweeps_dict[agency]])
 len([x for x in training_sweep_items if x['agencyId']==agency])
@@ -60,14 +64,15 @@ for x in test_sweeps_dict[agency]:
     titles.append(y["DublinCoreMetadata"]["Title"]["en-GB"])
 for x in sorted(titles):
     print(x)
+"""
 
-for series in all_study_series:
-    if series['AgencyId'] not in ['uk.iser.ukhls', 'uk.closer']:
+for series in all_study_series[11:]:
+    if series['AgencyId'] not in ['uk.closer', 'uk.cls.mcs']:
         print(series['AgencyId'])
         training_data={}
         test_data={}
         training_sweeps=[x for x in training_sweep_items 
-            if x['agencyId'] == series['AgencyId']][0]
+            if x['agencyId'] == series['AgencyId']]
         colectica_utility.get_items_in_containing_items(training_sweeps,
             training_data,
             "Summary",
@@ -80,7 +85,7 @@ for series in all_study_series:
         save_versioned_pickle_file(training_data, 
             f'training_sweeps_{series['AgencyId']}', 
             folder='./projects/am1_project/data/sweeps/training')
-        test_sweeps=test_sweeps_dict[series['AgencyId']][0]
+        test_sweeps=test_sweeps_dict[series['AgencyId']]
         colectica_utility.get_items_in_containing_items(test_sweeps,
             test_data,
             "Summary",
@@ -94,3 +99,7 @@ for series in all_study_series:
         f'test_sweeps_{series['AgencyId']}',
         folder='./projects/am1_project/data/sweeps/test')
         
+
+a=read_dataset_from_file('./projects/am1_project/data/sweeps/training/training_sweeps_uk.cls.bcs70/training_sweeps_uk.cls.bcs70_1.pickle')
+
+a=read_dataset_from_file('./projects/am1_project/data/sweeps/test/test_sweeps_uk.wchads/test_sweeps_uk.wchads_1.pickle')

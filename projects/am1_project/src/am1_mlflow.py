@@ -15,7 +15,8 @@ def register_model_and_metrics(model,
     notes,
     input_example,
     data_filename,
-    prediction_results=None
+    prediction_results=None,
+    roc_auc_score=None
     ):
     mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
     with mlflow.start_run():
@@ -33,7 +34,10 @@ def register_model_and_metrics(model,
         mlflow.log_metric("weighted average support", report['weighted avg']['support'])
         if prediction_results is not None:
             mlflow.log_metric(f"top {prediction_results['N']} accuracy", prediction_results['TopNAccuracy'])
-        
+            mlflow.log_metric(f"L1 accuracy", prediction_results['L1Correct'])
+            mlflow.log_metric(f"Top {prediction_results['N']} accuracy L1", prediction_results['TopNAccuracyL1'])
+        #if roc_auc_score is not None:
+        #    mlflow.log_metric(f"ROC AUC score", roc_auc_score)
         mlflow.set_tag(
             "training_data_url",
             data_filename
@@ -46,21 +50,19 @@ def register_model_and_metrics(model,
         # I just want to save metadata
         lr=LogisticRegression(max_iter=1000)
         model_info = mlflow.sklearn.log_model(
-        sk_model=lr,
+        sk_model=model,
         name=model_name,
         input_example=input_example,
         registered_model_name=model_name,
         serialization_format="skops",
         skops_trusted_types=['xgboost.core.Booster', 'xgboost.sklearn.XGBClassifier']
         )
-        
         client = mlflow.MlflowClient()
         # Get the newly created version
         latest = client.get_latest_versions(
         model_name,
         stages=None
         )[-1]
-
         client.set_model_version_tag(
             name=model_name,
             version=latest.version,

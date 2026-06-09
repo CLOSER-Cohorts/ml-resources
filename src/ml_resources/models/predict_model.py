@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.metrics import classification_report
+from xgboost import XGBClassifier
 from src.ml_resources import save_versioned_pickle_file
 import logging
 from src.logging.utility import StructuredMessage, setup_logging
@@ -18,11 +19,11 @@ def calculate_accuracy(classifier, predictions, X_test, y_test, N=5):
      top_N_results = classifier.classes_[top_N_results_indices]
      if top_N_results[-1] == y_test[j]:
          correct_predictions = correct_predictions + 1
-     if top_N_results[-1][0:3] == y_test[j][0:3]:
+     if not isinstance(classifier, XGBClassifier) and top_N_results[-1][0:3] == y_test[j][0:3]:
          correct_l1_predictions = correct_l1_predictions + 1
-     print([x for x in top_N_results])
-     print(y_test[j])
-     if y_test[j][0:3] in [x[0:3] for x in top_N_results]:
+     #print([x for x in top_N_results])
+     #print(y_test[j])
+     if not isinstance(classifier, XGBClassifier) and y_test[j][0:3] in [x[0:3] for x in top_N_results]:
          correct_l1_in_top_N+=1
      if y_test[j] in [x for x in top_N_results]:
          correct_prediction_in_top_N_results+=1
@@ -35,6 +36,8 @@ def calculate_accuracy(classifier, predictions, X_test, y_test, N=5):
   return  {"Accuracy": correct_predictions/len(predictions),
            "N": N,
            "TopNAccuracy": correct_prediction_in_top_N_results/len(predictions),
+           "L1Correct": correct_l1_predictions/len(predictions),    
+           "TopNAccuracyL1": correct_l1_in_top_N/len(predictions), 
            "WrongPredictions": wrongPredictions}
 
 def set_value_with_dtype(df, column, index, value_str):

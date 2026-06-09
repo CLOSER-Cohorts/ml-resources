@@ -9,12 +9,14 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.decomposition import PCA
-from sklearn.metrics import top_k_accuracy_score, make_scorer
+from sklearn.metrics import top_k_accuracy_score, make_scorer, roc_auc_score
 from sklearn.model_selection import cross_validate
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.multiclass import unique_labels
+from imblearn.over_sampling import RandomOverSampler
 from xgboost import XGBClassifier
 from sentence_transformers import SentenceTransformer, util
 llm_model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -48,7 +50,7 @@ raw_data_filename = './projects/am1_project/data/all_raw_data/all_raw_data_1.pic
 def filter_items(raw_data):
     filtered_items=filter_values_by_length(raw_data, "TextLabel", 10)
     filtered_items_by_number_of_categories=filter_values_by_length(filtered_items,
-        "ItemCategories", 3)
+        "ItemCategories", 3, include_zero_length_items=True)
     filtered_items=filtered_items_by_number_of_categories
     return filtered_items
 
@@ -68,7 +70,7 @@ def encode_columns(df, columns):
 def encode_columns_narrow(df, columns):
     out = df.copy()
     for col in columns:
-        embeddings = llm_model.encode(df[col].tolist(), show_progress_bar=True)
+        embeddings = llm_model.encode([str(x) for x  in df[col].tolist()], show_progress_bar=True)
         out[f'{col}_embeddings'] = list(embeddings)
     return out
 
@@ -86,11 +88,6 @@ def test_model(trained_model, model_data, feature_columns):
     y_pred=trained_model.predict(X_test)
     predictions_with_probabilities=trained_model.predict_proba(X_test)
     prediction_results = None
-    prediction_results=calculate_accuracy(trained_model,
-            predictions_with_probabilities,
-            X_test,
-            model_data['y_test'].tolist(),
-            N=3)
     if isinstance(trained_model, XGBClassifier):
         le = LabelEncoder()
         y_test = le.fit_transform(model_data['y_test'])
@@ -100,14 +97,27 @@ def test_model(trained_model, model_data, feature_columns):
         y_test,
         y_pred
         )
-    print(labels)
+    prediction_results=calculate_accuracy(trained_model,
+            predictions_with_probabilities,
+            X_test,
+            #model_data['y_test'].tolist(),
+            y_test.tolist(),
+            N=5)
+    if not isinstance(trained_model, XGBClassifier) and not isinstance(trained_model, MLPClassifier):
+        roc_auc_result=roc_auc_score(y_test, 
+            predictions_with_probabilities, 
+            multi_class='ovr', 
+            labels=trained_model.classes_)
+    else:
+        roc_auc_result = None
     report = classification_report(y_test.tolist(),
         y_pred,
         labels=labels,
         target_names=[str(label) for label in labels],
         output_dict=True)
     return ({"report": report,
-            "prediction_results": prediction_results
+            "prediction_results": prediction_results,
+            "roc_auc_score": roc_auc_result
         })
 
 def remove_single_instances(df, topic_column="Topic"):
@@ -159,7 +169,8 @@ def preprocess_data_frame(df,
     has_categories_col='HasCategories', 
     agency_col='AgencyId',
     item_type_col='ItemType', 
-    topic_col='Topic'):
+    topic_col='Topic',
+    contained_in_col='ContainedIn'):
     if pd.api.types.is_string_dtype(df[item_categories_col]):
         df[has_categories_col]=[int(x) for x in (df[item_categories_col]!='').tolist()]
     df[agency_col]= df[agency_col].map({'uk.iser.ukhls' : 0, 
@@ -177,6 +188,7 @@ def preprocess_data_frame(df,
         'uk.cls.ncds' : 12})
     df[item_type_col] = df[item_type_col].map({"a1bb19bd-a24a-4443-8728-a6ad80eb42b8": 1, 
         "683889c6-f74b-4d5e-92ed-908c0a42bb2d": 0})
+    df[contained_in_col] = pd.Categorical(df[contained_in_col]).codes
     # Now we perform some data cleaning. Resetting the index is important so the pipeline
     # operations will work (the indices have to be continuous numeric values with no gaps)
     df = df.dropna(subset=[topic_col])
@@ -186,21 +198,25 @@ def preprocess_data_frame(df,
     return df
 
 
-def data_preprocessing(raw_data, smoke_test_N=None, topic_column="Topic"):
+def data_preprocessing(items_for_dataframe, smoke_test_N=None, topic_column="Topic", filter=True):
     # We now run quality control code to filter items which don't meet certain criteria. 
     # E.g. the question summary is too short, the question has fewer than N categories
     # associated with it, the question summary contains text, a question has a set of
     # categories associated with it that are not deemed to have predictive value, e.g. yes/no
     tracemalloc.start()
     start = time.perf_counter()
-    filtered_items=filter_items(raw_data)
+    print(f"Filtering items: {filter}")
+    if filter:
+        items_for_dataframe=filter_items(items_for_dataframe)
     # Convert the JSON dictionary to an dataframe that is suitable for use with pipelines etc
-    df=convert_dictionary_to_dataframe(filtered_items)
+    df=convert_dictionary_to_dataframe(items_for_dataframe)
     df=preprocess_data_frame(df)
     if smoke_test_N is not None:
         df=df[0:smoke_test_N]
-    df = df[['TextLabel', 'ItemCategories', 'ItemType', 'AgencyId', 'HasCategories', 'Topic']]
+    print(df)
+    df = df[['TextLabel', 'ItemCategories', 'ItemType', 'AgencyId', 'HasCategories', 'ContainedIn', 'Topic']]
     df = df.drop_duplicates()
+    df = df[df["ItemType"].isin([0, 1])]
     # We need to remove items that have topics for which there are less than two instances,
     # in order for the stratified splitting performed by train_test_split
     # to be possible.
@@ -222,47 +238,35 @@ def data_preprocessing(raw_data, smoke_test_N=None, topic_column="Topic"):
         ))
     return df
 
-def run_full_model_generation(smoke_test_N=None, 
-    pca_feature_reduction=False,
-    notes="Logistic regression for topic classification",
-    upload_raw_data=False,
-    model=LogisticRegression(max_iter=1000),
-    raw_model_data=None,
-    model_data=None,
-    embeddings_file_name=""):
-    if isinstance(model, LogisticRegression):
-                model_type="Logistic Regression"
-    elif isinstance(model, XGBClassifier):
-                model_type="XGB"
-    elif isinstance(model, DecisionTreeClassifier):
-                model_type="Decision Tree"
-    elif isinstance(model, RandomForestClassifier):
-                model_type="Random Forest"
-    elif isinstance(model, AdaBoostClassifier):
-                model_type="Ada Boost"
-    elif isinstance(model, GradientBoostingClassifier):
-                model_type="Gradient Boost"
-    else:
-        model_type=""
-    tracemalloc.start()
-    if raw_model_data is not None:
-        print(f"Preprocess data for {model_type}...")
+def generate_embeddings(raw_model_data, 
+    model=LogisticRegression(max_iter=1000), 
+    smoke_test_N=None, 
+    embeddings_file_name="",
+    embeddings_folder_name="",
+    filter=True):
+        tracemalloc.start()
+        print(f"Preprocess data...")
         if set(raw_model_data.keys()) == {'test', 'training'}:
-            df_training=data_preprocessing(raw_model_data['training'], smoke_test_N)
-            df_test=data_preprocessing(raw_model_data['test'], smoke_test_N)
+            print("Seperate objects for train and test data found.")
+            df_training=data_preprocessing(raw_model_data['training'],
+                smoke_test_N=smoke_test_N,
+                filter=filter)
+            df_test=data_preprocessing(raw_model_data['test'], smoke_test_N=smoke_test_N, filter=filter)
             model_data=create_model_data_for_new_wave_model(df_training, 
                 df_test,
-                model=model)
+                model=model,
+                smoke_test_N=smoke_test_N)
         else:
+            print("No seperate objects for train and test data defined, train_test_split will be executed.") 
             df=data_preprocessing(raw_model_data, smoke_test_N)
             model_data=create_model_data(df, model=model)
         tracemalloc.reset_peak()
         start = time.perf_counter()
-        print(f"Generate embeddings for {len(model_data['X_train']) + len(model_data['X_test'])} items for {model_type}. Feature reduction: {pca_feature_reduction}")
+        print(f"Generate embeddings for {len(model_data['X_train']) + len(model_data['X_test'])} items.")
         current, peak = tracemalloc.get_traced_memory()
         model_data['X_train'] = encode_columns_narrow(model_data['X_train'], ['TextLabel', 'ItemCategories'])
         model_data['X_test'] = encode_columns_narrow(model_data['X_test'], ['TextLabel', 'ItemCategories'])
-        save_versioned_pickle_file(model_data, f'{embeddings_file_name}_model_embeddings', folder='./projects/am1_project/data')
+        save_versioned_pickle_file(model_data, f'{embeddings_file_name}_model_embeddings', folder=f'./projects/am1_project/data/{embeddings_folder_name}')
         embeddings_generation_time = time.perf_counter() - start
         tracemalloc.reset_peak()
         logger.info(StructuredMessage(message='Generate embeddings',
@@ -277,6 +281,32 @@ def run_full_model_generation(smoke_test_N=None,
             peak_memory_usage=peak,
             embeddings_generation_time=embeddings_generation_time
             ))
+        return model_data
+    
+
+def run_full_model_generation(smoke_test_N=None, 
+    pca_feature_reduction=False,
+    notes="Logistic regression for topic classification",
+    upload_raw_data=False,
+    model=LogisticRegression(max_iter=1000),
+    model_data=None,
+    model_name="",
+    feature_columns=['ItemType', 'HasCategories', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+):
+    if isinstance(model, LogisticRegression):
+                model_type="Logistic Regression"
+    elif isinstance(model, XGBClassifier):
+                model_type="XGB"
+    elif isinstance(model, DecisionTreeClassifier):
+                model_type="Decision Tree"
+    elif isinstance(model, RandomForestClassifier):
+                model_type="Random Forest"
+    elif isinstance(model, AdaBoostClassifier):
+                model_type="Ada Boost"
+    elif isinstance(model, GradientBoostingClassifier):
+                model_type="Gradient Boost"
+    else:
+        model_type="MLPClassifier"
     if smoke_test_N is not None:
         model_data['X_train'] = model_data['X_train'][:smoke_test_N]
         model_data['y_train'] = model_data['y_train'][:smoke_test_N]
@@ -300,14 +330,16 @@ def run_full_model_generation(smoke_test_N=None,
                 convert_df_to_ndarray(model_data['X_test'],
                     input_features=['ItemCategories_embeddings'])
             ))
+    #tracemalloc.start()
+    tracemalloc.stop()
     start = time.perf_counter()
     print(f"Train {model_type} model for {len(model_data['X_train'])} items. Feature reduction: {pca_feature_reduction}")
-    feature_columns=['ItemType', 'HasCategories', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    #feature_columns=['ItemType', 'HasCategories', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    print(f"feature columns: {feature_columns}")
     trained_model=train_model(model_data, prediction_model=model, feature_columns=feature_columns)
     save_versioned_pickle_file(trained_model, f'{model_type} Model', folder='./projects/am1_project/model')
     model_training_time = time.perf_counter() - start
     current, peak = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
     logger.info(StructuredMessage(message='Train model',
         application="am1",
         operation_type="train_am1_model",
@@ -322,6 +354,7 @@ def run_full_model_generation(smoke_test_N=None,
         pca_feature_reduction=pca_feature_reduction,
         model_notes=notes
         ))
+    #tracemalloc.stop()
     print("Test model...")    
     test_results=test_model(trained_model, model_data, feature_columns)
     model_name_version=f"{model_type} for topic classification"
@@ -338,7 +371,5 @@ def run_full_model_generation(smoke_test_N=None,
         input_example,
         raw_data_filename,
         prediction_results=test_results["prediction_results"],
-        )
-
-    
-        
+        roc_auc_score=test_results["roc_auc_score"]
+        )     

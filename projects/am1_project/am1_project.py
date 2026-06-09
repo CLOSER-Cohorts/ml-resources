@@ -5,6 +5,7 @@ from xgboost import XGBClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 import numpy as np
@@ -23,6 +24,7 @@ from src.ml_resources.data import colectica_utility
 from projects.am1_project.api import api_client
 from projects.am1_project.src.am1_pipeline import (
     run_full_model_generation,
+    generate_embeddings
     #run_full_model_generation_with_cross_validation,
     #generate_all_embeddings,
     #remove_single_instances
@@ -214,27 +216,25 @@ with open(f"projects/am1_project/reports/classification_report_topic_classificat
     for wrong_prediction in wrong_predictions:
         _ = f.write(wrong_prediction)
 
-cm = confusion_matrix(y_test, y_pred)
+ THIS CALCULATES confusion_matrix CORRECTLY
+X_test=convert_df_to_ndarray(embeddings['X_test'], input_features=feature_columns)
+y_pred=model.predict(X_test)    
+labels = sorted(embeddings['y_test'].unique())
+cm = confusion_matrix(embeddings['y_test'], y_pred, labels=labels)
 print(cm)
-target_names=list(set(lr_model_data['y_test'].values))
-for index, topic in enumerate(target_names):
-    print(f"TOPIC {topic}, {sum(cm[index,])}")
-    for index2, x in enumerate(cm[index,]):
-        if x>0:
-            print(f"{target_names[index2]}: {x}")
-
-df_usoc_test['Topic']
-labels = sorted(df_usoc_test['Topic'].unique())
-cm = confusion_matrix(df_usoc_test['Topic'], y_pred, labels=labels)
-print(cm)
-#target_names=list(set(df_usoc_test['Topic'].values))
 for index, topic in enumerate(labels):
     print(f"TOPIC {topic}, {sum(cm[index,])}")
     for index2, x in enumerate(cm[index,]):
         if x>0:
-            print(f"{target_names[index2]}: {x}")
+            print(f"{labels[index2]}: {x}")
 
-
+count=0
+correct=0
+for k,x in embeddings['y_test'].items():
+    if x=='10401' and y_pred[count]=='10401':
+        print(f"{k}, {count}")
+        correct=correct+1
+    count=count+1
 
 for index, x in enumerate(cm):
     print(cm[index,])
@@ -301,14 +301,14 @@ for N in [1500, 2000]:
 
 # Compare times for running experiment for different N, with/without feature reduction
 transformed_embeddings = read_dataset_from_file('./projects/am1_project/data/transformed_embeddings_dedup/transformed_embeddings_dedup_1.pickle')
-xgb = XGBClassifier(n_estimators=200)
+xgb = XGBClassifier(n_estimators=1000, max_depth=10)
 lr_sweeps=LogisticRegression(max_iter=5000, class_weight="balanced")
 clf = DecisionTreeClassifier(max_depth=500,
    max_features=None,
    min_samples_split=10,
    splitter="random")
 rfc = RandomForestClassifier(
-    n_estimators = 100,
+    n_estimators = 200,
     max_depth=200,             # deep trees (unpruned)
     max_features='sqrt',        # number of features per split
     bootstrap=True,             # bootstrap sampling
@@ -429,23 +429,55 @@ a=model.encode('Whether employer provided pension scheme is a TypeA or TypeB pen
 
 a=df_usoc_test.iloc[1000]
 
-matches=[]
-count=0
-for k1, v1 in df_usoc_test.iterrows():
-    print(f"Number of test cases so far: {count}")
-    count=count+1 
-    print(f"Number of test cases that have duplicates/near duplicates in training: {len(matches)}")    
-    for k, v in df_usoc.iterrows():   
-        #b=model.encode(v['TextLabel_embeddings'])
-        cos_sim=cosine_similarity(v1['TextLabel_embeddings'].reshape(1,-1), v['TextLabel_embeddings'].reshape(1,-1))
-        if cos_sim>.9:
-            print(k1)
-            print(k)
-            print(f"{v1['TextLabel']}::::::: {v['TextLabel']}: {cos_sim}")
-            matches.append((v1['TextLabel'], v['TextLabel'], cos_sim))
+matches_2={}
+agencies=['uk.wchads', 'uk.cls.bcs70', 'uk.lha', 'uk.alspac', 'uk.cls.nextsteps', 'uk.whitehall2', 'uk.cls.ncds', 'uk.iser.ukhls']
+agencies=['uk.cls.bcs70', 'uk.lha', 'uk.alspac', 'uk.whitehall2']
+agencies=['gender']
+for agency in agencies:
+    #embeddings2=read_dataset_from_file(f'./projects/am1_project/data/model_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_1.pickle')
+    matches_2[agency]=[]
+    count=0
+    #sample_df = embeddings2['X_train'].sample(n=500)
+    #sample_df_2 = embeddings2['X_train'].sample(n=500)
+    sample_df=all_embeddings_X_train
+    sample_df_2=all_embeddings_X_train
+    for k1, v1 in sample_df.iterrows():
+        print(f"Number of test cases so far: {count}")
+        count=count+1 
+        print(f"Number of test cases that have duplicates/near duplicates in training: {len(matches_2[agency])}")    
+        for k, v in sample_df_2.iterrows():   
+            #b=model.encode(v['TextLabel_embeddings'])
+            cos_sim=cosine_similarity(v1['TextLabel_embeddings'].reshape(1,-1), v['TextLabel_embeddings'].reshape(1,-1))
+            if cos_sim>.8 and cos_sim<1:
+                #print(k1)
+                #print(k)
+                print(f"{agency}: {v1['TextLabel']}::::::: {v['TextLabel']}: {cos_sim}")
+                matches_2[agency].append((v1['TextLabel'], v['TextLabel'], cos_sim))
+                break
 	
 
-
+>>> for agency in matches_2.keys(): # >.8, 500 random samples compared to 500 other random samples
+...    print(f"{agency}: {len(matches_2[agency])}")
+...
+uk.wchads: 330
+uk.cls.bcs70: 136
+uk.lha: 151
+uk.alspac: 38
+uk.cls.nextsteps: 297
+uk.whitehall2: 266
+uk.cls.ncds: 165
+uk.iser.ukhls: 140
+>>> for agency in matches.keys(): # >.9, 500 random samples compared to 500 other random samples
+...    print(f"{agency}: {len(matches[agency])}")
+...
+uk.wchads: 222
+uk.cls.bcs70: 75
+uk.lha: 94
+uk.alspac: 18
+uk.cls.nextsteps: 174
+uk.whitehall2: 147
+uk.cls.ncds: 130
+uk.iser.ukhls: 100
    cos_sim=cosine_similarity(v['embedding'].reshape(1,-1), training_sample['embedding'].reshape(1,-1))
    
 
@@ -568,33 +600,21 @@ items = C.search_items(item_types_for_project,
     
 df_training_sweeps=data_preprocessing(training_sweeps_items, None)
 
-def filter_by_topics(df1, df2, col="Topic"):
-    return df1[df1[col].isin(df2[col].unique())]
-def remove_duplicate_textlabels(df_usoc, df_usoc_test, col="TextLabel"):
-    return df_usoc_test[~df_usoc_test[col].isin(df_usoc[col])]
-
-def remove_items_in_both_training_and_test(training_data, test_data, agency):
-    items_in_both_training_and_test=set([x for x,v in training_data[agency].items() 
-        if x in test_data[agency].keys()])
-    #print(items_in_both_training_and_test)
-    print(f"Number of items in both training and test: {len(items_in_both_training_and_test)}")    
-    print(f"Training data size before: {len(training_data[agency].items())}")
-    training_data[agency]={k: v for k, v in training_data[agency].items() if k not in items_in_both_training_and_test}
-    print(f"Training data size after: {len(training_data[agency].items())}")
-    print(f"Test data size before: {len(test_data[agency].items())}")
-    test_data[agency] = {k: v for k, v in test_data[agency].items() if k not in items_in_both_training_and_test}
-    print(f"Test data size after: {len(test_data[agency].items())}")
 
 def show_wave_titles(data, agency):
-    waves=sorted(set([v['ContainedIn'] for k, v in data[agency].items()]))
+    #for k, v in data[agency].items():
+    #    print(v)
+    #    print(v['ContainedIn'])
+    waves=sorted(set([(v['AgencyId'], v['ContainedIn']) for k, v in data[agency].items()]))
     wave_titles=[]   
     for wave in waves:
-        a=colectica_client.get_item_json(agency, wave)
-        number_items_in_wave=len([v for k, v in data[agency].items() if v['ContainedIn']==wave])
+        a=colectica_client.get_item_json(wave[0], wave[1])
+        number_items_in_wave=len([v for k, v in data[agency].items() if v['ContainedIn']==wave[1]])
         #print(f"{wave}, {a["DublinCoreMetadata"]["Title"]["en-GB"]}")
         wave_titles.append(f"{a["DublinCoreMetadata"]["Title"]["en-GB"]} ({number_items_in_wave} items): {wave}")
     for title in sorted(wave_titles):
         print(title)
+    #return wave_titles
 
 def move_items(source, destination, waves_to_move,agency):
     print("BEFORE MOVING: ")
@@ -621,31 +641,20 @@ def move_items(source, destination, waves_to_move,agency):
 #agencies=['uk.mrcleu-uos.hcs'] NOT ENOUGH SAMPLES FOR SINGLE STUDY TEST
 #agencies=['uk.mrcleu-uos.heaf']  NOT ENOUGH SAMPLES FOR SINGLE STUDY TEST
 agencies=['uk.whitehall2']
-agencies=['uk.cls.ncds'
+agencies=['uk.iser.ukhls']
 
-agencies=['uk.cls.bcs70', 'uk.wchads', 'uk.lha', 'uk.alspac', 'uk.cls.nextsteps', 'uk.whitehall2', 'uk.cls.ncds']
-agencies=['uk.cls.bcs70']
-training_data={}
-test_data={}
-for agency in agencies:
-    study_training_data = read_dataset_from_file(
-    f'./projects/am1_project/data/sweeps/training/training_sweeps_{agency}/training_sweeps_{agency}_1.pickle'
-    )
-    training_data = training_data | study_training_data
-    study_test_data = read_dataset_from_file(
-    f'./projects/am1_project/data/sweeps/test/test_sweeps_{agency}/test_sweeps_{agency}_1.pickle'
-    )
-    test_data = test_data | study_test_data
-    
 
-agency='all_studies'
+all_training_waves=[]
+all_test_waves=[]
+all_training_data={"all_studies":{}}
+all_test_data={"all_studies":{}}
+
 remove_items_in_both_training_and_test(training_data, test_data, agency)
 show_wave_titles(training_data, agency)
 show_wave_titles(test_data, agency)
 waves_to_move=[
-    "90a96359-d59e-423a-8ad9-406c1e710871",
-    "913c215c-1dc9-4df8-a893-e85890f1af5b",
-    "0a53e3b7-e284-4cf0-81c8-0d4c86207682"
+    "1c09c1ef-bafc-4e48-acb3-d977072d14b7",
+    " 12e575cf-86a5-4a6a-bd47-9f523f6465ca"
     ]
 move_items(test_data, training_data, waves_to_move, agency)
 
@@ -653,22 +662,130 @@ move_items(training_data, test_data, waves_to_move, agency)
 
 save_versioned_pickle_file(training_data, 
     f'training_sweeps_{agency}', 
-    folder=f'./projects/am1_project/data/final_sweeps/training/')
+    folder=f'./projects/am1_project/data/final_sweeps/training_no_filtered/')
 
 save_versioned_pickle_file(test_data, 
     f'test_sweeps_{agency}', 
-    folder=f'./projects/am1_project/data/final_sweeps/test/')
+    folder=f'./projects/am1_project/data/final_sweeps/test_no_filtered/')
 
-raw_model_data={"training": training_data, "test": test_data}
+agency='uk.iser.ukhls'
+agency='uk.cls.bcs70'
+a=read_dataset_from_file(f'./projects/am1_project/data/final_sweeps/training/training_sweeps_{agency}/training_sweeps_{agency}_1.pickle')
+b=read_dataset_from_file(f'./projects/am1_project/data/final_sweeps/test/test_sweeps_{agency}/test_sweeps_{agency}_1.pickle')
+    
 
-embeddings=generate_embeddings(raw_model_data, embeddings_file_name=agency)
+CODE TO UNDO FILTERS
 
-save_versioned_pickle_file(embeddings, f"{agency}_model_embeddings", folder=f'./projects/am1_project/data/model_embeddings')
+agencies=['uk.iser.ukhls', 'uk.whitehall2', 'uk.cls.nextsteps', 'uk.lha', 'uk.wchads', 'uk.cls.bcs70', 'uk.alspac', 'uk.mrcleu-uos.sws', 'uk.genscot', 'uk.mrcleu-uos.hcs', 'uk.mrcleu-uos.heaf']
+training_data={}
+test_data={}
+for agency in agencies[1:]:
+    training_data = read_dataset_from_file(
+    f'./projects/am1_project/data/final_sweeps/training/training_sweeps_{agency}/training_sweeps_{agency}_1.pickle')
+    test_data = read_dataset_from_file(
+    f'./projects/am1_project/data/final_sweeps/test/test_sweeps_{agency}/test_sweeps_{agency}_1.pickle'
+    )
+    raw_model_data={"training": training_data, "test": test_data}
+    embeddings=generate_embeddings(raw_model_data, 
+     embeddings_file_name=f"{agency}",
+     embeddings_folder_name="unfiltered_embeddings",
+     filter=False)
 
-agencies=['uk.wchads', 'uk.cls.bcs70', 'uk.lha', 'uk.alspac', 'uk.cls.nextsteps', 'uk.whitehall2', 'uk.cls.ncds', 'uk.iser.ukhls']
+
+    save_versioned_pickle_file(embeddings, f"{agency}_model_embeddings", folder=f'./projects/am1_project/data/model_embeddings_not_filtered')
+
+embeddings=read_dataset_from_file('./projects/am1_project/data/model_embeddings_not_filtered/uk.iser.ukhls_model_embeddings/uk.iser.ukhls_model_embeddings_1.pickle')
+    
+
+agency='uk.whitehall2'
+whitehall2 performance is a lot better so is lha. nextsteps is slightly worse. usoc is slightly worse
+big boodst for nshd
+agency='uk.cls.nextsteps'
+embeddings2=read_dataset_from_file(f'./projects/am1_project/data/model_embeddings_not_filtered/unfiltered_{agency}_model_embeddings/unfiltered_{agency}_model_embeddings_1.pickle')
+embeddings=read_dataset_from_file(f'./projects/am1_project/data/model_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_1.pickle')
+        
+
+all_filtered_embeddings={'X_train': pd.DataFrame(),
+   'y_train': pd.DataFrame(),
+   'X_test': pd.DataFrame(),
+   'y_test': pd.DataFrame()}
 for agency in agencies:
     print(agency)
-    embeddings=read_dataset_from_file(f'./projects/am1_project/data/model_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_1.pickle')
+    #embeddings=read_dataset_from_file(f'./projects/am1_project/data/model_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_1.pickle')
+    study_embeddings = read_dataset_from_file(f'./projects/am1_project/data/unfiltered_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_1.pickle')
+    all_filtered_embeddings['X_train']=pd.concat([all_filtered_embeddings['X_train'], 
+             study_embeddings['X_train']])
+    all_filtered_embeddings['y_train']=pd.concat([all_filtered_embeddings['y_train'], 
+             study_embeddings['y_train']])
+    all_filtered_embeddings['X_test']=pd.concat([all_filtered_embeddings['X_test'], 
+             study_embeddings['X_test']])
+    all_filtered_embeddings['y_test']=pd.concat([all_filtered_embeddings['y_test'], 
+             study_embeddings['y_test']])
+
+set(y_test) - set(y_train)
+
+def filter_by_topics(df1, df2, col="Topic"):
+    return df1[df1[col].isin(df2[col].unique())]
+
+def remove_duplicate_textlabels(df_usoc, df_usoc_test, col="TextLabel"):
+    return df_usoc_test[~df_usoc_test[col].isin(df_usoc[col])]
+
+def remove_items_in_both_training_and_test(training_data, test_data, agency):
+    items_in_both_training_and_test=set([x for x,v in training_data[agency].items() 
+        if x in test_data[agency].keys()])
+    #print(items_in_both_training_and_test)
+    print(f"Number of items in both training and test: {len(items_in_both_training_and_test)}")    
+    print(f"Training data size before: {len(training_data[agency].items())}")
+    training_data[agency]={k: v for k, v in training_data[agency].items() if k not in items_in_both_training_and_test}
+    print(f"Training data size after: {len(training_data[agency].items())}")
+    print(f"Test data size before: {len(test_data[agency].items())}")
+    test_data[agency] = {k: v for k, v in test_data[agency].items() if k not in items_in_both_training_and_test}
+    print(f"Test data size after: {len(test_data[agency].items())}")
+
+def split_test_validation_data(all_data):
+    test_data=None
+    validation_data=None
+    test_data=all_data['X_test']
+    total_length=len(test_data)
+    reduced_test_data=pd.DataFrame()
+    reduced_test_data_y=pd.Series()
+    validation_data=pd.DataFrame()
+    validation_data_y=pd.Series()
+    len_validation=0
+    for x in set(test_data['ContainedIn']):
+        if len_validation + len(test_data[test_data['ContainedIn']==x])<total_length/2:
+            validation_data=pd.concat([validation_data, test_data[test_data['ContainedIn']==x]])
+            validation_data_y= all_data['y_test'].loc[validation_data.index]
+        else:
+            reduced_test_data=pd.concat([reduced_test_data, test_data[test_data['ContainedIn']==x]])
+            reduced_test_data_y=pd.concat([reduced_test_data_y, 
+                all_data['y_test'].loc[reduced_test_data.index]])
+    if len(validation_data)==0 or len(validation_data)/len(test_data)<.3:
+        validation_data=test_data[0:int(len(test_data)/2)]
+        validation_data_y= all_data['y_test'].loc[validation_data.index]
+        reduced_test_data=test_data[int(len(test_data)/2):]
+        reduced_test_data_y= all_data['y_test'].loc[reduced_test_data.index]
+    all_data['X_validation']=validation_data
+    all_data['y_validation']=validation_data_y
+    all_data['X_test']=reduced_test_data
+    all_data['y_test']=reduced_test_data_y
+
+
+all_embeddings_X_train=pd.DataFrame()
+all_embeddings_y_train=pd.DataFrame()
+#agencies=['uk.wchads', 'uk.cls.bcs70', 'uk.lha', 'uk.alspac', 'uk.cls.nextsteps', 'uk.whitehall2', 'uk.cls.ncds', 'uk.iser.ukhls']
+#agencies=[ 'uk.alspac', 'uk.whitehall2', 'uk.cls.nextsteps', 'uk.cls.bcs70', 'uk.lha', 'uk.wchads', 'uk.iser.ukhls']
+agencies=['uk.iser.ukhls', 'uk.whitehall2', 'uk.cls.nextsteps', 'uk.lha', 'uk.wchads', 'uk.cls.bcs70', 'uk.alspac', 'uk.mrcleu-uos.sws', 'uk.genscot', 'uk.mrcleu-uos.hcs', 'uk.mrcleu-uos.heaf']
+for agency in agencies:
+#if True:
+ #   agency='all_studies'
+    print(agency)
+    #embeddings=read_dataset_from_file(f'./projects/am1_project/data/model_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_1.pickle')
+    embeddings=read_dataset_from_file(f'./projects/am1_project/data/unfiltered_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_2.pickle')
+   # num_train=len(embeddings['X_train'])
+    #num_test=len(embeddings['X_test'])
+    #print(f"X_train: {num_train}, X_test: {num_test}. {num_train(num_train + num_test)}")
+    #embeddings=all_filtered_embeddings
     df_training_embeddings=embeddings['X_train']
     df_training_embeddings['Topic']=embeddings['y_train']
     df_test_embeddings=embeddings['X_test']
@@ -681,30 +798,57 @@ for agency in agencies:
     embeddings['y_train']=df_training_embeddings['Topic']
     embeddings['X_test']=df_test_embeddings.drop('Topic', axis=1)
     embeddings['y_test']=df_test_embeddings['Topic']
-    feature_coLumns=['ItemType', 'HasCategories', 'TextLabel_embeddings', 'ItemCategories_embeddings']
-    lr=LogisticRegression(max_iter=5000, class_weight="balanced")
-    xgb = XGBClassifier(n_estimators=200)
+    split_test_validation_data(embeddings)
+    gender_topics=embeddings['y_train'][embeddings['y_train']=='10102']
+    all_embeddings_X_train=pd.concat([all_embeddings_X_train, embeddings['X_train'].loc[gender_topics.index]])
+    all_embeddings_y_train=pd.concat([all_embeddings_y_train, gender_topics])
+
+    print(len(embeddings['X_test']))
+    print(len(embeddings['X_validation']))
+    texts=pd.concat([embeddings['X_train']['TextLabel'], embeddings['X_test']['TextLabel']])
+    categories=pd.concat([embeddings['X_train']['ItemCategories'], embeddings['X_test']['ItemCategories']])
+    #label_tdf=vectorizer.fit_transform([str(x) for x in texts.values.tolist()])
+    #categories_tdf=vectorizer.fit_transform([str(x) for x in categories.values.tolist()])
+    #training_label_tdf=label_tdf[0:len(embeddings['X_train'])]
+    #training_categories_tdf=categories_tdf[0:len(embeddings['X_train'])]
+    #test_label_tdf=label_tdf[len(embeddings['X_train']):]
+    #test_categories_tdf=categories_tdf[len(embeddings['X_train']):]
+    #embeddings['X_train']['TextLabel_embeddings']=training_label_tdf.toarray().tolist()
+    #embeddings['X_train']['ItemCategories_embeddings']=training_categories_tdf.toarray().tolist()
+    #embeddings['X_test']['TextLabel_embeddings']=test_label_tdf.toarray().tolist()
+    #embeddings['X_test']['ItemCategories_embeddings']=test_categories_tdf.toarray().tolist()
+    #feature_coLumns=['ItemType', 'AgencyId', 'HasCategories', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    lr=LogisticRegression(max_iter=5000, C=15)
+    xgb = XGBClassifier(n_estimators=1000)
+    clf = MLPClassifier(random_state=1, max_iter=300)
     rfc = RandomForestClassifier(
-        n_estimators = 100,
+        n_estimators = 300,
         max_depth=200,             # deep trees (unpruned)
         max_features='sqrt',        # number of features per split
         bootstrap=True,             # bootstrap sampling
         random_state=42
     )
-    pca_reducing=[False, True]
+    #feature_columns=['AgencyId', 'ItemType', 'HasCategories', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    #feature_columns=['ItemType', 'HasCategories', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    feature_columns=['ItemType', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    pca_reducing=[False]
     for pca_reduce in pca_reducing:
-        for model in [xgb, lr, rfc]:
+        #for model in [lr, rfc, xgb, clf]:
+        for model in [lr]:
             if isinstance(model, LogisticRegression):
                 model_type="Logistic Regression"
             if isinstance(model, XGBClassifier):
                 model_type="XGB"
             if isinstance(model, RandomForestClassifier):
                 model_type="Random Forest"
-            run_full_model_generation( 
+            if isinstance(model, MLPClassifier):
+                model_type="MLP"
+            run_full_model_generation(
                 model=model,
                 model_data=embeddings,
                 pca_feature_reduction=pca_reduce,
-                notes=f"{agency}, {model_type}, {len(embeddings['X_train'])} samples. AgencyId: No. PCA feature reduction: {pca_reduce}"
+                feature_columns=feature_columns,
+                notes=f"{agency}, {model_type}, {len(embeddings['X_train'])} samples. C=15. Unfiltered. AgencyId: No. PCA feature reduction: {pca_reduce}. Feature columns: {feature_columns}"
                 )           
 
     
@@ -815,3 +959,121 @@ roc_auc_result=roc_auc_score(y_test,
         multi_class='ovr', 
         labels=trained_model.classes_)
 """
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
+
+# Example data
+texts = [
+    "The product is excellent",
+    "Amazing customer service",
+    "Very happy with my purchase",
+    "Terrible quality and support",
+    "I want a refund",
+    "Worst experience ever",
+    "Great value for money",
+    "Highly recommended",
+]
+>>> len(embeddings['X_train'])
+13051
+embeddings['X_test']['ItemCategories']
+
+# Labels (1 = positive, 0 = negative)
+labels = [1, 1, 1, 0, 0, 0, 1, 1]
+
+# Split raw text first
+X_train_text, X_test_text, y_train, y_test = train_test_split(
+    texts,
+    labels,
+    test_size=0.2,
+    random_state=42,
+    stratify=labels
+)
+
+# Fit TF-IDF on training data only
+vectorizer = TfidfVectorizer()
+texts=pd.concat([embeddings['X_train']['TextLabel'], embeddings['X_test']['TextLabel']])
+categories=pd.concat([embeddings['X_train']['ItemCategories'], embeddings['X_test']['ItemCategories']])
+label_tdf=vectorizer.fit_transform([str(x) for x in texts.values.tolist()])
+categories_tdf=vectorizer.fit_transform([str(x) for x in categories.values.tolist()])
+training_label_tdf=label_tdf[0:len(embeddings['X_train'])]
+training_categories_tdf=categories_tdf[0:len(embeddings['X_train'])]
+test_label_tdf=label_tdf[len(embeddings['X_train']):]
+test_categories_tdf=categories_tdf[len(embeddings['X_train']):]
+embeddings['X_train']['TextLabel_embeddings']=training_label_tdf.toarray().tolist()[0:20000]
+embeddings['X_train']['ItemCategories_embeddings']=training_categories_tdf.toarray().tolist()[0:20000]
+embeddings['X_test']['TextLabel_embeddings']=test_label_tdf.toarray().tolist()
+embeddings['X_test']['ItemCategories_embeddings']=test_categories_tdf.toarray().tolist()
+
+
+
+
+X_train = vectorizer.fit_transform(X_train_text)
+X_test = vectorizer.transform(X_test_text)
+
+print("Training matrix shape:", X_train.shape)
+print("Test matrix shape:", X_test.shape)
+
+# Train classifier
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# Predictions
+y_pred = model.predict(X_test)
+
+print(classification_report(y_test, y_pred))
+
+from collections import Counter
+
+my_list = ['a', 'b', 'a', 'c', 'b', 'a']
+
+counts = Counter(my_list)
+
+print(counts)
+
+calculate different levels of top-3-5-7-10
+
+def merge_rare_topics(series, min_count=25):
+    # Count occurrences of each topic
+    counts = series.value_counts()
+    # Topics to merge
+    rare_topics = counts[counts < min_count].index
+    # Replace rare topics with parent topic
+    return series.apply(
+        lambda x: str(x)[:-2] if x in rare_topics else x
+    )
+
+
+max_accuracy=0
+best_params=None
+param_grid={'C': [0.1, 1, 10, 100],
+'max_iter': [5000],
+'penalty': ['l2'],
+'class_weight': ["balanced"]
+}
+for params in ParameterSampler(param_grid, n_iter=100):
+    trained_model = LogisticRegression(**params, )
+    print(f"Best so far: {max_accuracy}")
+    print(best_params)
+    trained_model.fit(X_resampled, y_resampled)
+    predictions_with_probabilities=trained_model.predict_proba(X_test)
+    y_test=embeddings['y_test']
+    prediction_results=calculate_accuracy(trained_model,
+            predictions_with_probabilities,
+            X_test,
+            y_test.tolist(),
+            N=5)
+    if prediction_results['Accuracy']>max_accuracy:
+       max_accuracy=prediction_results['Accuracy']	
+       best_params=params
+
+ros = RandomOverSampler()
+    X_resampled, y_resampled = ros.fit_resample(
+        model_data['X_train'],
+        model_data['y_train'])
+    model_data['X_train']=X_resampled
+    model_data['y_train']=y_resampled
+    
