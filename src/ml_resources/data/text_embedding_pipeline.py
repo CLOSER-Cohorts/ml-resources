@@ -26,11 +26,11 @@ def apply_pipeline(data, columns, training=True):
     else:
         topic_slice = None
     print(transformed_data)
-    transformed_embeddings = pd.DataFrame({"summary_embeddings": [x[0:embedding_length] for x in transformed_data],
-     "category_embeddings": [x[embedding_length:embedding_length*2] for x in transformed_data],
-     "item_type": [x[embedding_length*2] for x in transformed_data],
-     "agency_id": [x[embedding_length*2+1] for x in transformed_data],
-     "has_categories": [x[embedding_length*2+2] for x in transformed_data]
+    transformed_embeddings = pd.DataFrame({"TextLabel_embeddings": [x[0:embedding_length] for x in transformed_data],
+     "ItemCategories_embeddings": [x[embedding_length:embedding_length*2] for x in transformed_data],
+     "ItemType": [x[embedding_length*2] for x in transformed_data],
+     #"agency_id": [x[embedding_length*2+1] for x in transformed_data],
+     #"has_categories": [x[embedding_length*2+2] for x in transformed_data]
      },
      index=data.index
     )
