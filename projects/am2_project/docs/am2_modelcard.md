@@ -102,7 +102,7 @@ performed on this data.
 
 <!-- This relates heavily to the Technical Specifications. Content here should link to that section when it is relevant to the training procedure. -->
 
-Refer to the documentation at (https://github.com/CLOSER-Cohorts/ml-resources/tree/main/projects/am2_project/README.md)
+Refer to the documentation at (https://github.com/CLOSER-Cohorts/ml-resources/tree/main/projects/am2_project/README.md), and the powerpoint at https://github.com/CLOSER-Cohorts/ml-resources/tree/main/projects/am2_project/docs/AM2 explained.pptx
 
 
 #### Preprocessing [optional]
