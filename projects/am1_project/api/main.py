@@ -34,19 +34,20 @@ logger=setup_logging(project="am1_project", log_file="logs/am1_log.json")
 #MLFLOW
 with open("./config/config.json") as f:
             general_config = json.load(f)
-mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
-mlflow_client = mlflow.MlflowClient()
-trainedModel = mlflow.sklearn.load_model(
-        model_uri="models:/logistic_regression_for_topic_classification@live")
+#mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
+#mlflow_client = mlflow.MlflowClient()
+#trainedModel = mlflow.sklearn.load_model(
+#        model_uri="models:/Logistic Regression for topic classification/134")
                     
-#modelfile = open('./projects/am1_project/model/trainedModelAllStudies/trainedModelAllStudies_1.pickle', 'rb')
-#trainedModel = pickle.load(modelfile)
+modelfile = open('./projects/am1_project/model/trainedModel/Logistic Regression Model_242.pickle', 'rb')
+trainedModel = pickle.load(modelfile)
 categories=trainedModel.classes_.tolist()
 
 class Item(BaseModel):
     TextLabel: str | None = None
     ItemCategories: str | None = None
     ItemType: Literal["question", "variable"] | None = None
+    """
     AgencyId: Literal['uk.iser.ukhls',
         'uk.cls.bcs70', 
         'uk.cls.mcs', 
@@ -67,6 +68,7 @@ class Item(BaseModel):
         if isinstance(field_value, str):
             return field_value.strip().lower()
         return field_value
+    """
     @field_validator("ItemType", mode="before")
     @classmethod
     def normalize_item_type(this_class, field_value):
@@ -98,6 +100,7 @@ async def categorise_items(api_request: InferenceRequest):
     start_time = time.time()
     df = pd.DataFrame([item.model_dump() for item in api_request.items])
     df["ItemType"] = df["ItemType"].map({"question": 1, "variable": 0})
+    """
     df["HasCategories"] = df["HasCategories"].map({"yes": 1, "no": 0})
     df["AgencyId"] = df["AgencyId"].map({'uk.iser.ukhls' : 0, 
         'uk.cls.bcs70' : 1, 
@@ -112,9 +115,12 @@ async def categorise_items(api_request: InferenceRequest):
         'uk.whitehall2' : 10, 
         'uk.mrcleu-uos.hcs' : 11, 
         'uk.cls.ncds' : 12})
+    """
     print(df)
+    feature_columns=['ItemType', 'TextLabel_embeddings', 'ItemCategories_embeddings']
     transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories'], training=False)
-    X = convert_df_to_ndarray(transformed_embeddings)
+    print(transformed_embeddings)
+    X = convert_df_to_ndarray(transformed_embeddings, input_features=feature_columns)
     """
     X = np.hstack([
      np.vstack(transformed_embeddings['summary_embeddings']),
@@ -130,7 +136,12 @@ async def categorise_items(api_request: InferenceRequest):
     for result in results:
         #result.tolist().index(max(result))
         confidence_scores.append(max(result).item())
-        predictions.append(categories[result.tolist().index(max(result))])
+        top_N_results_indices = np.argsort(result)[-5:]
+        print(top_N_results_indices)
+        top_N_results = np.array(categories)[top_N_results_indices]
+        # reverse so results are in descending order...
+        predictions.append(str(top_N_results[::-1]))
+        #predictions.append(categories[result.tolist().index(max(result))])
     latency = time.time() - start_time
     logger.info(StructuredMessage(message='Categorise text',
         application="am1",
