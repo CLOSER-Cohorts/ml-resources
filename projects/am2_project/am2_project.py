@@ -189,12 +189,16 @@ all_human_labelled_data=read_dataset_from_file(
     'projects/am2_project/data/human_labelled_data/all_human_labelled_data/all_human_labelled_data_3.pickle')
 data=my_func(model_package['data'])
 
+with open("./config/secrets.json") as f:
+    general_config = json.load(f)
+
+
 reference_dataset=pd.DataFrame()
 production_dataset=pd.DataFrame()
 project=create_project("Anomaly detection",
     "Anomaly detection within the CLOSER dataset",
-    project_config["EVIDENTLY_API_KEY"],
-    project_config["EVIDENTLY_ORG_ID"])
+    general_config["EVIDENTLY_API_KEY"],
+    general_config["EVIDENTLY_ORG_ID"])
 am2_numerical_columns=[]
 am2_categorical_columns=[]
 schema=create_schema(am2_numerical_columns, am2_categorical_columns)
@@ -204,6 +208,44 @@ generate_drift_monitoring_report(reference_dataset,
     project,
     schema
     )
+
+from evidently import Report
+from evidently.metrics import ValueDrift
+
+
+metrics=[]
+for column in all_item_models['Question']['data'].columns:
+        metrics.extend([
+        ValueDrift(column=column, method="psi"),
+        ValueDrift(column=column, method="chisquare")])
+report = Report(
+    metrics=metrics
+)
+X_train = all_item_models['Question']['data'].reset_index(drop=True)
+X_test2 = X_test.reset_index(drop=True)
+
+snapshot = report.run(
+    reference_data=X_train2.astype('category'),
+    current_data=X_test2.astype('category'),
+)
+
+snapshot = report.run(
+    reference_data=X_train2,
+    current_data=X_test2
+)
+
+report = Report(metrics=[
+    ValueDrift(column="age", method="ks"),
+    ValueDrift(column="age", method="psi"),
+
+    ValueDrift(column="income", method="ks"),
+    ValueDrift(column="income", method="psi"),
+])
+
+snapshot = report.run(
+    reference_data=train_df,
+    current_data=new_df
+)
 
 
 

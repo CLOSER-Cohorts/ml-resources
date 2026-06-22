@@ -4,7 +4,8 @@ To check for newly available data for processing: python -m projects.am2_project
 
 The mlflow server needs to be started using:
 
-mlflow server
+$env:MLFLOW_FLASK_SERVER_SECRET_KEY='my-secret-key'
+mlflow server --app-name basic-auth
 
 If running as an IIS service on a server, you need to start the mlflow server with some extra
 parameters, in order to specify the allowed host from which requests will come, in order to 
