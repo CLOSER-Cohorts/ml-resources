@@ -9,6 +9,8 @@ from src.logging.utility import StructuredMessage, setup_logging
 from collections import Counter;
 import traceback
 import mlflow
+from evidently import Report
+from evidently.metrics import ValueDrift
 
 logger=setup_logging()
 
@@ -87,6 +89,7 @@ def main(args):
         )
         from src.ml_resources.data import colectica_utility
 
+        print("Get mlflow client...")
         colectica_client = colectica_utility.C
         with open("./config/config.json") as f:
             general_config = json.load(f)
@@ -172,6 +175,38 @@ def main(args):
                     number_of_records=len(items_of_a_type),
                     status="Success",
                     duration=duration_input_creation.seconds))
+                if duration_input_creation.seconds>0 and len(items_of_a_type)/duration_input_creation.seconds < 3:
+                    send_message_to_slack(f"Input feature creation throughput for {item_type} has fallen below 3 seconds.")
+                # Perform data drift checks...
+                metrics=[]
+                for column in all_item_models[item_type]['data'].columns:
+                    metrics.extend([
+                        ValueDrift(column=column, method="psi"),
+                        ValueDrift(column=column, method="chisquare")])
+                report = Report(
+                        metrics=metrics
+                    )
+                X_reference = all_item_models[item_type]['data'].reset_index(drop=True)
+                X_input = new_am2_relationships_data_single_type.reset_index(drop=True)
+                print(item_type)
+                print("X_reference")
+                print(X_reference.columns)
+                print("X_input")
+                print(X_input.columns)
+                input_columns_not_in_reference = [x for x in X_input.columns if x not in X_reference.columns]
+                X_reference[input_columns_not_in_reference] = 0
+                reference_columns_not_in_input = [x for x in X_reference.columns if x not in X_input.columns]
+                X_input[reference_columns_not_in_input] = 0
+                if len(X_reference)>0 and len(X_input)>0:
+                    snapshot = report.run(
+                        reference_data=X_reference.astype('category'),
+                        current_data=X_input.astype('category'),
+                    )
+                    for x in snapshot.dict()['metrics']:
+                        if x['value']>x['config']['threshold']:
+                            drift_alert_message=f"{x['config']['column']}, {x['metric_name']}: value of {x['value']} suggests possible data drift"
+                            print(drift_alert_message)
+                            send_message_to_slack(drift_alert_message)
                 registered_models = mlflow_client.search_registered_models()
                 all_registered_model_types=[model.name.removesuffix("_error_detection") for model in registered_models]
                 if item_type in all_registered_model_types and len(new_am2_relationships_data_single_type)>0:

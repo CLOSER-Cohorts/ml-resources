@@ -350,6 +350,17 @@ def create_urn(item):
         "ItemType": item['ItemType']
     }
 
+def get_cached_versions_of_project_sweeps():
+    folder = "./projects/am2_project/data/sweep_items_cached"
+    object_name = "sweep_items_cached"
+    file_version = get_max_file_version(Path(f"{folder}"), object_name)
+    if file_version >0:
+        file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
+        cached_sweeps=read_dataset_from_file(file_path)
+    else:
+        cached_sweeps=[]
+    return cached_sweeps
+
 def check_for_newly_available_data(project_config):
     all_urns_in_current_dataset=[]
     folder=project_config["AllModelsFileLocation"]
@@ -364,13 +375,18 @@ def check_for_newly_available_data(project_config):
                 all_urns_in_current_dataset.extend(model['metadata']["training_item_ids"])
         except Exception as e:
             raise FileNotFoundError(f"File not found error: {e}")
+    cached_sweep_items=get_cached_versions_of_project_sweeps()
     sweep_items=get_latest_versions_of_project_sweeps(project_config)
-    items=obtain_items_from_colectica(project_config["ItemTypes"], sweep_items)
+    updated_sweeps=[x for x in sweep_items if x not in cached_sweep_items]
+    print("UPDATED SWEEPS")
+    print(updated_sweeps)
+    items=obtain_items_from_colectica(project_config["ItemTypes"], updated_sweeps)
     all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"
         for item in items]
     new_item_urns=[create_urn(x) for x in items if create_urn(x)["Urn"] not in all_urns_in_current_dataset]
     if len(new_item_urns)>0:
         print(f"There are {len(new_item_urns)} items are available for analysis/inclusion in the data model.")
+    save_versioned_pickle_file(sweep_items, 'sweep_items_cached', folder='./projects/am1_project/data')
     return {"all_item_urns": all_item_urns,
             "all_urns_in_current_dataset": all_urns_in_current_dataset,
             "new_item_urns": new_item_urns}
