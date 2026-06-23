@@ -404,7 +404,7 @@ def check_for_newly_available_data(project_config):
             raise FileNotFoundError(f"File not found error: {e}")
     cached_sweep_items=get_cached_versions_of_project_sweeps()
     sweep_items=get_latest_versions_of_project_sweeps(project_config)
-    updated_sweeps=[x for x in sweep_items if x not in random.sample(cached_sweep_items,3)]
+    updated_sweeps=[x for x in sweep_items if x not in random.sample(cached_sweep_items,len(cached_sweep_items)-3)]
     print("UPDATED SWEEPS")
     print(updated_sweeps)
     if len(updated_sweeps)>0:
