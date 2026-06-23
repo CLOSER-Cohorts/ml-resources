@@ -221,6 +221,8 @@ def obtain_items_from_colectica(item_types=[], search_set_items=[]):
     all_items=[]
     item_types_for_project = [C.item_code(item_type) for item_type in item_types]
     for search_set_item in search_set_items:
+        print(item_types_for_project)
+        print(search_set_item)
         items = C.search_items(item_types_for_project,
             ReturnIdentifiersOnly=True,
             MaxResults=0,
