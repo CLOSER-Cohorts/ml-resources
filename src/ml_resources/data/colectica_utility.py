@@ -220,15 +220,17 @@ def obtain_items_from_colectica(item_types=[], search_set_items=[]):
         status="Pending"))  
     all_items=[]
     item_types_for_project = [C.item_code(item_type) for item_type in item_types]
-    items= C.search_items(item_types_for_project,
+    for search_set_item in search_set_items:
+        items = C.search_items(item_types_for_project,
             ReturnIdentifiersOnly=True,
             MaxResults=0,
             SearchLatestVersion=True,
-            SearchSets=search_set_items)['Results']
+            SearchSets=search_set_item)['Results']
+        all_items.extend(items)
     duration_of_items_retrieval=datetime.now()-start_time_for_items_retrieval
     logger.info(StructuredMessage(message=f"Time for getting items of type {item_types}",
     operation_type="obtain_items_from_colectica_end",
-    number_of_records=len(items),
+    number_of_records=len(all_items),
     status="Success",
     duration=duration_of_items_retrieval.seconds))
-    return items
+    return all_items
