@@ -9,7 +9,6 @@ from src.logging.utility import StructuredMessage, setup_logging
 from collections import Counter;
 import traceback
 import mlflow
-import random
 from evidently import Report
 from evidently.metrics import ValueDrift
 import tracemalloc

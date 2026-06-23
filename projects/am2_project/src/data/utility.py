@@ -13,6 +13,7 @@ import mlflow.sklearn
 import json
 import time
 import logging
+import random
 from src.logging.utility import StructuredMessage, setup_logging
 from src.ml_resources import (
     obtain_correctly_labelled_data,
