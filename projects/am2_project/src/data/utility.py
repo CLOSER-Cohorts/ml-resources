@@ -416,6 +416,7 @@ def check_for_newly_available_data(project_config):
             all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"
                 for item in items]
             new_item_urns.extend([create_urn(x) for x in items if create_urn(x)["Urn"] not in all_urns_in_current_dataset])
+            print(f"Number of new items found: {new_item_urns}")
         #new_item_urns=[create_urn(x) for x in items]
     if len(new_item_urns)>0:
         print(f"There are {len(new_item_urns)} items are available for analysis/inclusion in the data model.")
