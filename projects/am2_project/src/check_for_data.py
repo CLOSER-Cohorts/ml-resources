@@ -150,8 +150,9 @@ def main(args):
                     "ItemType": colectica_client.item_code(updated_item['item_type'])} for x in updated_item['all_similar_items']
                     ]
                 input_features_for_updated_items=create_am2_input_features(updated_items_dict, colectica_client, logger)
-                print(input_features_for_updated_items)
-                print(input_features_for_updated_items.columns)
+                input_columns_not_in_model = [x for x in input_features_for_updated_items.columns 
+                    if x not in all_item_models['Question']['model'].feature_names_in_.columns]
+                input_features_for_updated_items[input_columns_not_in_model] = 0
                 predictions=all_item_models[updated_item['item_type']]['model'].predict(
                     input_features_for_updated_items
                 )
