@@ -143,6 +143,7 @@ def main(args):
             items_agency_ids=[[x['AgencyId'], x['Identifier']] for x in items]
             flagged_anomalies_that_were_updated=[x for x in items_already_flagged if 
                 x['item_id'].split(":")[2:-1] in items_agency_ids]
+            """
             for updated_item in flagged_anomalies_that_were_updated:
                 updated_items_dict=[{"AgencyId": x.split(":")[2],
                     "Identifier": x.split(":")[3],
@@ -153,6 +154,7 @@ def main(args):
                 input_columns_not_in_model = [x for x in input_features_for_updated_items.columns 
                     if x not in all_item_models['Question']['model'].feature_names_in_.columns]
                 input_features_for_updated_items[input_columns_not_in_model] = 0
+                print(i)
                 predictions=all_item_models[updated_item['item_type']]['model'].predict(
                     input_features_for_updated_items
                 )
@@ -162,6 +164,7 @@ def main(args):
                         agency_id=updated_item[0],
                         identifier=updated_item[1],
                         status="potentially_fixed_anomaly"))
+            """
             item_types = sorted(set([colectica_client.item_code_inv(item['ItemType']) 
                 for item in items]))
             all_new_am2_relationships_data={}
