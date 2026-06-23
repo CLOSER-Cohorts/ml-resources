@@ -11,6 +11,9 @@ from sklearn.tree import DecisionTreeClassifier
 import mlflow
 import mlflow.sklearn
 import json
+import time
+import logging
+from src.logging.utility import StructuredMessage, setup_logging
 from src.ml_resources import (
     obtain_correctly_labelled_data,
     create_model_package,
@@ -20,6 +23,8 @@ from src.ml_resources import (
     get_latest_versions_of_project_sweeps,
     obtain_items_from_colectica,
     get_all_sweeps )
+
+#logger=setup_logging()
 
 with open("./config/config.json") as f:
     general_config = json.load(f)
@@ -36,17 +41,19 @@ def is_float_string(value):
 """, re.VERBOSE)
     return bool(float_pattern.match(value))
 
-def create_am2_input_features(items, colectica_client):
+def create_am2_input_features(items, colectica_client, logger):
     df_relationships = pd.DataFrame()
     # Using 'enumerate(items)' to create an index may be slow due to the complexity
     # of the item objects
     count = 0
+    api_latencies=[]
     if len(items)>1:
         for item in items:
             print(f"{colectica_client.item_code_inv(item['ItemType'])}")
             if item['Identifier'] != '4f1fa78e-ff60-4a85-bd3c-aace9da5955f':
                 count=count+1
                 print(f"{count} of {len(items)}")
+                start = time.perf_counter()
                 child=colectica_client.search_relationship_bysubject(item['AgencyId'], 
                     item['Identifier'],
                     Version=item['Version'])
@@ -62,6 +69,7 @@ def create_am2_input_features(items, colectica_client):
                     item['Identifier'],
                     version=item['Version'],
                     reverseTraversal=True)
+                api_latencies.append(time.perf_counter() - start)
                 descendantTypes=set([colectica_client.item_code_inv(x['Item2']) for x in descendants])
                 ancestorTypes=set([colectica_client.item_code_inv(x['Item2']) for x in ancestors])
                 newRow={}
@@ -78,6 +86,23 @@ def create_am2_input_features(items, colectica_client):
                 #df_relationships.loc[len(df_relationships)] = newRow
                 df_relationships.loc[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"] = newRow
                 df_relationships = df_relationships.replace({np.nan: 0})
+            summary_stats=get_summary_stats(np.array(api_latencies))
+            print(summary_stats)
+            logger.info(StructuredMessage(description="Latencies for API operations involved in feature creation",
+                operation_type="input_feature_creation",
+                duration=time.perf_counter() - start,
+                feature_count=summary_stats['count'],
+                feature_api_calls_latency_mean=summary_stats['mean'].item(),
+                feature_api_calls_latency_median=summary_stats['median'].item(),
+                feature_api_calls_latency_std=summary_stats['std'].item(),
+                feature_api_calls_latency_min=summary_stats['min'].item(),
+                feature_api_calls_latency_max=summary_stats['max'].item(),
+                feature_api_calls_latency_25_percentile=summary_stats['percentiles'][0],
+                feature_api_calls_latency_50_percentile=summary_stats['percentiles'][1],
+                feature_api_calls_latency_75_percentile=summary_stats['percentiles'][2],
+                feature_api_calls_latency_95_percentile=summary_stats['percentiles'][3],
+                feature_api_calls_latency_99_percentile=summary_stats['percentiles'][4]
+            ))
     return df_relationships
 
 def generate_data_for_classification(item_type, 
@@ -363,6 +388,8 @@ def get_cached_versions_of_project_sweeps():
 
 def check_for_newly_available_data(project_config):
     all_urns_in_current_dataset=[]
+    all_item_urns=[]
+    new_item_urns=[]
     folder=project_config["AllModelsFileLocation"]
     object_name=project_config["AllModelsObjectName"]
     file_version=get_max_file_version(Path(f"{folder}"), object_name)
@@ -377,15 +404,17 @@ def check_for_newly_available_data(project_config):
             raise FileNotFoundError(f"File not found error: {e}")
     cached_sweep_items=get_cached_versions_of_project_sweeps()
     sweep_items=get_latest_versions_of_project_sweeps(project_config)
-    updated_sweeps=[x for x in sweep_items if x not in cached_sweep_items]
+    updated_sweeps=[x for x in sweep_items if x not in random.sample(cached_sweep_items,3)]
     print("UPDATED SWEEPS")
     print(updated_sweeps)
-    items=obtain_items_from_colectica(project_config["ItemTypes"], updated_sweeps)
-    all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"
-        for item in items]
-    new_item_urns=[create_urn(x) for x in items if create_urn(x)["Urn"] not in all_urns_in_current_dataset]
-    if len(new_item_urns)>0:
-        print(f"There are {len(new_item_urns)} items are available for analysis/inclusion in the data model.")
+    if len(updated_sweeps)>0:
+        items=obtain_items_from_colectica(project_config["ItemTypes"], updated_sweeps)
+        all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"
+            for item in items]
+        #new_item_urns=[create_urn(x) for x in items if create_urn(x)["Urn"] not in all_urns_in_current_dataset]
+        new_item_urns=[create_urn(x) for x in items]
+        if len(new_item_urns)>0:
+            print(f"There are {len(new_item_urns)} items are available for analysis/inclusion in the data model.")
     save_versioned_pickle_file(sweep_items, 'sweep_items_cached', folder='./projects/am1_project/data')
     return {"all_item_urns": all_item_urns,
             "all_urns_in_current_dataset": all_urns_in_current_dataset,
@@ -429,3 +458,15 @@ def data_quality_checks(model_metadata, input_data, allowed_feature_values={0.0,
             values_for_input_feature = set(input_data[index])-allowed
             if index in set_input_features and values_for_input_feature-allowed != set():
                 print(f"The {index} input features contain the following invalid value(s): {values_for_input_feature}")
+
+def get_summary_stats(data):
+    summary = {
+    "count": len(data),
+    "mean": data.mean(),
+    "median": np.median(data),
+    "std": data.std(),
+    "min": data.min(),
+    "max": data.max(),
+    "percentiles": np.percentile(data, [25, 50, 75, 95, 99])
+    }
+    return summary
