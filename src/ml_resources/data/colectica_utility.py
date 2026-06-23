@@ -226,11 +226,11 @@ def obtain_items_from_colectica(item_types=[], search_set_items=[]):
             ReturnIdentifiersOnly=True,
             MaxResults=0,
             SearchLatestVersion=True,
-            SearchSets=search_set_item)['Results']
+            SearchSets=search_set_items)['Results']
     duration_of_items_retrieval=datetime.now()-start_time_for_items_retrieval
     logger.info(StructuredMessage(message=f"Time for getting items of type {item_types}",
     operation_type="obtain_items_from_colectica_end",
-    number_of_records=len(all_items),
+    number_of_records=len(items),
     status="Success",
     duration=duration_of_items_retrieval.seconds))
     return items
