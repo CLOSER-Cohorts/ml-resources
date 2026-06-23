@@ -108,7 +108,6 @@ def main(args):
         else:
             all_item_models={}
 
-        """
         for item_type in all_item_models.keys():
             # For now we just assume that the most recent version of the model in the
             # all_item_models folder contains the live version
@@ -121,7 +120,7 @@ def main(args):
                 mlflow_client.set_registered_model_alias(
                 name=f"{item_type}_error_detection", alias="live", version=latest_version
                 )
-        """
+        
         records=get_logs()
 
         # Get anomalies already flagged in logging data
@@ -212,8 +211,7 @@ def main(args):
                         if x['value']>x['config']['threshold']:
                             drift_alert_message=f"{x['config']['column']}, {x['metric_name']}: value of {x['value']} suggests possible data drift"
                             print(drift_alert_message)
-                            send_message_to_slack(drift_alert_message)
-                """            
+                            send_message_to_slack(drift_alert_message)            
                 registered_models = mlflow_client.search_registered_models()
                 all_registered_model_types=[model.name.removesuffix("_error_detection") for model in registered_models]
                 if item_type in all_registered_model_types and len(new_am2_relationships_data_single_type)>0:
@@ -246,7 +244,6 @@ def main(args):
                         item_type=item_type))
                         send_message_to_slack(f"The following possible anomalies of type {item_type} were detected:")
                         send_message_to_slack(str(anomalies))
-                """
                 all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
             # Save data we just retrieved for use in training a new model
             save_versioned_pickle_file(
