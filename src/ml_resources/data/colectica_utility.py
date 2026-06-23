@@ -220,8 +220,8 @@ def obtain_items_from_colectica(item_types=[], search_set_items=[]):
         status="Pending"))  
     items=[]
     item_types_for_project = [C.item_code(item_type) for item_type in item_types]
-    print(item_types_for_project)
-    print(search_set_items)
+    #print(item_types_for_project)
+    print(f"Searching in {search_set_items}")
     items = C.search_items(item_types_for_project,
             ReturnIdentifiersOnly=True,
             MaxResults=0,
