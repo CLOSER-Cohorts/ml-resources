@@ -410,10 +410,12 @@ def check_for_newly_available_data(project_config):
     print("UPDATED SWEEPS")
     print(updated_sweeps)
     if len(updated_sweeps)>0:
-        items=obtain_items_from_colectica(project_config["ItemTypes"], updated_sweeps)
-        all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"
-            for item in items]
-        new_item_urns=[create_urn(x) for x in items if create_urn(x)["Urn"] not in all_urns_in_current_dataset]
+        for sweep in updated_sweeps:
+            items=obtain_items_from_colectica(item_types=project_config["ItemTypes"], 
+                search_set_items=updated_sweeps)
+            all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"
+                for item in items]
+            new_item_urns.extend[create_urn(x) for x in items if create_urn(x)["Urn"] not in all_urns_in_current_dataset]
         #new_item_urns=[create_urn(x) for x in items]
         if len(new_item_urns)>0:
             print(f"There are {len(new_item_urns)} items are available for analysis/inclusion in the data model.")

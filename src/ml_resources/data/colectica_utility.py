@@ -218,21 +218,19 @@ def obtain_items_from_colectica(item_types=[], search_set_items=[]):
     logger.info(StructuredMessage(message=f"Obtain items from sweep...",
         operation_type="obtain_items_from_colectica_end",
         status="Pending"))  
-    all_items=[]
+    items=[]
     item_types_for_project = [C.item_code(item_type) for item_type in item_types]
-    for search_set_item in search_set_items:
-        print(item_types_for_project)
-        print(search_set_item)
-        items = C.search_items(item_types_for_project,
+    print(item_types_for_project)
+    print(search_set_items)
+    items = C.search_items(item_types_for_project,
             ReturnIdentifiersOnly=True,
             MaxResults=0,
             SearchLatestVersion=True,
             SearchSets=search_set_item)['Results']
-        all_items.extend(items)
     duration_of_items_retrieval=datetime.now()-start_time_for_items_retrieval
     logger.info(StructuredMessage(message=f"Time for getting items of type {item_types}",
     operation_type="obtain_items_from_colectica_end",
     number_of_records=len(all_items),
     status="Success",
     duration=duration_of_items_retrieval.seconds))
-    return all_items
+    return items
