@@ -166,7 +166,7 @@ def main(args):
                         status="potentially_fixed_anomaly"))
             """
             item_types = sorted(set([colectica_client.item_code_inv(item['ItemType']) 
-                for item in items]))
+                for item in items] + list(all_item_models.keys())))
             all_new_am2_relationships_data={}
             for item_type in item_types:
                 items_of_a_type = [x for x in items 
