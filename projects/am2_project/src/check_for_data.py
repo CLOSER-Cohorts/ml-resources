@@ -255,6 +255,11 @@ def main(args):
                 'am2_relationships_data_for_future_model',
                 folder='./projects/am2_project/data/pending_training_data',
                 )
+            save_versioned_pickle_file(
+                items,
+                'new_items',
+                folder='./projects/am2_project/data/pending_training_data',
+                )
         duration_input_creation=datetime.now()-start_time_for_input_creation
         current, peak = tracemalloc.get_traced_memory()
         logger.info(StructuredMessage(description="Time for entire data check process",
