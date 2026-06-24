@@ -168,7 +168,7 @@ def main(args):
             # Only check items for which a) there is fresh data and b) we have trained a model
             item_types = sorted(set([colectica_client.item_code_inv(item['ItemType']) for item in items]))
             all_new_am2_relationships_data={}
-            for item_type in item_types:
+            for item_type in [x for x in item_types if x in list(all_item_models.keys())]:
                 items_of_a_type = [x for x in items 
                     if x['ItemType']==colectica_client.item_code(item_type)]
                 start_time_for_input_feature=datetime.now()
