@@ -274,3 +274,8 @@ actual_labelled_items=colectica_utility.get_topics(item_data)
 # getting predicted_item_labels could be a task for calling 
 # a headless version of the model
 get_mislabelled_items(predicted_item_labels, actual_labelled_items)
+
+
+all_input_features=[]
+for x in list(all_models):
+    all_input_features.extend(all_item_models[x]['model'].feature_names_in_)
