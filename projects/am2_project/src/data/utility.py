@@ -19,6 +19,7 @@ from src.ml_resources import (
     get_max_file_version,
     get_latest_versions_of_project_sweeps,
     obtain_items_from_colectica,
+    save_versioned_model_files,
     get_all_sweeps )
 
 with open("./config/config.json") as f:
@@ -331,8 +332,8 @@ def train_semi_supervised_model(
             save_versioned_pickle_file(all_human_labelled_data.replace({np.nan: 0}),
                     "all_human_labelled_data",
                     folder='./projects/am2_project/data/human_labelled_data')
-            save_versioned_pickle_file(all_models,
-                    "all_item_models", 
+            save_versioned_model_files(all_models,
+                    "all_item_models_separate",
                     folder='./projects/am2_project/models')
             save_versioned_pickle_file(all_relationships_data,
                     'all_am2_relationships_data',
