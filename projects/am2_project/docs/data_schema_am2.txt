@@ -1,0 +1,146 @@
+# This file shows the output from Python commands that perform basic data exploration on the am2 
+# data
+
+# The code below shows how to train the models using new relationships data and the 
+# train_semi_supervised_model function. the all_item_models object will be updated to 
+# included the new/updated models.
+
+# Read in config...
+with open("./projects/am2_project/config/am2_config.json") as f:
+    project_config = json.load(f)
+
+# Get the model input data representing connections between items...
+folder = "./projects/am2_project/data/pending_training_data/am2_relationships_data_for_future_model"
+object_name = "am2_relationships_data_for_future_model"
+current_file_version=1
+max_file_version = get_max_file_version(Path(f"{folder}"), object_name)
+dicts=[]
+while current_file_version<=max_file_version:
+    file_path = Path(f"{folder}/{object_name}_{current_file_version}.pickle")
+    if file_path.exists():
+        relationships_data_for_training_updated_model=read_dataset_from_file(file_path)
+        dicts.append(relationships_data_for_training_updated_model)
+    current_file_version +=1
+
+relationships_data_for_training_updated_model = {
+    k: pd.concat([d[k] for d in dicts if k in d]).loc[lambda df: ~df.index.duplicated(keep='first')].fillna(0.0)
+    for k in set().union(*dicts)
+}
+
+# Explore the data for that is input for the IsolationForest model.
+
+>>> relationships_data_for_training_updated_model.keys()
+dict_keys(['Category Set', 'Series', 'Concept', 'Code List Set', 'Data File', 'Instrument', 'OtherMaterial', 'Instrument Set', 'Question Activity', 'Variable Statistic', 'Data Layout', 'Question Set', 'Universe', 'Conditional', 'Statement', 'Interviewer Instruction', 'Question', 'Interviewer Instruction Set', 'Code Set', 'Data Collection', 'Category', 'Control Construct Set', 'Organization', 'Loop', 'Metadata Package', 'Sequence', 'Study', 'Question Group', 'Question Grid', 'Variable', 'Variable Group'])
+>>> print(relationships_data_for_training_updated_model['Data File'])
+                                                    Category Set  Data Layout  ...  OtherMaterial  ItemType
+urn:ddi:uk.iser.ukhls:d0ec6065-65e5-46b9-906d-f...           1.0          5.0  ...            0.0       0.0
+urn:ddi:uk.iser.ukhls:610a8859-27bb-416e-a96b-f...           1.0          5.0  ...            0.0       0.0
+urn:ddi:uk.iser.ukhls:20b79b40-6794-4eaa-a3a6-f...           1.0          5.0  ...            0.0       0.0
+urn:ddi:uk.iser.ukhls:b77f54e4-391f-44cf-b229-f...           1.0          5.0  ...            0.0       0.0
+urn:ddi:uk.iser.ukhls:03b7de45-ff36-4913-be54-f...           1.0          5.0  ...            0.0       0.0
+...                                                          ...          ...  ...            ...       ...
+urn:ddi:uk.alspac:dbf7298d-ea8a-432c-9bb0-303ed...           1.0          5.0  ...            0.0       0.0
+urn:ddi:uk.alspac:319af160-ce6c-481e-be8c-2ff71...           1.0          5.0  ...            0.0       0.0
+urn:ddi:uk.alspac:c3698197-01c9-4a54-9864-1daf5...           1.0          5.0  ...            1.0       0.0
+urn:ddi:uk.alspac:e9873897-4431-4140-b71e-1c66d...           1.0          5.0  ...            0.0       0.0
+urn:ddi:uk.alspac:536811a6-b216-40e4-bae7-15d38...           1.0          5.0  ...            0.0       0.0
+
+[520 rows x 17 columns]
+>>> relationships_data_for_training_updated_model['Data File'].iloc[0]
+Category Set               1.0
+Data Layout                5.0
+Variable Group             5.0
+Variable Statistic         5.0
+Code Set                   1.0
+Concept                    1.0
+Variable                   1.0
+Data File                  1.0
+Category                   1.0
+Study                      5.0
+Series                     1.0
+Project                    1.0
+Interviewer Instruction    0.0
+Question                   0.0
+Question Grid              0.0
+OtherMaterial              0.0
+ItemType                   0.0
+Name: urn:ddi:uk.iser.ukhls:d0ec6065-65e5-46b9-906d-f8b4ad423a08:3, dtype: float64
+
+# Read in some previously trained models...
+
+folder = "./projects/am2_project/models/all_item_models"
+object_name = "all_item_models"
+file_version = get_max_file_version(Path(f"{folder}"), object_name)
+if file_version >0:
+    file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
+    all_item_models=read_dataset_from_file(file_path)
+else:
+    all_item_models={}
+
+# Explore the models...
+
+>>> all_item_models.keys()
+dict_keys(['Category', 'Category Set', 'Code Set', 'Concept', 'Conditional', 'Control Construct Set', 'Data Collection', 'Data File', 'Data Layout', 'Instrument', 'Instrument Set', 'Interviewer Instruction', 'Loop', 'Metadata Package', 'Organization', 'Question', 'Question Activity', 'Question Grid', 'Question Group', 'Question Set', 'Sequence', 'Statement', 'Variable', 'Variable Group', 'Variable Statistic', 'OtherMaterial', 'Study', 'Interviewer Instruction Set', 'Universe', 'Code List Set'])
+
+>>> all_item_models['Data File'].keys()
+dict_keys(['model', 'metadata', 'data'])
+>>> all_item_models['Data File']['model']
+DecisionTreeClassifier(class_weight='balanced', max_depth=10)
+
+# Now we look at the human labelled data that the DecisionTree model is trained on. This is 
+# generated from the output of the IsolationForest
+
+>>> all_item_models['Data File']['data']
+                                                    Category Set  Data Layout  Variable Group  ...  AnomalyScore   ItemType  Flagged
+urn:ddi:uk.iser.ukhls:78219a3b-2c6a-4876-8a87-e...           1.0          5.0             0.0  ...     -0.097878  Data File       -1
+urn:ddi:uk.mrcleu-uos.hcs:331f25b0-d2fe-4704-8e...           0.0          5.0             5.0  ...     -0.106662  Data File        1
+urn:ddi:uk.iser.ukhls:94af5e23-8d46-42e9-b466-0...           1.0          5.0             5.0  ...     -0.069625  Data File        1
+urn:ddi:uk.iser.ukhls:f09ffea7-9252-4168-a65e-d...           1.0          5.0             0.0  ...     -0.049755  Data File       -1
+urn:ddi:uk.cls.bcs70:369c1330-4d7c-44b3-9a8e-c4...           1.0          5.0             5.0  ...      0.083114  Data File        1
+urn:ddi:uk.iser.ukhls:907de759-b70c-4ef8-9733-b...           1.0          5.0             0.0  ...     -0.114192  Data File       -1
+urn:ddi:uk.mrcleu-uos.hcs:02db6551-1da7-4959-b9...           1.0          5.0             5.0  ...      0.081405  Data File        1
+urn:ddi:uk.alspac:6b91d7de-968f-4c74-bf06-5b8fa...           1.0          5.0             5.0  ...      0.035653  Data File        1
+urn:ddi:uk.iser.ukhls:6dddee24-9911-4e23-b5d5-1...           1.0          5.0             5.0  ...      0.059673  Data File        1
+urn:ddi:uk.mrcleu-uos.hcs:5c6f786f-080d-4a81-88...           1.0          5.0             5.0  ...      0.034554  Data File        1
+urn:ddi:uk.iser.ukhls:68af3439-dd6b-4735-969f-3...           1.0          5.0             5.0  ...     -0.000859  Data File        1
+urn:ddi:uk.wchads:1d13fc3b-5391-4820-a595-670cf...           1.0          5.0             5.0  ...     -0.036702  Data File        1
+urn:ddi:uk.cls.bcs70:0f661fbd-2d34-4245-8553-ff...           1.0          5.0             5.0  ...      0.053897  Data File        1
+urn:ddi:uk.cls.ncds:a737624b-0c24-4e71-90e2-4d5...           1.0          5.0             5.0  ...      0.089736  Data File        1
+urn:ddi:uk.iser.ukhls:b77f54e4-391f-44cf-b229-f...           1.0          5.0             0.0  ...     -0.040074  Data File       -1
+urn:ddi:uk.iser.ukhls:3327bd22-caf8-4697-8016-e...           1.0          5.0             0.0  ...     -0.086668  Data File       -1
+
+[16 rows x 22 columns]
+>>> all_item_models['Data File']['data'].iloc[0]
+Category Set                     1.0
+Data Layout                      5.0
+Variable Group                   0.0
+Variable Statistic               5.0
+Code Set                         1.0
+Concept                          0.0
+Variable                         1.0
+Data File                        1.0
+Category                         1.0
+Study                            5.0
+Series                           1.0
+Project                          1.0
+Interviewer Instruction          1.0
+Question                         1.0
+Question Grid                    0.0
+OtherMaterial                    0.0
+x                          -3.523037
+y                           0.019362
+DistanceFromOrigin          3.523091
+AnomalyScore               -0.097878
+ItemType                   Data File
+Flagged                           -1
+Name: urn:ddi:uk.iser.ukhls:78219a3b-2c6a-4876-8a87-e93f738380d5:3, dtype: object
+
+train_semi_supervised_model(
+    relationships_data_for_training_updated_model,
+    project_config['ItemTypes'],
+    dataset_name="wip",
+    generate_classification_report=True,
+    save_model_in_package_file=True,
+    all_models=all_item_models
+    )
+

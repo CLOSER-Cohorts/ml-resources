@@ -1,3 +1,4 @@
 {
-  "MLFlowServer": SERVER_HOSTNAME
+  "MLFlowServer": "SERVER_HOSTNAME",
+  "MLFlowServerPort": "8000"
 }
