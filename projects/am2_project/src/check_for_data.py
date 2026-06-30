@@ -105,7 +105,7 @@ def main(args):
         if file_version>0:
             file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
             all_item_models=read_dataset_from_file(file_path)
-        else:
+        else
             all_item_models={}
 
         for item_type in all_item_models.keys():
@@ -218,8 +218,7 @@ def main(args):
                             send_message_to_slack(drift_alert_message)            
                 registered_models = mlflow_client.search_registered_models()
                 all_registered_model_types=[model.name.removesuffix("_error_detection") for model in registered_models]
-                if False:
-                #if item_type in all_registered_model_types and len(new_am2_relationships_data_single_type)>0:
+                if item_type in all_registered_model_types and len(new_am2_relationships_data_single_type)>0:
                     order=list(all_item_models[item_type]['model'].feature_names_in_)
                     new_am2_relationships_data_single_type=new_am2_relationships_data_single_type.reindex(
                         columns=order).replace({np.nan: 0}) 

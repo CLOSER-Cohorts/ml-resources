@@ -84,7 +84,6 @@ def create_am2_input_features(items, colectica_client, logger):
                 for key in newRow:
                     if key not in df_relationships.columns:
                         df_relationships[key] = 0 
-                #df_relationships.loc[len(df_relationships)] = newRow
                 df_relationships.loc[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"] = newRow
                 df_relationships = df_relationships.replace({np.nan: 0})
             summary_stats=get_summary_stats(np.array(api_latencies))
@@ -406,8 +405,6 @@ def check_for_newly_available_data(project_config):
     cached_sweep_items=get_cached_versions_of_project_sweeps()
     sweep_items=get_latest_versions_of_project_sweeps(project_config)
     updated_sweeps=[x for x in sweep_items if x not in cached_sweep_items]  
-    #updated_sweeps=[x for x in sweep_items if x not in random.sample(cached_sweep_items,len(cached_sweep_items)-3)]
-    #updated_sweeps=sweep_items
     print("UPDATED SWEEPS")
     print(updated_sweeps)
     if len(updated_sweeps)>0:
@@ -419,7 +416,7 @@ def check_for_newly_available_data(project_config):
             new_item_urns.extend([create_urn(x) for x in items if create_urn(x)["Urn"] not in all_urns_in_current_dataset])
             print(f"Number of new items found: {len(new_item_urns)}")
             print(new_item_urns)
-        #new_item_urns=[create_urn(x) for x in items]
+        new_item_urns=[create_urn(x) for x in items]
     if len(new_item_urns)>0:
         print(f"There are {len(new_item_urns)} items are available for analysis/inclusion in the data model.")
     save_versioned_pickle_file(sweep_items, 'sweep_items_cached', folder='./projects/am1_project/data')
