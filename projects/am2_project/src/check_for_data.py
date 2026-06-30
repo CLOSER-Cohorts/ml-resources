@@ -11,6 +11,7 @@ import traceback
 import mlflow
 from evidently import Report
 from evidently.metrics import ValueDrift
+import tracemalloc
 
 logger=setup_logging()
 
@@ -85,7 +86,8 @@ def main(args):
             get_all_sweeps
         )
         from projects.am2_project.src.data.utility import (
-            create_am2_input_features
+            create_am2_input_features,
+            get_summary_stats
         )
         from src.ml_resources.data import colectica_utility
 
@@ -103,7 +105,7 @@ def main(args):
         if file_version>0:
             file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
             all_item_models=read_dataset_from_file(file_path)
-        else:
+        else
             all_item_models={}
 
         for item_type in all_item_models.keys():
@@ -118,7 +120,7 @@ def main(args):
                 mlflow_client.set_registered_model_alias(
                 name=f"{item_type}_error_detection", alias="live", version=latest_version
                 )
-
+        
         records=get_logs()
 
         # Get anomalies already flagged in logging data
@@ -130,6 +132,7 @@ def main(args):
         #print(items_already_flagged)
         with open("./projects/am2_project/config/am2_config.json") as f:
             project_config = json.load(f)
+        tracemalloc.start()
         # Check for new data...    
         results = check_for_newly_available_data(project_config)
         # GET RID OF [0:10] TO GET EVERYTHING
@@ -140,13 +143,18 @@ def main(args):
             items_agency_ids=[[x['AgencyId'], x['Identifier']] for x in items]
             flagged_anomalies_that_were_updated=[x for x in items_already_flagged if 
                 x['item_id'].split(":")[2:-1] in items_agency_ids]
+            """
             for updated_item in flagged_anomalies_that_were_updated:
                 updated_items_dict=[{"AgencyId": x.split(":")[2],
                     "Identifier": x.split(":")[3],
                     "Version": x.split(":")[4],
                     "ItemType": colectica_client.item_code(updated_item['item_type'])} for x in updated_item['all_similar_items']
                     ]
-                input_features_for_updated_items=create_am2_input_features(updated_items_dict, colectica_client)
+                input_features_for_updated_items=create_am2_input_features(updated_items_dict, colectica_client, logger)
+                input_columns_not_in_model = [x for x in input_features_for_updated_items.columns 
+                    if x not in all_item_models['Question']['model'].feature_names_in_.columns]
+                input_features_for_updated_items[input_columns_not_in_model] = 0
+                print(i)
                 predictions=all_item_models[updated_item['item_type']]['model'].predict(
                     input_features_for_updated_items
                 )
@@ -156,10 +164,11 @@ def main(args):
                         agency_id=updated_item[0],
                         identifier=updated_item[1],
                         status="potentially_fixed_anomaly"))
-            item_types = sorted(set([colectica_client.item_code_inv(item['ItemType']) 
-                for item in items]))
+            """
+            # Only check items for which a) there is fresh data and b) we have trained a model
+            item_types = sorted(set([colectica_client.item_code_inv(item['ItemType']) for item in items]))
             all_new_am2_relationships_data={}
-            for item_type in item_types:
+            for item_type in [x for x in item_types if x in list(all_item_models.keys())]:
                 items_of_a_type = [x for x in items 
                     if x['ItemType']==colectica_client.item_code(item_type)]
                 start_time_for_input_feature=datetime.now()
@@ -167,7 +176,7 @@ def main(args):
                 logger.info(StructuredMessage(message=f"Creating input features...",
                     operation_type="input_feature_creation_start",
                     status="Pending"))
-                new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, colectica_client)
+                new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, colectica_client, logger)
                 duration_input_creation=datetime.now()-start_time_for_input_feature
                 logger.info(StructuredMessage(description=f"Time for input creation for {len(items_of_a_type)} items of type {item_type}",
                     operation_type=f"input feature creation_end",
@@ -206,7 +215,7 @@ def main(args):
                         if x['value']>x['config']['threshold']:
                             drift_alert_message=f"{x['config']['column']}, {x['metric_name']}: value of {x['value']} suggests possible data drift"
                             print(drift_alert_message)
-                            send_message_to_slack(drift_alert_message)
+                            send_message_to_slack(drift_alert_message)            
                 registered_models = mlflow_client.search_registered_models()
                 all_registered_model_types=[model.name.removesuffix("_error_detection") for model in registered_models]
                 if item_type in all_registered_model_types and len(new_am2_relationships_data_single_type)>0:
@@ -246,11 +255,19 @@ def main(args):
                 'am2_relationships_data_for_future_model',
                 folder='./projects/am2_project/data/pending_training_data',
                 )
+            save_versioned_pickle_file(
+                items,
+                'new_items',
+                folder='./projects/am2_project/data/pending_training_data',
+                )
         duration_input_creation=datetime.now()-start_time_for_input_creation
+        current, peak = tracemalloc.get_traced_memory()
         logger.info(StructuredMessage(description="Time for entire data check process",
             status="Success",
             operation_type="data_check_end",
-            duration=duration_input_creation.seconds))
+            duration=duration_input_creation.seconds,
+            peak_memory_usage=peak))
+        tracemalloc.reset_peak()
         all_sweeps=get_all_sweeps()
         sweeps_not_in_project=check_for_new_sweeps(project_config, all_sweeps)
         if len(sweeps_not_in_project)>0:
