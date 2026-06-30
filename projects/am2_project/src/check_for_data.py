@@ -105,7 +105,7 @@ def main(args):
         if file_version>0:
             file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
             all_item_models=read_dataset_from_file(file_path)
-        else
+        else:
             all_item_models={}
 
         for item_type in all_item_models.keys():
