@@ -204,9 +204,9 @@ def main(args):
                 print(X_input.columns)
                 input_columns_not_in_reference = [x for x in X_input.columns if x not in X_reference.columns]
                 X_reference[input_columns_not_in_reference] = 0
-                X_input = X_input[X_reference.columns]
                 reference_columns_not_in_input = [x for x in X_reference.columns if x not in X_input.columns]
                 X_input[reference_columns_not_in_input] = 0
+                X_input = X_input[X_reference.columns]
                 if len(X_reference)>0 and len(X_input)>0:
                     snapshot = report.run(
                         reference_data=X_reference.astype('category'),
