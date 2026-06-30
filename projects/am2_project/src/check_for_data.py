@@ -213,11 +213,13 @@ def main(args):
                     )
                     print(X_reference.astype('category'))
                     print(X_input.astype('category'))
+                    print("COLUMNS CHECK")
+                    print(X_reference.columns==X_input.columns)
                     for x in snapshot.dict()['metrics']:
                         if x['value']>x['config']['threshold']:
                             drift_alert_message=f"{x['metric_name']}: value of {x['value']} suggests possible data drift"
                             print(drift_alert_message)
-                            logger.info(StructuredMessage(description=f"{len(anomalies)} anomalies detected for items of type {item_type}",
+                            logger.info(StructuredMessage(description=f"Possible data drift detected for items of type {item_type}",
                                 operation_type="data_drift_detected",
                                 metric=x['metric_name'],
                                 value=x['value'],
