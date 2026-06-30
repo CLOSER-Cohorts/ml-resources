@@ -1,0 +1,45 @@
+During the business and understanding phase, I discovered:
+
+The problem involves analysing dataframes representing relationships between items in our 
+database, and detecting items whose pattern of connections could be considered ‘anomalous’ and 
+potentially cause issues for searches executed using our web and API resources. Hard-coding rules 
+for all potential anomalies is too time-consuming and difficult. There are too many potential 
+relationships between items/item types, and it’s too time consuming to create and maintain this 
+list of rules. It also requires ‘expert knowledge’ that CLOSER staff may not have; we may not know 
+that a certain relationship between items is required, or what relationships may be problematic. 
+The DDI-XML datatypes and schemas used in our system may change over time, requiring us to 
+continuously create new rules, or abandon old rules. If I have a labelled dataset where input 
+features represent a set of item relationships and the label/target variable is a flag indicating 
+if the item is/isn’t anomalous, I can train an ML model to predict if an item requires attention,
+e.g. correction/removal from our database.
+
+IsolationForest analysis is useful for detecting outlier items which may be anomalies.
+
+The business outcome is a reduction in the amount of developer time and code used to 
+detect errors/issues in our data that affect user experience.
+
+Technical impact can be measured in terms of the number of anomalous items found and corrected in 
+our data repository using this solution. These anomalous items reduce the quality of data 
+retrieved from API queries on our repository and reduce the user experience when exploring our 
+data via our web portal. The business impact can be measurable in terms of the amount of developer 
+time and code required to implement error checking/data quality controls in CLOSER data.
+
+The solution is feasible, I can obtain the data required for this solution by querying the CLOSER 
+repository API. There are no risks or constraints preventing us from implementing the solution.
+
+The dataset I am working with does not have the labels required by this project; items are not 
+flagged as anomalous/non-anomalous. Therefore I took the data representing item relationships, 
+and perform dimension reduction by using an unsupervised ML approach, Principal Components 
+Analysis (PCA). I identify outliers in the PCA data using an IsolationForest. I examined those 
+outliers and labelled them as either genuine anomalies OR items that just have unusual connection 
+patterns.
+
+A supervised model (e.g. decision tree) is trained on this human-labelled data; the input features 
+are the numbers representing relationships that an item has with other items, and the target 
+variable is the labels I provided: 0 = no problem, 1 = anomaly.
+
+Correcting errors and removing unnecessary items from our data leads to an improvement in our data 
+quality and a better experience for users of CLOSER resources, e.g. social science researchers 
+will benefit from more complete/relevant results when using CLOSER’s web and API resources to 
+search for data to support their research activities, thus increasing the use and impact of 
+longitudinal population studies.

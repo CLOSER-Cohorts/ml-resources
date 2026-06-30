@@ -9,6 +9,7 @@ from src.ml_resources import (
     read_dataset_from_file,
     obtain_items_from_colectica,
     get_max_file_version,
+    get_max_folder_version,
     get_summary_data,
     get_performance_metrics)
 from projects.am2_project.src.data.utility import (
@@ -22,6 +23,7 @@ from projects.am2_project.src.evidently import (
     generate_drift_monitoring_report
 )
 from src.ml_resources.data import colectica_utility
+from skops.io import get_untrusted_types
 
 colectica_client = colectica_utility.C
 
@@ -130,6 +132,22 @@ if file_version >0:
     all_item_models=read_dataset_from_file(file_path)
 else:
     all_item_models={}
+
+folder = "./projects/am2_project/models/all_item_models_separate"
+object_name = "all_item_models_separate"
+folder_version = get_max_folder_version(Path(f"{folder}"), object_name)
+if folder_version >0:
+    folder_path = Path(f"{folder}/{object_name}_{folder_version}")
+    unknown_types = get_untrusted_types(file = folder_path / "all_models.skops")
+    if unknown_types == []:
+        all_item_models = load(folder_path / "all_models.skops", trusted=unknown_types)
+    else:
+        all_item_models={}
+
+with open(folder_path / "metadata.json") as f:
+    metadata = json.load(f)
+
+questions_model_data = pd.read_parquet(folder_path / "Question.parquet")
 
 train_semi_supervised_model(
     relationships_data_for_training_updated_model,
@@ -274,3 +292,8 @@ actual_labelled_items=colectica_utility.get_topics(item_data)
 # getting predicted_item_labels could be a task for calling 
 # a headless version of the model
 get_mislabelled_items(predicted_item_labels, actual_labelled_items)
+
+
+all_input_features=[]
+for x in list(all_models):
+    all_input_features.extend(all_item_models[x]['model'].feature_names_in_)
