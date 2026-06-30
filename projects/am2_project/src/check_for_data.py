@@ -227,8 +227,9 @@ def main(args):
                     logger.info(StructuredMessage(message=f"Making predictions on data...",
                         operation_type="predictions_start",
                         status="Pending"))
-                    model = mlflow.sklearn.load_model(
-                        model_uri=f"models:/{item_type}_error_detection@live")
+                    # comment this out for now, we will get the model from the pickle file
+                    #model = mlflow.sklearn.load_model(
+                    #    model_uri=f"models:/{item_type}_error_detection@live")
                     predictions=all_item_models[item_type]['model'].predict(
                         new_am2_relationships_data_single_type
                         )
