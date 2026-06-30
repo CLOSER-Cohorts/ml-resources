@@ -214,7 +214,7 @@ def main(args):
                     print(X_reference.astype('category'))
                     print(X_input.astype('category'))
                     print("COLUMNS CHECK")
-                    print(X_reference.columns==X_input.columns)
+                    print(sorted(X_reference.columns)==sorted(X_input.columns))
                     for x in snapshot.dict()['metrics']:
                         if x['value']>x['config']['threshold']:
                             drift_alert_message=f"{x['metric_name']}: value of {x['value']} suggests possible data drift"
