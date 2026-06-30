@@ -211,10 +211,17 @@ def main(args):
                         reference_data=X_reference.astype('category'),
                         current_data=X_input.astype('category'),
                     )
+                    print(X_reference.astype('category'))
+                    print(X_input.astype('category'))
                     for x in snapshot.dict()['metrics']:
                         if x['value']>x['config']['threshold']:
-                            drift_alert_message=f"{x['config']['column']}, {x['metric_name']}: value of {x['value']} suggests possible data drift"
+                            drift_alert_message=f"{x['metric_name']}: value of {x['value']} suggests possible data drift"
                             print(drift_alert_message)
+                            logger.info(StructuredMessage(description=f"{len(anomalies)} anomalies detected for items of type {item_type}",
+                                operation_type="data_drift_detected",
+                                metric=x['metric_name'],
+                                value=x['value'],
+                                item_type=item_type)) 
                             send_message_to_slack(drift_alert_message)            
                 registered_models = mlflow_client.search_registered_models()
                 all_registered_model_types=[model.name.removesuffix("_error_detection") for model in registered_models]
