@@ -86,7 +86,7 @@ def generate_data_for_classification(item_type,
     clf,
     dataset_name="data",
     graphs_directory='./projects/am2_project/graphs/'):
-    print(pca_data)
+    #print(pca_data)
     target_variables=clf.predict(pca_data)
     scores = clf.decision_function(pca_data)
     unique_data_rows = all_data.drop_duplicates()
@@ -150,7 +150,7 @@ def train_semi_supervised_model(
     all_training_reports={}
     all_test_reports={}
     notes=""
-    print(item_types)
+    #print(item_types)
     for item_type in item_types:
         #mlflow.set_tracking_uri("http://127.0.0.1:5001")
         mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
@@ -167,8 +167,10 @@ def train_semi_supervised_model(
                 test_size_value=input("What proportion of the items do you want to put aside for testing? ")
             # Generate training data, and train a decision tree
             df_relationships = all_relationships_data[item_type]
+            #save_versioned_pickle_file(am1_data, 'var_no_Stats', folder='./projects/am1_project/data')
             df_relationships_unique=df_relationships.drop_duplicates().fillna(0)
-            print(df_relationships_unique)
+            save_versioned_pickle_file(df_relationships_unique, 'df_unique', folder='./projects/am1_project/data')
+            #print(df_relationships_unique)
             if len(df_relationships_unique)>4:
                 X_train, X_test = train_test_split(
                     df_relationships_unique, # this needs to be specific to data type it's not at present
@@ -196,7 +198,7 @@ def train_semi_supervised_model(
                 else:
                     X_train_copy=X_train.copy()
                 data_for_model=X_train_copy.join(training_dataset_isolation_forest)
-                model_name=f"{item_type}_error_detection"
+                model_name=f"{item_type}_error_detection_training"
                 training_data_description=f"{len(X_train)}_{item_type}_items"
                 model_training_results=obtain_correctly_labelled_data(
                     data_for_model,
@@ -258,8 +260,9 @@ def train_semi_supervised_model(
                     # calculated by an IsolationForest with the predictions produced by the supervised
                     # model.
                     test_dataset_isolation_forest['Flagged']=y_pred
-                    print(test_dataset_for_model)
+                    #print(test_dataset_for_model)
                     test_dataset_isolation_forest=X_test_copy.join(test_dataset_isolation_forest)
+                    model_name=f"{item_type}_error_detection_test"
                     model_test_results=obtain_correctly_labelled_data(
                         test_dataset_isolation_forest,
                         'We are testing isolation forests',
@@ -280,6 +283,7 @@ def train_semi_supervised_model(
                     # Get rid of 'Inferred schema contains integer column(s)' warning...
                     #input_example = X[:5].copy().to_numpy(dtype="float64")
                     input_example = X[:5]
+                    """
                     with mlflow.start_run():
                         # Log parameters and metrics using the MLflow APIs
                         mlflow.log_param("model_class", model_class.__name__)
@@ -308,11 +312,13 @@ def train_semi_supervised_model(
                             registered_model_name=model_name,
                             serialization_format="skops"
                         )
+                    """
                     all_human_labelled_data=pd.concat([all_human_labelled_data,
                         model_test_results["UserLabelledData"]])
                 if save_model_in_package_file == True:
                     model_package=create_model_package(model,
                         human_labelled_training_data,
+                        model_test_results["UserLabelledData"],
                         'Flagged', 
                         preprocessing=["PCA"],
                         notes=notes,
