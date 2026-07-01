@@ -426,7 +426,7 @@ def check_for_newly_available_data(project_config):
         new_item_urns.extend([create_urn(x) for x in items])
     if len(new_item_urns)>0:
         print(f"There are {len(new_item_urns)} items are available for analysis/inclusion in the data model.")
-    save_versioned_pickle_file(sweep_items, 'sweep_items_cached', folder='./projects/am1_project/data')
+    save_versioned_pickle_file(sweep_items, 'sweep_items_cached', folder='./projects/am2_project/data')
     return {"all_item_urns": all_item_urns,
             "all_urns_in_current_dataset": all_urns_in_current_dataset,
             "new_item_urns": new_item_urns}
