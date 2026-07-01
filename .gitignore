@@ -5,6 +5,7 @@ projects/am2_project/models/*
 !projects/am2_project/models/all_item_models/
 projects/am2_project/graphs
 projects/am2_project/data
+!projects/am2_project/data/sweep_items_cached
 config/secrets.json
 config/config.json
 logs/*

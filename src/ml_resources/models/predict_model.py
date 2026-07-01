@@ -59,6 +59,30 @@ def set_value_with_dtype(df, column, index, value_str):
     except Exception as e:
         raise ValueError(f"Could not convert '{value_str}' to {dtype}") from e
 
+def measure_prediction_accuracy(data_with_predictions):
+    reports={}
+    for item_type in data_with_predictions.keys():
+        data_with_predictions[item_type]['modelInput']['Flagged']=data_with_predictions[item_type]['predictions']
+        y_true=[]
+        ground_truth=""
+        for index, item in data_with_predictions[item_type]['modelInput'].iterrows():
+            print(item)
+            print(index)
+            while ground_truth not in ['y', 'n']:
+                ground_truth=input("Is this right? y/n")
+            if ground_truth=='y':
+                y_true.append(item['Flagged'])
+            elif item['Flagged']==1:
+                y_true.append(-1)
+            else:
+                y_true.append(1)
+            ground_truth=""
+        reports[item_type] = classification_report(y_true,
+            data_with_predictions[item_type]['predictions'],
+            output_dict=True
+            )    
+    return reports
+
 def obtain_correctly_labelled_data(data_with_predictions,
     explanation_of_prediction,
     target_label,
