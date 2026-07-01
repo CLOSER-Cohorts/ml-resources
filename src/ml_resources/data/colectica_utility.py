@@ -218,9 +218,11 @@ def obtain_items_from_colectica(item_types=[], search_set_items=[]):
     logger.info(StructuredMessage(message=f"Obtain items from sweep...",
         operation_type="obtain_items_from_colectica_end",
         status="Pending"))  
-    all_items=[]
+    items=[]
     item_types_for_project = [C.item_code(item_type) for item_type in item_types]
-    items= C.search_items(item_types_for_project,
+    #print(item_types_for_project)
+    print(f"Searching in {search_set_items}")
+    items = C.search_items(item_types_for_project,
             ReturnIdentifiersOnly=True,
             MaxResults=0,
             SearchLatestVersion=True,

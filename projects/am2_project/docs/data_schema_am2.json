@@ -1,0 +1,279 @@
+{
+  "title": "Anomaly detection dataset",
+  "summary": "This dataset is used to train models for detecting anomalous items based on their links to other items (both direct and transitive). This dataset has been created by querying the CLOSER repository REST API using https://github.com/CLOSER-Cohorts/colectica-api, performing feature reduction with PCA, using an isolation forest to suggest outliers, then using a human-in-the-loop to examine the outliers in order to generate a labelled dataset. Each item type has its own dedicated model.",
+  "modelCategory": "binary_classification",
+  "schemaVersion": 1.0,
+  "inputDataFormat": "JSON",
+  "target": {
+    "name": "Anomaly",
+    "description": "A binary flag indicating if an item is anomalous (1) or not (0)."
+  },
+  "features": [
+    {
+      "name": "Category Set",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Series",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Organization Set",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Concept",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Instrument",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Data File",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Code List Set",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "ItemType",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "OtherMaterial",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Universe Set",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Instrument Set",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Question Activity",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Variable Statistic",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Data Layout",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Variable Set",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Question Set",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Universe",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Conditional",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Universe Group",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Statement",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Interviewer Instruction",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Question",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Interviewer Instruction Set",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Code Set",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Data Collection",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Category",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Concept Set",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Control Construct Set",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Project",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Organization",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Loop",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Metadata Package",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Study",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Sequence",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Question Group",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Question Grid",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Variable",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    },
+    {
+      "name": "Variable Group",
+      "description": "A float containing either the value 0.0 (the item has no relationship to an item of this type), 1.0 (the item has a transitive relationship to an item of this type, e.g. x references y which references an item of this type) or 5.0 (the item directly references an item of this type).",
+      "dataType": "NUMBER",
+      "required": false,
+      "nullable": false
+    }
+  ]
+}
