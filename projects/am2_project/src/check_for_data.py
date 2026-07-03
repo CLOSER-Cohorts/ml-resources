@@ -261,7 +261,7 @@ def main(args):
                         send_message_to_slack(str(anomalies))
                 if len(new_am2_relationships_data_single_type)>0:        
                     all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
-                    new_items_for_performance_assessment={
+                    new_items_for_performance_assessment[item_type]={
                         "modelInput": new_am2_relationships_data_single_type,
                         "predictions": predictions
                     }
