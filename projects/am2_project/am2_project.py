@@ -155,8 +155,74 @@ train_semi_supervised_model(
     dataset_name="wip",
     generate_classification_report=True,
     save_model_in_package_file=True,
-    all_models=all_item_models
+    all_models=all_item_models,
+    only_relabel_outliers=True
     )
+
+model_item=read_dataset_from_file('projects/am2_project/models/all_item_models/all_item_models_36.pickle')
+model=model_item['Question']['model']
+X=model_item['Question']['training_data']
+X["ItemType"] = X["ItemType"].astype("category").cat.codes
+X=X.drop(columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'Flagged'])
+y=model_item['Question']['training_data']['Flagged']
+
+
+
+report_dict = classification_report(y_test, y_pred, output_dict=True)
+    
+model=model_class(max_depth=10, class_weight='balanced')    
+model = model_class( 
+    min_samples_leaf=2,
+    min_samples_split=2)
+model.fit(X, y)
+X_test=model_item['Question']['test_data']
+X_test=X_test.drop(columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'Flagged'])
+X_test["ItemType"] = X_test["ItemType"].astype("category").cat.codes
+y_pred=model.predict(X_test)
+y_test=model_item['Question']['test_data']['Flagged']
+report_dict = classification_report(y_test, y_pred, output_dict=True)
+
+
+
+
+y_pred=grid.predict(X_test)
+y_test=model_item['Question']['test_data']['Flagged']
+
+
+data_with_predictions = read_dataset_from_file('./projects/am2_project/data/pending_training_data/am2_relationships_data_for_future_model/am2_relationships_data_for_future_model_59.pickle')
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.tree import DecisionTreeClassifier
+
+param_grid = {
+    'max_depth': [2, 3, 4, 5, None],
+    'min_samples_split': [2, 5, 10, 20],
+    'min_samples_leaf': [1, 2, 5, 10],
+    'criterion': ['gini', 'entropy']
+}
+grid = GridSearchCV(
+    estimator=DecisionTreeClassifier(random_state=42),
+    param_grid=param_grid,
+    scoring='precision',
+    cv=5,
+    n_jobs=-1
+)
+grid.fit(X, y)
+
+print("Best parameters:", grid.best_params_)
+print("Best CV precision:", grid.best_score_)
+from sklearn import tree
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(20, 10))
+tree.plot_tree(
+    model,
+    feature_names=model.feature_names_in_,
+    filled=True,
+    rounded=True,
+    fontsize=10
+)
+plt.show()
 
 # You can validate the input to a model using this function:
 
@@ -184,11 +250,13 @@ future_data=read_dataset_from_file('projects/am2_project/data/pending_training_d
 # train_semi_supervised_model above into memory for inspection
 model_package=read_dataset_from_file(
     './projects/am2_project/models/Instrument_classifier_for_error_detection/Instrument_classifier_for_error_detection_9.pickle')
+model_package=read_dataset_from_file(
+    './projects/am2_project/models/Question Group_error_detection/Question Group_error_detection_7.pickle')
 dtc=model_package['model']
 plt.figure(figsize=(10, 10))
 tree.plot_tree(
     dtc,
-    class_names=["OK", "Anomaly"],
+    class_names=["Anomaly", "OK"],
     filled=True,
     fontsize=6,
     feature_names=all_item_models['Question Group']['metadata']['input_features']

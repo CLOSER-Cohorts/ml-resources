@@ -105,7 +105,7 @@ def main(args):
         if file_version>0:
             file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
             all_item_models=read_dataset_from_file(file_path)
-        else
+        else:
             all_item_models={}
 
         for item_type in all_item_models.keys():
@@ -138,6 +138,8 @@ def main(args):
         # GET RID OF [0:10] TO GET EVERYTHING
         if len(results['new_item_urns'])>0:
         #if True:
+            print("NEW RESULTS")
+            print(results['new_item_urns'])
             items = [create_item_object(x) for x in results['new_item_urns']]
             #items = [create_item_object(x) for x in results['all_item_urns']]
             items_agency_ids=[[x['AgencyId'], x['Identifier']] for x in items]
@@ -176,6 +178,9 @@ def main(args):
                 logger.info(StructuredMessage(message=f"Creating input features...",
                     operation_type="input_feature_creation_start",
                     status="Pending"))
+                print("ITEM TYPE")
+                print(item_type)
+                print(items_of_a_type)
                 new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, colectica_client, logger)
                 duration_input_creation=datetime.now()-start_time_for_input_feature
                 logger.info(StructuredMessage(description=f"Time for input creation for {len(items_of_a_type)} items of type {item_type}",
@@ -215,9 +220,14 @@ def main(args):
                         if x['value']>x['config']['threshold']:
                             drift_alert_message=f"{x['config']['column']}, {x['metric_name']}: value of {x['value']} suggests possible data drift"
                             print(drift_alert_message)
-                            send_message_to_slack(drift_alert_message)            
-                registered_models = mlflow_client.search_registered_models()
-                all_registered_model_types=[model.name.removesuffix("_error_detection") for model in registered_models]
+                            #send_message_to_slack(drift_alert_message)            
+                #registered_models = mlflow_client.search_registered_models()
+                #all_registered_model_types=[model.name.removesuffix("_error_detection") for model in registered_models]
+                registered_models=all_item_models
+                all_registered_model_types=all_item_models.keys()
+                print("REGISTERED MODELS: ")
+                print(all_registered_model_types)
+                print(new_am2_relationships_data_single_type)
                 if item_type in all_registered_model_types and len(new_am2_relationships_data_single_type)>0:
                     order=list(all_item_models[item_type]['model'].feature_names_in_)
                     new_am2_relationships_data_single_type=new_am2_relationships_data_single_type.reindex(
@@ -227,8 +237,8 @@ def main(args):
                     logger.info(StructuredMessage(message=f"Making predictions on data...",
                         operation_type="predictions_start",
                         status="Pending"))
-                    model = mlflow.sklearn.load_model(
-                        model_uri=f"models:/{item_type}_error_detection@live")
+                    #model = mlflow.sklearn.load_model(
+                    #    model_uri=f"models:/{item_type}_error_detection@live")
                     predictions=all_item_models[item_type]['model'].predict(
                         new_am2_relationships_data_single_type
                         )
@@ -248,7 +258,11 @@ def main(args):
                         item_type=item_type))
                         send_message_to_slack(f"The following possible anomalies of type {item_type} were detected:")
                         send_message_to_slack(str(anomalies))
-                all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
+                if len(new_am2_relationships_data_single_type)>0:        
+                    all_new_am2_relationships_data[item_type]={
+                        "modelInput": new_am2_relationships_data_single_type,
+                        "predictions": predictions
+                    }
             # Save data we just retrieved for use in training a new model
             save_versioned_pickle_file(
                 all_new_am2_relationships_data,
