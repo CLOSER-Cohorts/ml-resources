@@ -270,7 +270,7 @@ def main(args):
                 folder='./projects/am2_project/data/pending_training_data',
                 )
             save_versioned_pickle_file(
-                items,
+                all_new_am2_relationships_data,
                 'new_items',
                 folder='./projects/am2_project/data/pending_training_data',
                 )
