@@ -170,6 +170,7 @@ def main(args):
             # Only check items for which a) there is fresh data and b) we have trained a model
             item_types = sorted(set([colectica_client.item_code_inv(item['ItemType']) for item in items]))
             all_new_am2_relationships_data={}
+            new_items_for_performance_assessment={}
             for item_type in [x for x in item_types if x in list(all_item_models.keys())]:
                 items_of_a_type = [x for x in items 
                     if x['ItemType']==colectica_client.item_code(item_type)]
@@ -259,7 +260,8 @@ def main(args):
                         send_message_to_slack(f"The following possible anomalies of type {item_type} were detected:")
                         send_message_to_slack(str(anomalies))
                 if len(new_am2_relationships_data_single_type)>0:        
-                    all_new_am2_relationships_data[item_type]={
+                    all_new_am2_relationships_data[item_type]=new_am2_relationships_data_single_type
+                    new_items_for_performance_assessment[item_type]={
                         "modelInput": new_am2_relationships_data_single_type,
                         "predictions": predictions
                     }
@@ -270,7 +272,7 @@ def main(args):
                 folder='./projects/am2_project/data/pending_training_data',
                 )
             save_versioned_pickle_file(
-                items,
+                new_items_for_performance_assessment,
                 'new_items',
                 folder='./projects/am2_project/data/pending_training_data',
                 )
