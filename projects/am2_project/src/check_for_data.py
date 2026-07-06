@@ -2,6 +2,7 @@ import argparse
 import logging
 import sys
 import json
+import uuid
 from pathlib import Path
 from datetime import datetime
 import numpy as np
@@ -35,6 +36,14 @@ def get_logs():
             if line.strip()
         ]
         return records
+
+def are_series_the_same(series1, series2):
+    return (
+    series1.nunique(dropna=False) == 1 and
+    series2.nunique(dropna=False) == 1 and
+    series1.iloc[0] == series2.iloc[0]
+    )
+
 
 """
 log_entries=get_logs()
@@ -71,8 +80,10 @@ def check_for_new_sweeps(project_config, all_sweeps):
     return sweeps_not_in_project
 
 def main(args):
+    batch_run_id = str(uuid.uuid4())
     logger.info(StructuredMessage(message='Checking for newly available data in Colectica repository',
-        operation_type="data_check_start"
+        operation_type="data_check_start",
+        batch_run_id=batch_run_id
         ))
     start_time_for_input_creation=datetime.now()
     try:
@@ -165,7 +176,8 @@ def main(args):
                         operation_type="anomaly potentially fixed",
                         agency_id=updated_item[0],
                         identifier=updated_item[1],
-                        status="potentially_fixed_anomaly"))
+                        status="potentially_fixed_anomaly",
+                        batch_run_id=batch_run_id))
             """
             # Only check items for which a) there is fresh data and b) we have trained a model
             item_types = sorted(set([colectica_client.item_code_inv(item['ItemType']) for item in items]))
@@ -178,7 +190,8 @@ def main(args):
                 # Create new input features...
                 logger.info(StructuredMessage(message=f"Creating input features...",
                     operation_type="input_feature_creation_start",
-                    status="Pending"))
+                    status="Pending",
+                    batch_run_id=batch_run_id))
                 print("ITEM TYPE")
                 print(item_type)
                 print(items_of_a_type)
@@ -189,20 +202,23 @@ def main(args):
                     item_type=item_type,
                     number_of_records=len(items_of_a_type),
                     status="Success",
-                    duration=duration_input_creation.seconds))
+                    duration=duration_input_creation.seconds,
+                    batch_run_id=batch_run_id))
                 if duration_input_creation.seconds>0 and len(items_of_a_type)/duration_input_creation.seconds < 3:
                     send_message_to_slack(f"Input feature creation throughput for {item_type} has fallen below 3 seconds.")
                 # Perform data drift checks...
-                metrics=[]
-                for column in all_item_models[item_type]['data'].columns:
-                    metrics.extend([
-                        ValueDrift(column=column, method="psi"),
-                        ValueDrift(column=column, method="chisquare")])
-                report = Report(
-                        metrics=metrics
-                    )
                 X_reference = all_item_models[item_type]['data'].reset_index(drop=True)
                 X_input = new_am2_relationships_data_single_type.reset_index(drop=True)
+                metrics=[]
+                for column in all_item_models[item_type]['data'].columns:
+                    if column in X_input.columns and not are_series_the_same(X_reference[column], 
+                        X_input[column]):
+                        metrics.extend([
+                            ValueDrift(column=column, method="psi"),
+                            ValueDrift(column=column, method="chisquare")])
+                report = Report(
+                        metrics=metrics
+                )
                 print(item_type)
                 print("X_reference")
                 print(X_reference.columns)
@@ -218,10 +234,23 @@ def main(args):
                         current_data=X_input.astype('category'),
                     )
                     for x in snapshot.dict()['metrics']:
-                        if x['value']>x['config']['threshold']:
+                        metric=x['config']['method']
+                        drift_present_psi=False
+                        drift_present_chi_square=False
+                        if metric=='psi':
+                            drift_present_psi=x['value'] > project_config['Thresholds'][item_type]['Psi']#x['config']['threshold']
+                        elif metric=='chisquare':
+                            drift_present_chi_square=x['value'] < project_config['Thresholds'][item_type]['ChiSquare'] # x['config']['threshold']
+                        if drift_present_psi and drift_present_chi_square:
                             drift_alert_message=f"{x['config']['column']}, {x['metric_name']}: value of {x['value']} suggests possible data drift"
                             print(drift_alert_message)
-                            #send_message_to_slack(drift_alert_message)            
+                            send_message_to_slack(drift_alert_message)
+                            logger.info(StructuredMessage(description="Data drift alert",
+                                status="Warning",
+                                operation_type="data_drift_check",
+                                drift_alert_message=drift_alert_message,
+                                batch_run_id=batch_run_id
+                            ))
                 #registered_models = mlflow_client.search_registered_models()
                 #all_registered_model_types=[model.name.removesuffix("_error_detection") for model in registered_models]
                 registered_models=all_item_models
@@ -237,7 +266,8 @@ def main(args):
                     start_time_for_model_predictions=datetime.now()
                     logger.info(StructuredMessage(message=f"Making predictions on data...",
                         operation_type="predictions_start",
-                        status="Pending"))
+                        status="Pending",
+                        batch_run_id=batch_run_id))
                     #model = mlflow.sklearn.load_model(
                     #    model_uri=f"models:/{item_type}_error_detection@live")
                     predictions=all_item_models[item_type]['model'].predict(
@@ -247,7 +277,8 @@ def main(args):
                     logger.info(StructuredMessage(description=f"Time for AM2 model predictions for {len(new_am2_relationships_data_single_type)} items of type {item_type}",
                         operation_type="predictions_start",
                         status="Success",
-                        duration=duration_model_prediction.seconds))
+                        duration=duration_model_prediction.seconds,
+                        batch_run_id=batch_run_id))
                     indices_flagged = [i for i, x in enumerate(predictions) if x == -1]    
                     anomalies=list(new_am2_relationships_data_single_type.index[indices_flagged])
                     if len(anomalies)>0:
@@ -256,7 +287,8 @@ def main(args):
                         logger.info(StructuredMessage(description=f"{len(anomalies)} anomalies detected for items of type {item_type}",
                         operation_type="anomalies_detected",
                         number_number_of_anomalies=len(anomalies),
-                        item_type=item_type))
+                        item_type=item_type,
+                        batch_run_id=batch_run_id))
                         send_message_to_slack(f"The following possible anomalies of type {item_type} were detected:")
                         send_message_to_slack(str(anomalies))
                 if len(new_am2_relationships_data_single_type)>0:        
@@ -282,7 +314,8 @@ def main(args):
             status="Success",
             operation_type="data_check_end",
             duration=duration_input_creation.seconds,
-            peak_memory_usage=peak))
+            peak_memory_usage=peak,
+            batch_run_id=batch_run_id))
         tracemalloc.reset_peak()
         all_sweeps=get_all_sweeps()
         sweeps_not_in_project=check_for_new_sweeps(project_config, all_sweeps)
@@ -307,7 +340,8 @@ def main(args):
         stack_trace = traceback.format_exc()
         print(stack_trace)
         logger.info(StructuredMessage(description=f"Script failed: {str(stack_trace)}",
-            status="Failed"))
+            status="Failed",
+            batch_run_id=batch_run_id))
         send_message_to_slack(str(stack_trace))
         sys.exit(1)  # important for scheduler to detect failure
 

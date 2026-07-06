@@ -299,39 +299,69 @@ from evidently import Report
 from evidently.metrics import ValueDrift
 
 
+def are_series_the_same(series1, series2):
+    return (
+    series1.nunique(dropna=False) == 1 and
+    series2.nunique(dropna=False) == 1 and
+    series1.iloc[0] == series2.iloc[0]
+    )
+
+reference_data=read_dataset_from_file('projects/am2_project/data/drift_reference/Question_drift_reference/Question_drift_reference_1.pickle')
+test_data=relationships_data_for_training_updated_model['Question'].iloc[0:1000]
+
 metrics=[]
-for column in all_item_models['Question']['data'].columns:
+for column in reference_data.columns:
+    if column in test_data.columns and not are_series_the_same(reference_data[column],
+        test_data[column]):
         metrics.extend([
         ValueDrift(column=column, method="psi"),
         ValueDrift(column=column, method="chisquare")])
 report = Report(
     metrics=metrics
 )
-X_train = all_item_models['Question']['data'].reset_index(drop=True)
-X_test2 = X_test.reset_index(drop=True)
 
-snapshot = report.run(
-    reference_data=X_train2.astype('category'),
-    current_data=X_test2.astype('category'),
-)
-
-snapshot = report.run(
-    reference_data=X_train2,
-    current_data=X_test2
-)
-
+"""
+input_columns_not_in_reference = [x for x in test_data.columns if x not in reference_data.columns]
+reference_data[input_columns_not_in_reference] = 0
+reference_columns_not_in_input = [x for x in reference_data.columns if x not in test_data.columns]
+test_data[reference_columns_not_in_input] = 0
+                
 report = Report(metrics=[
-    ValueDrift(column="age", method="ks"),
-    ValueDrift(column="age", method="psi"),
-
-    ValueDrift(column="income", method="ks"),
-    ValueDrift(column="income", method="psi"),
+    ValueDrift(column="Study", method="chisquare")
 ])
 
 snapshot = report.run(
-    reference_data=train_df,
-    current_data=new_df
+    reference_data=pd.DataFrame(reference_data['Study'].astype('str')).reset_index(drop=True),
+    current_data=pd.DataFrame(test_data['Study'].astype('str')).reset_index(drop=True),
 )
+
+snapshot = report.run(
+    reference_data=pd.DataFrame(ref_char, columns=['Study']),
+    current_data=pd.DataFrame(ref_char, columns=['Study']),
+)
+"""
+snapshot = report.run(
+    reference_data=reference_data.astype('category'),
+    current_data=test_data.astype('category'),
+)
+
+# for chi square
+for x in snapshot.dict()['metrics']:
+    #print(x)
+    #print(f"METRIC: {x['config']['method']}")
+    metric=x['config']['method']
+    drift_present_psi=False
+    drift_present_chi_square=False
+    print()
+    if metric=='psi':
+        drift_present_psi=x['value']>.25#x['config']['threshold']
+        print(f"PSI {x['value']}, {x['config']['column']}")
+    elif metric=='chisquare':
+        drift_present_chi_square=x['value']<x['config']['threshold']
+        print(f"CHI SQUARE {x['value']}, {x['config']['column']}")
+    if drift_present_psi and drift_present_chi_square:
+            drift_alert_message=f"{x['config']['column']}, {x['metric_name']}: value of {x['value']} suggests possible data drift"
+            print(drift_alert_message)
 
 
 
@@ -365,3 +395,21 @@ get_mislabelled_items(predicted_item_labels, actual_labelled_items)
 all_input_features=[]
 for x in list(all_models):
     all_input_features.extend(all_item_models[x]['model'].feature_names_in_)
+
+
+CREATE DRIFT DATA
+sweep_items=get_latest_versions_of_project_sweeps(project_config)
+for item_type in project_config["ItemTypes"][3:]:
+    if item_type != 'Question':
+        items_of_a_type = C.search_items(C.item_code(item_type),
+            ReturnIdentifiersOnly=True,
+            MaxResults=0,
+            SearchLatestVersion=True,
+            SearchSets=sweep_items)['Results']
+        new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, 
+            colectica_client, 
+            logger)
+        save_versioned_pickle_file(new_am2_relationships_data_single_type,
+            f"{item_type}_drift_reference",
+            folder='./projects/am2_project/data/drift_reference')      
+        del(items_of_a_type)          
