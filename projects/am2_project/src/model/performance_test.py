@@ -3,6 +3,8 @@ from sklearn.metrics import make_scorer, recall_score
 from sklearn import tree
 import matplotlib.pyplot as plt
 import pandas as pd
+import mlflow
+import json
 from sklearn.tree import DecisionTreeClassifier
 from sklearn import tree
 from pathlib import Path
@@ -14,7 +16,7 @@ from src.ml_resources import (
     get_max_folder_version)
 
 
-def retrain_model(item_type, relationships_data_for_training_updated_model):
+def retrain_model(relationships_data_for_training_updated_model):
     folder = "./projects/am2_project/models/all_item_models"
     object_name = "all_item_models"
     file_version = get_max_file_version(Path(f"{folder}"), object_name)
@@ -23,14 +25,13 @@ def retrain_model(item_type, relationships_data_for_training_updated_model):
         all_item_models=read_dataset_from_file(file_path)
     else:
         all_item_models={}
-    item_type='Variable'
     model=all_item_models[item_type]['model']
     existing_training_data=all_item_models[item_type]['data']
     existing_training_data["ItemType"] = existing_training_data["ItemType"].astype("category").cat.codes
     existing_training_data=existing_training_data.drop(columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'Flagged'])
     existing_training_labels=all_item_models[item_type]['data']['Flagged']
-    additional_training_data=relationships_data_for_training_updated_model['Variable'].drop_duplicates().drop('Flagged', axis=1)
-    additional_training_labels=relationships_data_for_training_updated_model['Variable'].drop_duplicates()['Flagged']
+    additional_training_data=relationships_data_for_training_updated_model[item_type].drop_duplicates().drop('Flagged', axis=1)
+    additional_training_labels=relationships_data_for_training_updated_model[item_type].drop_duplicates()['Flagged']
     updated_training_data=pd.concat([existing_training_data, additional_training_data])
     updated_training_labels=pd.concat([existing_training_labels,additional_training_labels])
     updated_training_data['Flagged'] = updated_training_labels
@@ -138,6 +139,13 @@ for k in relationships_data_for_training_updated_model.keys():
 
 # if necessary, fine tune a model for a particular item type
 dtc=retrain_model('Variable', relationships_data_for_training_updated_model)
+relationships_data_for_training_updated_model['Variable']['Flagged'] = dtc.predict(
+    relationships_data_for_training_updated_model['Variable']
+    )
+metrics=measure_prediction_accuracy(relationships_data_for_training_updated_model[k])
+        
+metrics=measure_prediction_accuracy(relationships_data_for_training_updated_model[k])
+record_model(model, report)
 
 # this is code for visualising a decision tree. it could be used to compare the
 # original supervised model with the fine-tuned model trained on an updated
