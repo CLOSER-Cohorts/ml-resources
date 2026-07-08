@@ -14,6 +14,7 @@ import json
 import time
 import logging
 import random
+from mlflow_code.mlflow_utility import record_model
 from src.logging.utility import StructuredMessage, setup_logging
 from src.ml_resources import (
     obtain_correctly_labelled_data,
@@ -308,37 +309,11 @@ def train_semi_supervised_model(
                     notes=input("Write any notes you want to include in metadata here, or press 'Enter' to leave the notes field empty. ")
                     # Get rid of 'Inferred schema contains integer column(s)' warning...
                     #input_example = X[:5].copy().to_numpy(dtype="float64")
-                    input_example = X[:5]
-                    """
-                    with mlflow.start_run():
-                        # Log parameters and metrics using the MLflow APIs
-                        mlflow.log_param("model_class", model_class.__name__)
-                        mlflow.log_params(model.get_params())
-                        mlflow.log_metric("accuracy", report['accuracy'])
-                        mlflow.log_metric("macro average precision", report['macro avg']['precision'])
-                        mlflow.log_metric("macro average recall", report['macro avg']['recall'])
-                        mlflow.log_metric("macro average f1-score", report['macro avg']['f1-score'])
-                        mlflow.log_metric("macro average support", report['macro avg']['support'])
-                        mlflow.log_metric("weighted average precision", report['weighted avg']['precision'])
-                        mlflow.log_metric("weighted average recall", report['weighted avg']['recall'])
-                        mlflow.log_metric("weighted average f1-score", report['weighted avg']['f1-score'])
-                        mlflow.log_metric("weighted average support", report['weighted avg']['support'])
-                        mlflow.set_tag(
-                            "training_data_url",
-                            "https://s3.amazonaws.com/bucket/training-data.csv"
-                        )
-                        mlflow.set_tag(
-                            "mlflow.note.content", (notes + " https://s3.amazonaws.com/bucket/training-data.csv") 
-                        )
-                        # Log the sklearn model and register it
-                        model_info = mlflow.sklearn.log_model(
-                            sk_model=model,
-                            name=model_name,
-                            input_example=input_example,
-                            registered_model_name=model_name,
-                            serialization_format="skops"
-                        )
-                    """
+                    record_model(model,
+                       report,
+                       model_name=model_name,
+                       input_example=X[:5],
+                       notes=notes)
                     all_human_labelled_data=pd.concat([all_human_labelled_data,
                         model_test_results["UserLabelledData"]])
                 if save_model_in_package_file == True:
@@ -353,7 +328,7 @@ def train_semi_supervised_model(
                         training_item_ids=list(df_relationships.index))
                     save_versioned_pickle_file(model_package,
                         model_name,
-                        folder='./projects/am2_project/models')
+                        folder = './projects/am2_project/models')
                 all_models[item_type]=model_package
     if save_model_in_package_file == True:
         # Move columns to the end of the dataframe...
