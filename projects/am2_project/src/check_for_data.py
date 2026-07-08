@@ -145,7 +145,7 @@ def main(args):
             project_config = json.load(f)
         tracemalloc.start()
         # Check for new data...    
-        results = check_for_newly_available_data(project_config)
+        results = check_for_newly_available_data(project_config, batch_run_id)
         # GET RID OF [0:10] TO GET EVERYTHING
         if len(results['new_item_urns'])>0:
         #if True:
