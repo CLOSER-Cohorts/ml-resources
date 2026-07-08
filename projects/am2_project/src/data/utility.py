@@ -393,7 +393,8 @@ def check_for_newly_available_data(project_config, batch_run_id):
     if len(updated_sweeps)>0:
         for sweep in updated_sweeps:
             items=obtain_items_from_colectica(item_types=project_config["ItemTypes"], 
-                search_set_items=sweep)
+                search_set_items=sweep,
+                batch_run_id)
             all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"
                 for item in items]
             new_item_urns.extend([create_urn(x) for x in items if create_urn(x)["Urn"] not in all_urns_in_current_dataset])
