@@ -44,7 +44,7 @@ def is_float_string(value):
 """, re.VERBOSE)
     return bool(float_pattern.match(value))
 
-def create_am2_input_features(items, colectica_client, logger):
+def create_am2_input_features(items, colectica_client, logger, batch_run_id):
     df_relationships = pd.DataFrame()
     # Using 'enumerate(items)' to create an index may be slow due to the complexity
     # of the item objects
@@ -103,7 +103,8 @@ def create_am2_input_features(items, colectica_client, logger):
                 feature_api_calls_latency_50_percentile=summary_stats['percentiles'][1],
                 feature_api_calls_latency_75_percentile=summary_stats['percentiles'][2],
                 feature_api_calls_latency_95_percentile=summary_stats['percentiles'][3],
-                feature_api_calls_latency_99_percentile=summary_stats['percentiles'][4]
+                feature_api_calls_latency_99_percentile=summary_stats['percentiles'][4],
+                batch_run_id=batch_run_id
             ))
     return df_relationships
 
@@ -368,7 +369,7 @@ def get_cached_versions_of_project_sweeps():
         cached_sweeps=[]
     return cached_sweeps
 
-def check_for_newly_available_data(project_config):
+def check_for_newly_available_data(project_config, batch_run_id):
     all_urns_in_current_dataset=[]
     all_item_urns=[]
     new_item_urns=[]
@@ -385,7 +386,7 @@ def check_for_newly_available_data(project_config):
         except Exception as e:
             raise FileNotFoundError(f"File not found error: {e}")
     cached_sweep_items=get_cached_versions_of_project_sweeps()
-    sweep_items=get_latest_versions_of_project_sweeps(project_config)
+    sweep_items=get_latest_versions_of_project_sweeps(project_config, batch_run_id)
     updated_sweeps=[x for x in sweep_items if x not in cached_sweep_items]  
     print("UPDATED SWEEPS")
     print(updated_sweeps)
