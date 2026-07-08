@@ -192,7 +192,8 @@ def get_latest_versions_of_project_sweeps(project_config, batch_run_id):
     start_time_for_latests_sweeps_retrieval = datetime.now()
     logger.info(StructuredMessage(message=f"Get latest versions of sweeps...",
         operation_type="get_latest_versions_of_project_sweeps_start",
-        status="Pending"))
+        status="Pending",
+        batch_run_id=batch_run_id))
     sweep_items = []
     for study, sweeps in project_config["ItemsForTrainingAndTest"]["Sweeps"].items():
         for sweep_name, sweep_id in sweeps.items():
