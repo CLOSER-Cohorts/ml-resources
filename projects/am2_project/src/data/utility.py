@@ -91,7 +91,7 @@ def create_am2_input_features(items, colectica_client, logger, batch_run_id):
             summary_stats=get_summary_stats(np.array(api_latencies))
             print(summary_stats)
             logger.info(StructuredMessage(description="Latencies for API operations involved in feature creation",
-                operation_type="input_feature_creation",
+            operation_type="input_feature_creation",
                 duration=time.perf_counter() - start,
                 feature_count=summary_stats['count'],
                 feature_api_calls_latency_mean=summary_stats['mean'].item(),
@@ -326,7 +326,7 @@ def train_semi_supervised_model(
                         notes=notes,
                         model_version=model_name,
                         training_data_version=training_data_description,
-                        training_item_ids=list(df_relationships.index))
+                        training_item_ids=list(X.index))
                     save_versioned_pickle_file(model_package,
                         model_name,
                         folder = './projects/am2_project/models')

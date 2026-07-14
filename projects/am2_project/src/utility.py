@@ -1,5 +1,10 @@
 from src.ml_resources.data import colectica_utility
 import json
+import pandas as pd
+from src.ml_resources import (
+    read_dataset_from_file,
+    get_max_file_version)
+from pathlib import Path
 
 colectica_client = colectica_utility.C
 
@@ -43,3 +48,26 @@ def get_mislabelled_items(predicted_item_labels, actual_labelled_items):
                             "PredictedTopic": predicted_item_labels[study][identifier]['Topic'],
                             "ActualTopic": actual_labelled_items[study][identifier]['Topic']})
     return potential_mislabels
+
+def get_training_data():
+    with open("./projects/am2_project/config/am2_config.json") as f:
+       project_config = json.load(f)
+    folder = "./projects/am2_project/data/pending_training_data/am2_relationships_data_for_future_model"
+    object_name = "am2_relationships_data_for_future_model"
+    current_file_version=1
+    max_file_version = get_max_file_version(Path(f"{folder}"), object_name)
+    dicts=[]
+    while current_file_version<=max_file_version:
+        file_path = Path(f"{folder}/{object_name}_{current_file_version}.pickle")
+        if file_path.exists():
+            relationships_data_for_training_updated_model=read_dataset_from_file(file_path)
+            dicts.append(relationships_data_for_training_updated_model)
+        current_file_version +=1
+    relationships_data_for_training_updated_model = {
+        k: pd.concat([d[k] for d in dicts if k in d]).loc[lambda df: ~df.index.duplicated(keep='first')].fillna(0.0)
+        for k in set().union(*dicts)
+    }
+    return relationships_data_for_training_updated_model
+
+
+

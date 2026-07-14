@@ -11,12 +11,15 @@ from sklearn import tree
 from pathlib import Path
 from sklearn.model_selection import GridSearchCV
 from sklearn.tree import DecisionTreeClassifier
+from projects.am2_project.src.utility import get_training_data
+from src.logging.utility import StructuredMessage, setup_logging
 from src.ml_resources import (
     read_dataset_from_file,
     get_max_file_version,
     get_max_folder_version,
     save_versioned_model_files,
-    create_model_package)
+    create_model_package,
+    save_versioned_pickle_file)
 
 """
 The code in this file is for testing the performance of the am2 anomaly detection
@@ -33,19 +36,26 @@ retrain_model_with_production_data_added()
 """
 
 
-def combine_training_and_production_data(relationships_data_for_training_updated_model, model_info):
+def combine_training_and_production_data(additional_training_data,
+    original_training_data_single_type,
+    model_info):
     existing_training_data=model_info['data']
     existing_training_data["ItemType"] = existing_training_data["ItemType"].astype("category").cat.codes
-    existing_training_data=existing_training_data.drop(columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'Flagged'])
-    existing_training_labels=model_info['data']['Flagged']
-    additional_training_data=relationships_data_for_training_updated_model.drop_duplicates().drop('Flagged', axis=1)
-    additional_training_labels=relationships_data_for_training_updated_model.drop_duplicates()['Flagged']
-    updated_training_data=pd.concat([existing_training_data, additional_training_data])
-    updated_training_labels=pd.concat([existing_training_labels,additional_training_labels])
-    updated_training_data['Flagged'] = updated_training_labels
-    updated_training_data_unique=updated_training_data.drop_duplicates()
-    updated_training_input=updated_training_data_unique.drop('Flagged', axis=1)
-    updated_training_labels=updated_training_data_unique['Flagged']
+    existing_training_data=existing_training_data.drop(columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore'])
+    #training_data_with_duplicates = original_training_data_single_type.merge(existing_training_data, how="inner")
+    training_data_with_duplicates = (
+        original_training_data_single_type
+        .reset_index()
+        .merge(existing_training_data, how="inner")
+        .set_index("index")
+        )
+    #existing_training_labels=model_info['data']['Flagged']
+    #additional_training_data=relationships_data_for_training_updated_model.drop_duplicates().drop('Flagged', axis=1)
+    #additional_training_labels=relationships_data_for_training_updated_model.drop_duplicates()['Flagged']
+    updated_training_data=pd.concat([training_data_with_duplicates, additional_training_data])
+    #updated_training_labels=pd.concat([existing_training_labels,additional_training_labels])
+    #updated_training_data['Flagged'] = updated_training_labels
+    #updated_training_data_unique=updated_training_data.drop_duplicates()
     return updated_training_data
     
 def retrain_model(relationships_data_for_training_updated_model, model_info):
@@ -57,25 +67,37 @@ def retrain_model(relationships_data_for_training_updated_model, model_info):
     'criterion': ['gini', 'entropy'],
     'class_weight': ['balanced', None]
     }
-    recall_minus1 = make_scorer(
-    recall_score,
-    pos_label=-1
-    )
-    grid = GridSearchCV(
-        estimator=DecisionTreeClassifier(),
-        param_grid=param_grid,
-        scoring=recall_minus1,
-        cv=5,
-        n_jobs=-1
-    )
-    grid.fit(updated_training_input, updated_training_labels)
-    dtc=grid.best_estimator_
-    print("Best parameters:", grid.best_params_)
-    print("Best CV performance:", grid.best_score_)
+    training_input=relationships_data_for_training_updated_model.drop('Flagged', axis=1)
+    training_labels=relationships_data_for_training_updated_model['Flagged']
+    print("TRAINING INPUT")
+    print(training_input)
+    print(len(training_input))
+    if len([x for x in training_labels.values if x==-1])<5:
+        print("NOT MUCH INPUT")
+        dtc = model.fit(training_input, training_labels)
+    elif -1 in training_labels.values:
+        recall_minus1 = make_scorer(
+        recall_score, 
+        pos_label=-1
+        )
+        grid = GridSearchCV(
+           estimator=DecisionTreeClassifier(),
+           param_grid=param_grid,
+           scoring=recall_minus1,
+           cv=5,
+           n_jobs=-1
+        )
+        grid.fit(training_input, training_labels)
+        dtc=grid.best_estimator_
+        print("Best parameters:", grid.best_params_)
+        print("Best CV performance:", grid.best_score_)
+    else:
+        print("No anomalies in training data to detect")
+        dtc = model
     return dtc
 
 
-def measure_prediction_accuracy(data_with_predictions):
+def measure_prediction_accuracy(data_with_predictions, data_type, logger):
     reports={}
     df_unique=data_with_predictions.drop_duplicates()
     df_y_true=data_with_predictions.copy()
@@ -85,7 +107,7 @@ def measure_prediction_accuracy(data_with_predictions):
         print(v)
         print(k)
         while ground_truth not in ['y', 'n']:
-                ground_truth=input(f"{count} of {len(df_unique)}, is this right? y/n ")
+                ground_truth=input(f"{count} of {len(df_unique)} ({data_type}), is this right? y/n ")
         if ground_truth=='n':
             mask = df_y_true.eq(v).all(axis=1)
             print(mask)
@@ -98,7 +120,14 @@ def measure_prediction_accuracy(data_with_predictions):
     report = classification_report(df_y_true['Flagged'],
             data_with_predictions['Flagged'],
             output_dict=True
-            )    
+            )
+    logger.info(StructuredMessage(description=f"Performance for {item_type} anomaly detection",
+                    operation_type=f"{item_type} anomaly detection performance",
+                    item_type=item_type,
+                    number_of_records=len(data_with_predictions),
+                    report=report
+                    )
+            )
     return {"report": report, "ground_truth": df_y_true['Flagged']}
 
 def retrieve_production_data():
@@ -121,10 +150,11 @@ def retrieve_production_data():
        k: pd.concat([d[k]['modelInput'] for d in dicts if k in d]).loc[lambda df: ~df.index.duplicated(keep='first')].fillna(0.0)
        for k in set().union(*dicts)
     }
-    relationships_data_for_training_updated_model[k]['Flagged']=model_predictions[k]
+    for k in relationships_data_for_training_updated_model.keys():
+        relationships_data_for_training_updated_model[k]['Flagged']=model_predictions[k]
     return relationships_data_for_training_updated_model
   
-def retrain_model_with_production_data_added():
+def retrain_model_with_production_data_added(logger):
     # Read in the input features and the trained model predictions from the production 
     # environment
     relationships_data_for_training_updated_model = retrieve_production_data()
@@ -132,7 +162,7 @@ def retrain_model_with_production_data_added():
     folder = "./projects/am2_project/models/all_item_models"
     object_name = "all_item_models"
     file_version = get_max_file_version(Path(f"{folder}"), object_name)
-    if file_version >0:
+    if file_version > 0:
         file_path = Path(f"{folder}/{object_name}_{file_version}.pickle")
         all_item_models=read_dataset_from_file(file_path)
     else:
@@ -140,44 +170,89 @@ def retrain_model_with_production_data_added():
     reports={}
     ground_truth={}
     tuned_models={}
-    for k in relationships_data_for_training_updated_model.keys():
+    number_of_item_types = len(list(relationships_data_for_training_updated_model.keys()))
+    count = 1
+    for k in list(relationships_data_for_training_updated_model.keys()):
+      if k=='Variable':
         # Now get human generated ground truth labels for the model inputs, and generate
-        # performance metrics by comparing the human ground truth labels with the 
         # supervised model predictions
-        metrics=measure_prediction_accuracy(relationships_data_for_training_updated_model[k])
-        reports[k]=metrics['report']
+        # performance metrics by comparing the human ground truth labels with the 
+        print(f"Item type: {k}, {count} of {number_of_item_types}")
+        count = count + 1
+        # You're testing the accuracy of the trained model on data post-deployment it hasn't 
+        # previously encountered; this fresh data is then combined with the existing data
+        # that the model has been trained on in order to train an updated version of the model
+        metrics = measure_prediction_accuracy(relationships_data_for_training_updated_model[k], 
+           k,
+           logger)
+        reports[k] = metrics['report']
         ground_truth[k]=metrics['ground_truth']
-        human_labelled_training_data = relationships_data_for_training_updated_model
+        human_labelled_training_data = relationships_data_for_training_updated_model[k]
         human_labelled_training_data['Flagged'] = metrics['ground_truth']
+        original_training_data = get_training_data()
         # Retrain the model using gridsearchcv on a new training dataset, which is 
         # composed of a) the models original training data and b) the new items 
         combined_training_and_production_data=combine_training_and_production_data(
-            relationships_data_for_training_updated_model[k],
-            model_info[k])
+            human_labelled_training_data,
+            original_training_data[k],
+            all_item_models[k])
         tuned_model=retrain_model(combined_training_and_production_data, all_item_models[k])
         # Save model on MLFlow
-        record_model(tuned_model,
-            metrics['report'],
-            model_name=f"{k}_error_detection",
-            input_example=relationships_data_for_training_updated_model[k][:5])
+        #record_model(tuned_model,
+        #    metrics['report'],
+        #    model_name=f"{k}_error_detection",
+        #    input_example=combined_training_and_production_data.drop('Flagged', axis=1)[:5])
+        if 'test_data' in all_item_models[k].keys():
+            test_data = all_item_models[k]['test_data']
+        else:
+            test_data = pd.DataFrame()
         # Create a new model package with the retrained model
         model_package=create_model_package(tuned_model,
-            human_labelled_training_data,
-            all_item_models[k]['test_data'],
+            combined_training_and_production_data,
+            test_data,
             'Flagged', 
             preprocessing=["PCA"],
             notes=f"Updated {k} error detection model",
-            model_version=f"{item_type}_error_detection",
+            model_version=f"{k}_error_detection",
             training_data_version=f"{len(relationships_data_for_training_updated_model[k])}_{k}_items",
-            training_item_ids=list(df_relationships.index))
+            training_item_ids=list(combined_training_and_production_data.index))
         tuned_models[k]=model_package
     # 5 Save the model artefacts in separate files using save_versioned_model_files
-    save_versioned_model_files(all_models,
+    #save_versioned_pickle_file(tuned_models, 'tuned_models', folder='./projects/am1_project/data')
+    save_versioned_model_files(tuned_models,
         "all_item_models_separate",
         folder='./projects/am2_project/models')
-    
+
+logger=setup_logging()    
 # This is the main command for running the retraining/performance metric gathering process 
-retrain_model_with_production_data_added()
+retrain_model_with_production_data_added(logger)
+
+
+# to get the items that were used as test datasets when initially training the datasets
+relationships_data=get_training_data()
+result=list(set(relationships_data['Variable'].index) - set(training_data_with_duplicates.index))
+relationships_data['Variable'].loc[result].drop_duplicates() # 28, +112=140
+
+# open the data file for a trained model
+with open("./projects/am2_project/models/all_item_models_separate/all_item_models_separate_6/metadata.json") as f:
+    variable_metadata = json.load(f)
+variable_df2=pd.read_parquet("./projects/am2_project/models/all_item_models_separate/all_item_models_separate_5/Variable_training.parquet")
+
+
+ids_for_original_variable_model=all_item_models['Variable']['metadata']['training_item_ids']
+ids_for_updated_variable_model=variable_df.index
+ids_for_production_data=relationships_data_for_training_updated_model['Variable'].index
+result = list(set(ids_for_production_data) - set(b))
+
+TODO: SAVE TEST DATA IN THE VERSIONED MODEL FILES. NEED TO FIGURE OUT HOW TO GET THE TEST DATA?
+PLAN
+Start from the current set of waves (delete the current cache file)
+Measure: the model performance
+the data drift 
+data quality (Missing values, invalid values, duplicates, schema changes)
+prediction/concept drift (% of anomalies)
+system and operation metrics
+create dashboards
 
 
 # The rest of this file is code for miscellaneous tasks, included for possible future convenience
