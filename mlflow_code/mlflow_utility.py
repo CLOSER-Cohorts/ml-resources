@@ -33,4 +33,5 @@ def record_model(model, report, model_name="", input_example=None, notes=""):
                 registered_model_name=model_name,
                 serialization_format="skops"
                 )
+        return model_info
 

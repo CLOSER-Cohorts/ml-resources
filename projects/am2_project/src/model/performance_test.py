@@ -97,7 +97,7 @@ def retrain_model(relationships_data_for_training_updated_model, model_info):
     return dtc
 
 
-def measure_prediction_accuracy(data_with_predictions, data_type, logger):
+def measure_prediction_accuracy(data_with_predictions, item_type):
     reports={}
     df_unique=data_with_predictions.drop_duplicates()
     df_y_true=data_with_predictions.copy()
@@ -107,7 +107,7 @@ def measure_prediction_accuracy(data_with_predictions, data_type, logger):
         print(v)
         print(k)
         while ground_truth not in ['y', 'n']:
-                ground_truth=input(f"{count} of {len(df_unique)} ({data_type}), is this right? y/n ")
+                ground_truth=input(f"{count} of {len(df_unique)} ({item_type}), is this right? y/n ")
         if ground_truth=='n':
             mask = df_y_true.eq(v).all(axis=1)
             print(mask)
@@ -120,13 +120,6 @@ def measure_prediction_accuracy(data_with_predictions, data_type, logger):
     report = classification_report(df_y_true['Flagged'],
             data_with_predictions['Flagged'],
             output_dict=True
-            )
-    logger.info(StructuredMessage(description=f"Performance for {item_type} anomaly detection",
-                    operation_type=f"{item_type} anomaly detection performance",
-                    item_type=item_type,
-                    number_of_records=len(data_with_predictions),
-                    report=report
-                    )
             )
     return {"report": report, "ground_truth": df_y_true['Flagged']}
 
@@ -173,7 +166,7 @@ def retrain_model_with_production_data_added(logger):
     number_of_item_types = len(list(relationships_data_for_training_updated_model.keys()))
     count = 1
     for k in list(relationships_data_for_training_updated_model.keys()):
-      if k=='Variable':
+      #if k=='Variable':
         # Now get human generated ground truth labels for the model inputs, and generate
         # supervised model predictions
         # performance metrics by comparing the human ground truth labels with the 
@@ -183,8 +176,7 @@ def retrain_model_with_production_data_added(logger):
         # previously encountered; this fresh data is then combined with the existing data
         # that the model has been trained on in order to train an updated version of the model
         metrics = measure_prediction_accuracy(relationships_data_for_training_updated_model[k], 
-           k,
-           logger)
+           k)
         reports[k] = metrics['report']
         ground_truth[k]=metrics['ground_truth']
         human_labelled_training_data = relationships_data_for_training_updated_model[k]
@@ -198,10 +190,20 @@ def retrain_model_with_production_data_added(logger):
             all_item_models[k])
         tuned_model=retrain_model(combined_training_and_production_data, all_item_models[k])
         # Save model on MLFlow
-        #record_model(tuned_model,
-        #    metrics['report'],
-        #    model_name=f"{k}_error_detection",
-        #    input_example=combined_training_and_production_data.drop('Flagged', axis=1)[:5])
+        model_info=record_model(tuned_model,
+            metrics['report'],
+            model_name=f"{k}_error_detection",
+            input_example=combined_training_and_production_data.drop('Flagged', axis=1)[:5])
+        logger.info(StructuredMessage(description=f"Performance for {k} anomaly detection",
+                    operation_type=f"{k} anomaly detection performance",
+                    item_type=k,
+                    model_name=model_info.name,
+                    model_version=model_info.registered_model_version,
+                    model_uri=model_info.model_uri,
+                    number_of_records=len(relationships_data_for_training_updated_model[k]),
+                    report=metrics['report']
+                    )
+        )
         if 'test_data' in all_item_models[k].keys():
             test_data = all_item_models[k]['test_data']
         else:
@@ -227,6 +229,8 @@ logger=setup_logging()
 # This is the main command for running the retraining/performance metric gathering process 
 retrain_model_with_production_data_added(logger)
 
+TODO: RUN THE ABOVE COMMAND TO RETRAIN THE MODEL WITH PRODUCTION DATA, THEN ADD SOME NEW
+WAVES IN A NEW BRANCH
 
 # to get the items that were used as test datasets when initially training the datasets
 relationships_data=get_training_data()
