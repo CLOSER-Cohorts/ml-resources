@@ -3,6 +3,8 @@ projects/am2_project/experiments/*
 !projects/am2_project/experiments/all_items/
 projects/am2_project/models/*
 !projects/am2_project/models/all_item_models/
+!projects/am2_project/models/all_item_models/all_item_models_separate/
+!projects/am2_project/models/all_item_models/all_item_models_separate/**
 projects/am2_project/graphs
 projects/am2_project/data
 !projects/am2_project/data/pending_training_data

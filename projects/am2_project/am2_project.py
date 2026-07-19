@@ -5,6 +5,7 @@ from sklearn.utils.validation import check_is_fitted
 from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
+from projects.am2_project.src.utility import get_training_data
 from src.ml_resources import (
     read_dataset_from_file,
     obtain_items_from_colectica,
@@ -123,6 +124,7 @@ relationships_data_for_training_updated_model = {
     for k in set().union(*dicts)
 }
 
+relationships_data_for_training_updated_model=get_training_data
 
 folder = "./projects/am2_project/models/all_item_models"
 object_name = "all_item_models"

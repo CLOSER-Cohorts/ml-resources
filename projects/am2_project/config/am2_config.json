@@ -366,6 +366,6 @@
     "Variable Group": {"Psi": 0.25, "ChiSquare": 0.05},
     "Variable Set": {"Psi": 0.25, "ChiSquare": 0.05},
     "Variable Statistic": {"Psi": 0.25, "ChiSquare": 0.05},
-    "While": {"Psi": 0.25, "ChiSquare": 0.05},
+    "While": {"Psi": 0.25, "ChiSquare": 0.05}
   }
 }

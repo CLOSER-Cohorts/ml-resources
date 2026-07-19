@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime
 
 class StructuredMessage:
     def __init__(self, /, **kwargs):
@@ -8,6 +9,9 @@ class StructuredMessage:
         return (json.dumps(self.kwargs))
         #return str(self.kwargs)
 
+class ISO8601Formatter(logging.Formatter):
+    def formatTime(self, record, datefmt=None):
+        return datetime.fromtimestamp(record.created).astimezone().isoformat(timespec="milliseconds")
 
 def setup_logging(project="am2_project", log_file="logs/am2_log.json"):
     logger = logging.getLogger(project)
@@ -15,7 +19,7 @@ def setup_logging(project="am2_project", log_file="logs/am2_log.json"):
     print(logger.name)
     logger.setLevel(logging.INFO)    
     handler=logging.FileHandler(log_file)
-    formatter=logging.Formatter("{\"time\": \"%(asctime)s\", \"level\": [\"%(levelname)s\"], \"message\": %(message)s}")
+    formatter=ISO8601Formatter("{\"time\": \"%(asctime)s\", \"level\": [\"%(levelname)s\"], \"message\": %(message)s}")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.propagate = False

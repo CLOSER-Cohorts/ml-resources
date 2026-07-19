@@ -145,7 +145,7 @@ def main(args):
             project_config = json.load(f)
         tracemalloc.start()
         # Check for new data...    
-        results = check_for_newly_available_data(project_config)
+        results = check_for_newly_available_data(project_config, batch_run_id)
         # GET RID OF [0:10] TO GET EVERYTHING
         if len(results['new_item_urns'])>0:
         #if True:
@@ -195,7 +195,10 @@ def main(args):
                 print("ITEM TYPE")
                 print(item_type)
                 print(items_of_a_type)
-                new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, colectica_client, logger)
+                new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, 
+                   colectica_client,
+                   logger,
+                   batch_run_id)
                 duration_input_creation=datetime.now()-start_time_for_input_feature
                 logger.info(StructuredMessage(description=f"Time for input creation for {len(items_of_a_type)} items of type {item_type}",
                     operation_type=f"input feature creation_end",
@@ -317,7 +320,7 @@ def main(args):
             peak_memory_usage=peak,
             batch_run_id=batch_run_id))
         tracemalloc.reset_peak()
-        all_sweeps=get_all_sweeps()
+        all_sweeps=get_all_sweeps(batch_run_id)
         sweeps_not_in_project=check_for_new_sweeps(project_config, all_sweeps)
         if len(sweeps_not_in_project)>0:
             print(f"""
