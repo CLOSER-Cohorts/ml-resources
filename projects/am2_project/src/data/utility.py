@@ -14,6 +14,7 @@ import json
 import time
 import logging
 import random
+from mlflow_code.mlflow_utility import record_model
 from src.logging.utility import StructuredMessage, setup_logging
 from src.ml_resources import (
     obtain_correctly_labelled_data,
@@ -43,7 +44,7 @@ def is_float_string(value):
 """, re.VERBOSE)
     return bool(float_pattern.match(value))
 
-def create_am2_input_features(items, colectica_client, logger):
+def create_am2_input_features(items, colectica_client, logger, batch_run_id):
     df_relationships = pd.DataFrame()
     # Using 'enumerate(items)' to create an index may be slow due to the complexity
     # of the item objects
@@ -90,7 +91,7 @@ def create_am2_input_features(items, colectica_client, logger):
             summary_stats=get_summary_stats(np.array(api_latencies))
             print(summary_stats)
             logger.info(StructuredMessage(description="Latencies for API operations involved in feature creation",
-                operation_type="input_feature_creation",
+            operation_type="input_feature_creation",
                 duration=time.perf_counter() - start,
                 feature_count=summary_stats['count'],
                 feature_api_calls_latency_mean=summary_stats['mean'].item(),
@@ -102,7 +103,8 @@ def create_am2_input_features(items, colectica_client, logger):
                 feature_api_calls_latency_50_percentile=summary_stats['percentiles'][1],
                 feature_api_calls_latency_75_percentile=summary_stats['percentiles'][2],
                 feature_api_calls_latency_95_percentile=summary_stats['percentiles'][3],
-                feature_api_calls_latency_99_percentile=summary_stats['percentiles'][4]
+                feature_api_calls_latency_99_percentile=summary_stats['percentiles'][4],
+                batch_run_id=batch_run_id
             ))
     return df_relationships
 
@@ -112,7 +114,7 @@ def generate_data_for_classification(item_type,
     clf,
     dataset_name="data",
     graphs_directory='./projects/am2_project/graphs/'):
-    print(pca_data)
+    #print(pca_data)
     target_variables=clf.predict(pca_data)
     scores = clf.decision_function(pca_data)
     unique_data_rows = all_data.drop_duplicates()
@@ -176,7 +178,7 @@ def train_semi_supervised_model(
     all_training_reports={}
     all_test_reports={}
     notes=""
-    print(item_types)
+    #print(item_types)
     for item_type in item_types:
         #mlflow.set_tracking_uri("http://127.0.0.1:5001")
         mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
@@ -193,8 +195,10 @@ def train_semi_supervised_model(
                 test_size_value=input("What proportion of the items do you want to put aside for testing? ")
             # Generate training data, and train a decision tree
             df_relationships = all_relationships_data[item_type]
+            #save_versioned_pickle_file(am1_data, 'var_no_Stats', folder='./projects/am1_project/data')
             df_relationships_unique=df_relationships.drop_duplicates().fillna(0)
-            print(df_relationships_unique)
+            save_versioned_pickle_file(df_relationships_unique, 'df_unique', folder='./projects/am1_project/data')
+            #print(df_relationships_unique)
             if len(df_relationships_unique)>4:
                 X_train, X_test = train_test_split(
                     df_relationships_unique, # this needs to be specific to data type it's not at present
@@ -222,7 +226,7 @@ def train_semi_supervised_model(
                 else:
                     X_train_copy=X_train.copy()
                 data_for_model=X_train_copy.join(training_dataset_isolation_forest)
-                model_name=f"{item_type}_error_detection"
+                model_name=f"{item_type}_error_detection_training"
                 training_data_description=f"{len(X_train)}_{item_type}_items"
                 model_training_results=obtain_correctly_labelled_data(
                     data_for_model,
@@ -284,8 +288,9 @@ def train_semi_supervised_model(
                     # calculated by an IsolationForest with the predictions produced by the supervised
                     # model.
                     test_dataset_isolation_forest['Flagged']=y_pred
-                    print(test_dataset_for_model)
+                    #print(test_dataset_for_model)
                     test_dataset_isolation_forest=X_test_copy.join(test_dataset_isolation_forest)
+                    model_name=f"{item_type}_error_detection_test"
                     model_test_results=obtain_correctly_labelled_data(
                         test_dataset_isolation_forest,
                         'We are testing isolation forests',
@@ -305,49 +310,26 @@ def train_semi_supervised_model(
                     notes=input("Write any notes you want to include in metadata here, or press 'Enter' to leave the notes field empty. ")
                     # Get rid of 'Inferred schema contains integer column(s)' warning...
                     #input_example = X[:5].copy().to_numpy(dtype="float64")
-                    input_example = X[:5]
-                    with mlflow.start_run():
-                        # Log parameters and metrics using the MLflow APIs
-                        mlflow.log_param("model_class", model_class.__name__)
-                        mlflow.log_params(model.get_params())
-                        mlflow.log_metric("accuracy", report['accuracy'])
-                        mlflow.log_metric("macro average precision", report['macro avg']['precision'])
-                        mlflow.log_metric("macro average recall", report['macro avg']['recall'])
-                        mlflow.log_metric("macro average f1-score", report['macro avg']['f1-score'])
-                        mlflow.log_metric("macro average support", report['macro avg']['support'])
-                        mlflow.log_metric("weighted average precision", report['weighted avg']['precision'])
-                        mlflow.log_metric("weighted average recall", report['weighted avg']['recall'])
-                        mlflow.log_metric("weighted average f1-score", report['weighted avg']['f1-score'])
-                        mlflow.log_metric("weighted average support", report['weighted avg']['support'])
-                        mlflow.set_tag(
-                            "training_data_url",
-                            "https://s3.amazonaws.com/bucket/training-data.csv"
-                        )
-                        mlflow.set_tag(
-                            "mlflow.note.content", (notes + " https://s3.amazonaws.com/bucket/training-data.csv") 
-                        )
-                        # Log the sklearn model and register it
-                        model_info = mlflow.sklearn.log_model(
-                            sk_model=model,
-                            name=model_name,
-                            input_example=input_example,
-                            registered_model_name=model_name,
-                            serialization_format="skops"
-                        )
+                    record_model(model,
+                       report,
+                       model_name=model_name,
+                       input_example=X[:5],
+                       notes=notes)
                     all_human_labelled_data=pd.concat([all_human_labelled_data,
                         model_test_results["UserLabelledData"]])
                 if save_model_in_package_file == True:
                     model_package=create_model_package(model,
                         human_labelled_training_data,
+                        model_test_results["UserLabelledData"],
                         'Flagged', 
                         preprocessing=["PCA"],
                         notes=notes,
                         model_version=model_name,
                         training_data_version=training_data_description,
-                        training_item_ids=list(df_relationships.index))
+                        training_item_ids=list(X.index))
                     save_versioned_pickle_file(model_package,
                         model_name,
-                        folder='./projects/am2_project/models')
+                        folder = './projects/am2_project/models')
                 all_models[item_type]=model_package
     if save_model_in_package_file == True:
         # Move columns to the end of the dataframe...
@@ -387,7 +369,7 @@ def get_cached_versions_of_project_sweeps():
         cached_sweeps=[]
     return cached_sweeps
 
-def check_for_newly_available_data(project_config):
+def check_for_newly_available_data(project_config, batch_run_id):
     all_urns_in_current_dataset=[]
     all_item_urns=[]
     new_item_urns=[]
@@ -404,23 +386,25 @@ def check_for_newly_available_data(project_config):
         except Exception as e:
             raise FileNotFoundError(f"File not found error: {e}")
     cached_sweep_items=get_cached_versions_of_project_sweeps()
-    sweep_items=get_latest_versions_of_project_sweeps(project_config)
+    sweep_items=get_latest_versions_of_project_sweeps(project_config, batch_run_id)
     updated_sweeps=[x for x in sweep_items if x not in cached_sweep_items]  
     print("UPDATED SWEEPS")
     print(updated_sweeps)
     if len(updated_sweeps)>0:
         for sweep in updated_sweeps:
-            items=obtain_items_from_colectica(item_types=project_config["ItemTypes"], 
-                search_set_items=sweep)
+            items=obtain_items_from_colectica(batch_run_id,
+                item_types=project_config["ItemTypes"], 
+                search_set_items=sweep
+                )
             all_item_urns=[f"urn:ddi:{item['AgencyId']}:{item['Identifier']}:{item['Version']}"
                 for item in items]
             new_item_urns.extend([create_urn(x) for x in items if create_urn(x)["Urn"] not in all_urns_in_current_dataset])
             print(f"Number of new items found: {len(new_item_urns)}")
             print(new_item_urns)
-        new_item_urns=[create_urn(x) for x in items]
+        new_item_urns.extend([create_urn(x) for x in items])
     if len(new_item_urns)>0:
         print(f"There are {len(new_item_urns)} items are available for analysis/inclusion in the data model.")
-    save_versioned_pickle_file(sweep_items, 'sweep_items_cached', folder='./projects/am1_project/data')
+    save_versioned_pickle_file(sweep_items, 'sweep_items_cached', folder='./projects/am2_project/data')
     return {"all_item_urns": all_item_urns,
             "all_urns_in_current_dataset": all_urns_in_current_dataset,
             "new_item_urns": new_item_urns}
