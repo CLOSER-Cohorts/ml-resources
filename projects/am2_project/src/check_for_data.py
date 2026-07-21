@@ -7,6 +7,9 @@ from pathlib import Path
 from datetime import datetime
 import numpy as np
 from src.logging.utility import StructuredMessage, setup_logging
+from src.ml_resources import (
+    read_dataset_from_file,
+    get_max_file_version)
 from collections import Counter;
 import traceback
 import mlflow
@@ -210,7 +213,13 @@ def main(args):
                 if duration_input_creation.seconds>0 and len(items_of_a_type)/duration_input_creation.seconds < 3:
                     send_message_to_slack(f"Input feature creation throughput for {item_type} has fallen below 3 seconds.")
                 # Perform data drift checks...
-                X_reference = all_item_models[item_type]['data'].reset_index(drop=True)
+                #X_reference = all_item_models[item_type]['data'].reset_index(drop=True)
+                folder = "/projects/am2_project/data/drift_reference/{item_type}_drift_reference"
+                object_name = "{item_type}_drift_reference"
+                current_file_version=1
+                max_file_version = get_max_file_version(Path(f"{folder}"), object_name)
+                file_path = Path(f"{folder}/{object_name}_{current_file_version}.pickle")
+                X_reference = read_dataset_from_file(file_path)
                 X_input = new_am2_relationships_data_single_type.reset_index(drop=True)
                 metrics=[]
                 for column in all_item_models[item_type]['data'].columns:
