@@ -8,6 +8,7 @@ import pandas as pd
 from projects.am2_project.src.utility import get_training_data
 from src.ml_resources import (
     read_dataset_from_file,
+    save_versioned_pickle_file,
     obtain_items_from_colectica,
     get_max_file_version,
     get_max_folder_version,
@@ -401,7 +402,8 @@ for x in list(all_models):
 
 CREATE DRIFT DATA
 sweep_items=get_latest_versions_of_project_sweeps(project_config)
-for item_type in project_config["ItemTypes"][3:]:
+for item_type in project_config["ItemTypes"]:
+    print(item_type)
     if item_type != 'Question':
         items_of_a_type = C.search_items(C.item_code(item_type),
             ReturnIdentifiersOnly=True,

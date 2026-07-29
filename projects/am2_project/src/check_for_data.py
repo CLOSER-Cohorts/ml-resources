@@ -210,7 +210,13 @@ def main(args):
                 if duration_input_creation.seconds>0 and len(items_of_a_type)/duration_input_creation.seconds < 3:
                     send_message_to_slack(f"Input feature creation throughput for {item_type} has fallen below 3 seconds.")
                 # Perform data drift checks...
-                X_reference = all_item_models[item_type]['data'].reset_index(drop=True)
+                #X_reference = all_item_models[item_type]['data'].reset_index(drop=True)
+                folder = f"./projects/am2_project/data/drift_reference/{item_type}_drift_reference"
+                object_name = f"{item_type}_drift_reference"
+                #current_file_version=1
+                max_file_version = get_max_file_version(Path(f"{folder}"), object_name)
+                file_path = Path(f"{folder}/{object_name}_{max_file_version}.pickle")
+                X_reference = read_dataset_from_file(file_path)
                 X_input = new_am2_relationships_data_single_type.reset_index(drop=True)
                 metrics=[]
                 for column in all_item_models[item_type]['data'].columns:
@@ -231,11 +237,14 @@ def main(args):
                 X_reference[input_columns_not_in_reference] = 0
                 reference_columns_not_in_input = [x for x in X_reference.columns if x not in X_input.columns]
                 X_input[reference_columns_not_in_input] = 0
+                X_input = X_input[X_reference.columns]
                 if len(X_reference)>0 and len(X_input)>0:
                     snapshot = report.run(
                         reference_data=X_reference.astype('category'),
                         current_data=X_input.astype('category'),
                     )
+                    print(X_reference.astype('category'))
+                    print(X_input.astype('category'))
                     for x in snapshot.dict()['metrics']:
                         metric=x['config']['method']
                         drift_present_psi=False

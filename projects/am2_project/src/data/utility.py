@@ -90,6 +90,7 @@ def create_am2_input_features(items, colectica_client, logger, batch_run_id):
                 df_relationships = df_relationships.replace({np.nan: 0})
             summary_stats=get_summary_stats(np.array(api_latencies))
             print(summary_stats)
+            """
             logger.info(StructuredMessage(description="Latencies for API operations involved in feature creation",
             operation_type="input_feature_creation",
                 duration=time.perf_counter() - start,
@@ -106,6 +107,7 @@ def create_am2_input_features(items, colectica_client, logger, batch_run_id):
                 feature_api_calls_latency_99_percentile=summary_stats['percentiles'][4],
                 batch_run_id=batch_run_id
             ))
+            """
     return df_relationships
 
 def generate_data_for_classification(item_type, 

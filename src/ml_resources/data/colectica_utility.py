@@ -187,7 +187,7 @@ def get_all_sweeps(batch_run_id):
         batch_run_id=batch_run_id))
     return sweep_info
 
-def get_latest_versions_of_project_sweeps(project_config, batch_run_id):
+def get_latest_versions_of_project_sweeps(project_config, batch_run_id=None):
     # Get the latest versions of sweeps defined in the project config...
     start_time_for_latests_sweeps_retrieval = datetime.now()
     logger.info(StructuredMessage(message=f"Get latest versions of sweeps...",
