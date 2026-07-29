@@ -231,6 +231,7 @@ retrain_model_with_production_data_added(logger)
 
 TODO: RUN THE ABOVE COMMAND TO RETRAIN THE MODEL WITH PRODUCTION DATA, THEN ADD SOME NEW
 WAVES IN A NEW BRANCH
+ITS NOT FINDING THE DRIFT REFERENCE FILES???
 
 # to get the items that were used as test datasets when initially training the datasets
 relationships_data=get_training_data()
