@@ -168,10 +168,11 @@
         "2020 COVID 19 Survey Wave 2 (Age 74)"],
       "uk.alspac": ["ALSPAC Adolescence (13 years – 18 years 11 months)"],
       "uk.mrcleu-uos.sws": ["8-9 Years", "11-13 Years", "COVID"],
-      "uk.cls.nextsteps": ["Next Steps Age 25 Survey (2015)", "Next Steps Age 30 COVID-19 Survey (2021) Wave 3",
-    "Next Steps Age 30 COVID-19 Survey (2020) Wave 1": "78572059-2541-4ce6-813f-10250a53c91b",
-        "Next Steps Age 30 COVID-19 Survey (2020) Wave 2": "86d59c4b-38d3-4754-894f-fde2c60306a8",
-        "Next Steps Age 30 COVID-19 Survey (2021) Serology": "9d0143c6-2e82-4bf6-b8b9-832e1ed3d562"
+      "uk.cls.nextsteps": ["Next Steps Age 25 Survey (2015)", 
+      "Next Steps Age 30 COVID-19 Survey (2021) Wave 3",
+      "Next Steps Age 30 COVID-19 Survey (2020) Wave 1",
+      "Next Steps Age 30 COVID-19 Survey (2020) Wave 2",
+      "Next Steps Age 30 COVID-19 Survey (2021) Serology"
       ],
       "uk.genscot": [],
       "uk.mrcleu-uos.heaf": ["HEAF Follow up 4"],
