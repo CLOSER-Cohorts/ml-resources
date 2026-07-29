@@ -1,5 +1,6 @@
 def create_model_package(model, 
     training_data,
+    test_data,
     target_variable,
     accuracy_report={},
     preprocessing=[],
@@ -23,7 +24,7 @@ def create_model_package(model,
         "notes": notes,
         "model_version": model_version
         },
-     "data": training_data
-
+     "training_data": training_data,
+     "test_data": test_data
     }
     return model_package

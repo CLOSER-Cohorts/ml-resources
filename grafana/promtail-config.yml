@@ -15,3 +15,13 @@ scrape_configs:
         labels:
           job: my_app
           __path__: /logs/*.json
+
+    pipeline_stages:
+      - json:
+          expressions:
+            time: time
+
+      - timestamp:
+          source: time
+          format: RFC3339
+

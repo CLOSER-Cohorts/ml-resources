@@ -168,11 +168,12 @@ def get_topics_for_items(item_identifiers,
                 topic=topicItem[0]['ItemName']
             topics[study_agency_id][identifier]['Topic'] = topic
 
-def get_all_sweeps():
+def get_all_sweeps(batch_run_id):
     start_time_for_all_sweeps_retrieval = datetime.now()
     logger.info(StructuredMessage(message=f"Get all sweeps...",
         operation_type="get_all_sweeps_start",
-        status="Pending"))
+        status="Pending",
+        batch_run_id=batch_run_id))
     sweep_info={}
     # Get all studies...
     study_items = C.search_items([C.item_code('Series')],
@@ -204,15 +205,17 @@ def get_all_sweeps():
         operation_type="get_all_sweeps_end",
         number_of_records=len(study_items),
         status="Success",
-        duration=duration_of_all_sweeps_retrieval.seconds))
+        duration=duration_of_all_sweeps_retrieval.seconds,
+        batch_run_id=batch_run_id))
     return sweep_info
 
-def get_latest_versions_of_project_sweeps(project_config):
+def get_latest_versions_of_project_sweeps(project_config, batch_run_id=None):
     # Get the latest versions of sweeps defined in the project config...
     start_time_for_latests_sweeps_retrieval = datetime.now()
     logger.info(StructuredMessage(message=f"Get latest versions of sweeps...",
         operation_type="get_latest_versions_of_project_sweeps_start",
-        status="Pending"))
+        status="Pending",
+        batch_run_id=batch_run_id))
     sweep_items = []
     for study, sweeps in project_config["ItemsForTrainingAndTest"]["Sweeps"].items():
         for sweep_name, sweep_id in sweeps.items():
@@ -231,18 +234,22 @@ def get_latest_versions_of_project_sweeps(project_config):
     operation_type="get_latest_versions_of_project_sweeps_end",
     number_of_records=len(sweep_items),
     status="Success",
-    duration=duration_of_new_sweeps_check.seconds))
+    duration=duration_of_new_sweeps_check.seconds,
+    batch_run_id=batch_run_id))
     return sweep_items
 
 
-def obtain_items_from_colectica(item_types=[], search_set_items=[]):
+def obtain_items_from_colectica(batch_run_id, item_types=[], search_set_items=[]):
     start_time_for_items_retrieval = datetime.now()   
     logger.info(StructuredMessage(message=f"Obtain items from sweep...",
         operation_type="obtain_items_from_colectica_end",
-        status="Pending"))  
-    all_items=[]
+        status="Pending",
+        batch_run_id=batch_run_id))  
+    items=[]
     item_types_for_project = [C.item_code(item_type) for item_type in item_types]
-    items= C.search_items(item_types_for_project,
+    #print(item_types_for_project)
+    print(f"Searching in {search_set_items}")
+    items = C.search_items(item_types_for_project,
             ReturnIdentifiersOnly=True,
             MaxResults=0,
             SearchLatestVersion=True,
@@ -252,5 +259,6 @@ def obtain_items_from_colectica(item_types=[], search_set_items=[]):
     operation_type="obtain_items_from_colectica_end",
     number_of_records=len(items),
     status="Success",
-    duration=duration_of_items_retrieval.seconds))
+    duration=duration_of_items_retrieval.seconds,
+    batch_run_id=batch_run_id))
     return items

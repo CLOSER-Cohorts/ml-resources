@@ -5,10 +5,13 @@ from sklearn.utils.validation import check_is_fitted
 from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
+from projects.am2_project.src.utility import get_training_data
 from src.ml_resources import (
     read_dataset_from_file,
+    save_versioned_pickle_file,
     obtain_items_from_colectica,
     get_max_file_version,
+    get_max_folder_version,
     get_summary_data,
     get_performance_metrics)
 from projects.am2_project.src.data.utility import (
@@ -22,6 +25,7 @@ from projects.am2_project.src.evidently import (
     generate_drift_monitoring_report
 )
 from src.ml_resources.data import colectica_utility
+from skops.io import get_untrusted_types
 
 colectica_client = colectica_utility.C
 
@@ -121,6 +125,7 @@ relationships_data_for_training_updated_model = {
     for k in set().union(*dicts)
 }
 
+relationships_data_for_training_updated_model=get_training_data
 
 folder = "./projects/am2_project/models/all_item_models"
 object_name = "all_item_models"
@@ -131,14 +136,96 @@ if file_version >0:
 else:
     all_item_models={}
 
+folder = "./projects/am2_project/models/all_item_models_separate"
+object_name = "all_item_models_separate"
+folder_version = get_max_folder_version(Path(f"{folder}"), object_name)
+if folder_version >0:
+    folder_path = Path(f"{folder}/{object_name}_{folder_version}")
+    unknown_types = get_untrusted_types(file = folder_path / "all_models.skops")
+    if unknown_types == []:
+        all_item_models = load(folder_path / "all_models.skops", trusted=unknown_types)
+    else:
+        all_item_models={}
+
+with open(folder_path / "metadata.json") as f:
+    metadata = json.load(f)
+
+questions_model_data = pd.read_parquet(folder_path / "Question.parquet")
+
 train_semi_supervised_model(
     relationships_data_for_training_updated_model,
     project_config['ItemTypes'],
     dataset_name="wip",
     generate_classification_report=True,
     save_model_in_package_file=True,
-    all_models=all_item_models
+    all_models=all_item_models,
+    only_relabel_outliers=True
     )
+
+model_item=read_dataset_from_file('projects/am2_project/models/all_item_models/all_item_models_36.pickle')
+model=model_item['Question']['model']
+X=model_item['Question']['training_data']
+X["ItemType"] = X["ItemType"].astype("category").cat.codes
+X=X.drop(columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'Flagged'])
+y=model_item['Question']['training_data']['Flagged']
+
+
+
+report_dict = classification_report(y_test, y_pred, output_dict=True)
+    
+model=model_class(max_depth=10, class_weight='balanced')    
+model = model_class( 
+    min_samples_leaf=2,
+    min_samples_split=2)
+model.fit(X, y)
+X_test=model_item['Question']['test_data']
+X_test=X_test.drop(columns=['x', 'y', 'DistanceFromOrigin', 'AnomalyScore', 'Flagged'])
+X_test["ItemType"] = X_test["ItemType"].astype("category").cat.codes
+y_pred=model.predict(X_test)
+y_test=model_item['Question']['test_data']['Flagged']
+report_dict = classification_report(y_test, y_pred, output_dict=True)
+
+
+
+
+y_pred=grid.predict(X_test)
+y_test=model_item['Question']['test_data']['Flagged']
+
+
+data_with_predictions = read_dataset_from_file('./projects/am2_project/data/pending_training_data/am2_relationships_data_for_future_model/am2_relationships_data_for_future_model_59.pickle')
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.tree import DecisionTreeClassifier
+
+param_grid = {
+    'max_depth': [2, 3, 4, 5, None],
+    'min_samples_split': [2, 5, 10, 20],
+    'min_samples_leaf': [1, 2, 5, 10],
+    'criterion': ['gini', 'entropy']
+}
+grid = GridSearchCV(
+    estimator=DecisionTreeClassifier(random_state=42),
+    param_grid=param_grid,
+    scoring='precision',
+    cv=5,
+    n_jobs=-1
+)
+grid.fit(X, y)
+
+print("Best parameters:", grid.best_params_)
+print("Best CV precision:", grid.best_score_)
+from sklearn import tree
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(20, 10))
+tree.plot_tree(
+    model,
+    feature_names=model.feature_names_in_,
+    filled=True,
+    rounded=True,
+    fontsize=10
+)
+plt.show()
 
 # You can validate the input to a model using this function:
 
@@ -166,11 +253,13 @@ future_data=read_dataset_from_file('projects/am2_project/data/pending_training_d
 # train_semi_supervised_model above into memory for inspection
 model_package=read_dataset_from_file(
     './projects/am2_project/models/Instrument_classifier_for_error_detection/Instrument_classifier_for_error_detection_9.pickle')
+model_package=read_dataset_from_file(
+    './projects/am2_project/models/Question Group_error_detection/Question Group_error_detection_7.pickle')
 dtc=model_package['model']
 plt.figure(figsize=(10, 10))
 tree.plot_tree(
     dtc,
-    class_names=["OK", "Anomaly"],
+    class_names=["Anomaly", "OK"],
     filled=True,
     fontsize=6,
     feature_names=all_item_models['Question Group']['metadata']['input_features']
@@ -189,12 +278,16 @@ all_human_labelled_data=read_dataset_from_file(
     'projects/am2_project/data/human_labelled_data/all_human_labelled_data/all_human_labelled_data_3.pickle')
 data=my_func(model_package['data'])
 
+with open("./config/secrets.json") as f:
+    general_config = json.load(f)
+
+
 reference_dataset=pd.DataFrame()
 production_dataset=pd.DataFrame()
 project=create_project("Anomaly detection",
     "Anomaly detection within the CLOSER dataset",
-    project_config["EVIDENTLY_API_KEY"],
-    project_config["EVIDENTLY_ORG_ID"])
+    general_config["EVIDENTLY_API_KEY"],
+    general_config["EVIDENTLY_ORG_ID"])
 am2_numerical_columns=[]
 am2_categorical_columns=[]
 schema=create_schema(am2_numerical_columns, am2_categorical_columns)
@@ -204,6 +297,74 @@ generate_drift_monitoring_report(reference_dataset,
     project,
     schema
     )
+
+from evidently import Report
+from evidently.metrics import ValueDrift
+
+
+def are_series_the_same(series1, series2):
+    return (
+    series1.nunique(dropna=False) == 1 and
+    series2.nunique(dropna=False) == 1 and
+    series1.iloc[0] == series2.iloc[0]
+    )
+
+reference_data=read_dataset_from_file('projects/am2_project/data/drift_reference/Question_drift_reference/Question_drift_reference_1.pickle')
+test_data=relationships_data_for_training_updated_model['Question'].iloc[0:1000]
+
+metrics=[]
+for column in reference_data.columns:
+    if column in test_data.columns and not are_series_the_same(reference_data[column],
+        test_data[column]):
+        metrics.extend([
+        ValueDrift(column=column, method="psi"),
+        ValueDrift(column=column, method="chisquare")])
+report = Report(
+    metrics=metrics
+)
+
+"""
+input_columns_not_in_reference = [x for x in test_data.columns if x not in reference_data.columns]
+reference_data[input_columns_not_in_reference] = 0
+reference_columns_not_in_input = [x for x in reference_data.columns if x not in test_data.columns]
+test_data[reference_columns_not_in_input] = 0
+                
+report = Report(metrics=[
+    ValueDrift(column="Study", method="chisquare")
+])
+
+snapshot = report.run(
+    reference_data=pd.DataFrame(reference_data['Study'].astype('str')).reset_index(drop=True),
+    current_data=pd.DataFrame(test_data['Study'].astype('str')).reset_index(drop=True),
+)
+
+snapshot = report.run(
+    reference_data=pd.DataFrame(ref_char, columns=['Study']),
+    current_data=pd.DataFrame(ref_char, columns=['Study']),
+)
+"""
+snapshot = report.run(
+    reference_data=reference_data.astype('category'),
+    current_data=test_data.astype('category'),
+)
+
+# for chi square
+for x in snapshot.dict()['metrics']:
+    #print(x)
+    #print(f"METRIC: {x['config']['method']}")
+    metric=x['config']['method']
+    drift_present_psi=False
+    drift_present_chi_square=False
+    print()
+    if metric=='psi':
+        drift_present_psi=x['value']>.25#x['config']['threshold']
+        print(f"PSI {x['value']}, {x['config']['column']}")
+    elif metric=='chisquare':
+        drift_present_chi_square=x['value']<x['config']['threshold']
+        print(f"CHI SQUARE {x['value']}, {x['config']['column']}")
+    if drift_present_psi and drift_present_chi_square:
+            drift_alert_message=f"{x['config']['column']}, {x['metric_name']}: value of {x['value']} suggests possible data drift"
+            print(drift_alert_message)
 
 
 
@@ -232,3 +393,27 @@ actual_labelled_items=colectica_utility.get_topics(item_data)
 # getting predicted_item_labels could be a task for calling 
 # a headless version of the model
 get_mislabelled_items(predicted_item_labels, actual_labelled_items)
+
+
+all_input_features=[]
+for x in list(all_models):
+    all_input_features.extend(all_item_models[x]['model'].feature_names_in_)
+
+
+CREATE DRIFT DATA
+sweep_items=get_latest_versions_of_project_sweeps(project_config)
+for item_type in project_config["ItemTypes"]:
+    print(item_type)
+    if item_type != 'Question':
+        items_of_a_type = C.search_items(C.item_code(item_type),
+            ReturnIdentifiersOnly=True,
+            MaxResults=0,
+            SearchLatestVersion=True,
+            SearchSets=sweep_items)['Results']
+        new_am2_relationships_data_single_type=create_am2_input_features(items_of_a_type, 
+            colectica_client, 
+            logger)
+        save_versioned_pickle_file(new_am2_relationships_data_single_type,
+            f"{item_type}_drift_reference",
+            folder='./projects/am2_project/data/drift_reference')      
+        del(items_of_a_type)          
