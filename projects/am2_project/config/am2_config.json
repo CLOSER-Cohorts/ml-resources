@@ -113,7 +113,7 @@
         "Next Steps Age 17 Survey (2007)": "e92c993b-f49f-4aea-bd60-68935965bdfc",
         "Next Steps Age 18 Survey (2008)": "595ba7f4-c4b5-4001-88c0-43fcbf51cff6",
         "Next Steps Age 19 Survey (2009)": "2a9ccc04-e688-49d2-93c6-21e42bc5a77b",
-        "Next Steps Age 20 Survey (2010)": "6403132e-fc8d-4c5a-b590-54a2ac62743c", 
+        "Next Steps Age 20 Survey (2010)": "6403132e-fc8d-4c5a-b590-54a2ac62743c"
         },
       "uk.mrcleu-uos.sws": {
         "Initial Interview": "497d446f-a3d2-4d43-8e0b-da29cf048115",
@@ -144,7 +144,7 @@
         "Phase 04": "834c2bbf-a4c3-4f0e-92b8-a2513f9bb0ec",
         "Phase 05": "f8473669-de04-48da-ae38-c45862a8a1d0",
         "Phase 06": "362ba73d-aa1c-415a-87d4-1a40ec313dd0",
-        "Phase 07 and 08": "eeb6361e-e21d-4f36-8956-e950d79fa279",
+        "Phase 07 and 08": "eeb6361e-e21d-4f36-8956-e950d79fa279"
         },
       "uk.alspac": {
         "ALSPAC Pregnancy Birth and Infancy": "e9ae5d70-a3db-470f-9e9e-e1ed4636f1e6",
@@ -158,9 +158,16 @@
     "Sweeps": {
       "uk.iser.ukhls": ["Wave 11", "Wave 12", "Wave 13"],
       "uk.cls.bcs70": [],
-      "uk.cls.mcs": ["Age 14 Survey (2015)", "Age 17 Survey (2018)", "Age 20 COVID-19 Survey (2021) Wave 3"],
+      "uk.cls.mcs": ["Age 14 Survey (2015)", 
+      "Age 17 Survey (2018)", 
+      "Age 20 COVID-19 Survey (2021) Wave 3"],
       "uk.wchads": ["Phase 09",
-        "Phase 10", "Phase 11 and 12", "Phase 13", "Phase 14", "Phase 15", "Phase 16"],
+        "Phase 10", 
+        "Phase 11 and 12", 
+        "Phase 13", 
+        "Phase 14", 
+        "Phase 15", 
+        "Phase 16"],
       "uk.lha": ["2000 Women's Health in the Middle Years Sub-study (Age 54)", 
         "2003 Women's Health in the Middle Years Sub-study (Age 57)", 
         "2005 Hysterectomy Sub-Study (Age 59)", "2006-2010 (Age 60-64)",
@@ -179,7 +186,9 @@
       "uk.whitehall2": ["Phase 10", "Phase 11", "Phase 12"],
       "uk.mrcleu-uos.hcs": [
         "HCS Clinical Outcomes", "HCS Wellbeing Study", "HCS COVID-19"],
-      "uk.cls.ncds": ["Age 55 Survey (2013)", "Age 62 (2020)", "Age 62 COVID-19 Survey (2021) Wave 3"]
+      "uk.cls.ncds": ["Age 55 Survey (2013)", 
+         "Age 62 (2020)", 
+         "Age 62 COVID-19 Survey (2021) Wave 3"]
   }
   },
   "ItemTypes": [
