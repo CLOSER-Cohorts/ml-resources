@@ -1,6 +1,13 @@
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
+from xgboost import XGBClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier
+from sklearn.metrics import roc_auc_score
 import numpy as np
 import pandas as pd
 import json
@@ -15,6 +22,13 @@ from src.ml_resources import (
     calculate_accuracy)
 from src.ml_resources.data import colectica_utility
 from projects.am1_project.api import api_client
+from projects.am1_project.src.am1_pipeline import (
+    run_full_model_generation,
+    generate_embeddings
+    #run_full_model_generation_with_cross_validation,
+    #generate_all_embeddings,
+    #remove_single_instances
+)
 
 #PROCESS: 
 #1. GET DATA FROM COLECTICA
@@ -138,7 +152,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y,
     test_size=0.2,       # 20% test set
     random_state=42,     # for reproducibility
-    stratify=y           # ensures balanced class proportions
+ #   stratify=y           # ensures balanced class proportions
 )
 
 #7 Create a logistic regression model, test it, and measure it's accuracy
@@ -152,11 +166,12 @@ trainedModel=train_model(lr_model_data,
 
 # Save the model...
 
-save_versioned_pickle_file(trainedModel, 'trainedModel', folder='./projects/am1_project/model')
+save_versioned_pickle_file(rfc, 'rfc_studies', folder='./projects/am1_project/model')
 save_versioned_pickle_file(all_df, 'embeddings_with_two_agency', folder='./projects/am1_project/data')
 save_versioned_pickle_file(df, 'trainingDataDf', folder='./projects/am1_project/data')
 
 trained_model = read_dataset_from_file('./projects/am1_project/model/trainedModelAllStudies/trainedModelAllStudies_1.pickle')
+trained_model = read_dataset_from_file('./projects/am1_project/model/Logistic Regression Model/Logistic Regression Model_2.pickle')
 
 input_feature_list=[]
 #for input_feature in ['summary_embeddings', 'category_embeddings', 'item_type', 'agency_id', 'has_categories']:
@@ -165,6 +180,7 @@ for input_feature in ['summary_embeddings', 'category_embeddings', 'item_type', 
         X_test = np.hstack(
         input_feature_list
 )
+
 y_pred=trainedModel.predict(X_test)
 predictions_with_probabilities=trainedModel.predict_proba(X_test)
 wrong_predictions=calculate_accuracy(trainedModel,
@@ -200,14 +216,25 @@ with open(f"projects/am1_project/reports/classification_report_topic_classificat
     for wrong_prediction in wrong_predictions:
         _ = f.write(wrong_prediction)
 
-cm = confusion_matrix(y_test, y_pred)
+ THIS CALCULATES confusion_matrix CORRECTLY
+X_test=convert_df_to_ndarray(embeddings['X_test'], input_features=feature_columns)
+y_pred=model.predict(X_test)    
+labels = sorted(embeddings['y_test'].unique())
+cm = confusion_matrix(embeddings['y_test'], y_pred, labels=labels)
 print(cm)
-target_names=list(set(lr_model_data['y_test'].values))
-for index, topic in enumerate(target_names):
+for index, topic in enumerate(labels):
     print(f"TOPIC {topic}, {sum(cm[index,])}")
     for index2, x in enumerate(cm[index,]):
         if x>0:
-            print(f"{target_names[index2]}: {x}")
+            print(f"{labels[index2]}: {x}")
+
+count=0
+correct=0
+for k,x in embeddings['y_test'].items():
+    if x=='10401' and y_pred[count]=='10401':
+        print(f"{k}, {count}")
+        correct=correct+1
+    count=count+1
 
 for index, x in enumerate(cm):
     print(cm[index,])
@@ -241,3 +268,812 @@ request_body={
 }
 
 api_client.execute_query(request_body)
+
+run_full_model_generation(smoke_test_N=1500)
+
+remember you don't have to generate embeddings all the time, if I'm just
+testing features, hyperparams, etc. have a flag which disables the embeddings.
+generate the embeddings once, save them,
+
+
+# this is a hack, as the code that generates embeddings doesn't have the same colnames
+# def. perhaps fix this later
+transformed_embeddings = transformed_embeddings.rename(columns={
+        "text_label": "TextLabel",
+        "item_categories": "ItemCategories",
+        "item_type": "ItemType",
+        "agency_id": "AgencyId",
+        "has_categories": "HasCategories",
+        "topic": "Topic"
+        })
+    
+
+a=remove_single_instances(transformed_embeddings[0:N], 'topic'), 
+            
+df=remove_single_instances(df, topic_column)
+
+
+generate_all_embeddings()
+
+a=data_preprocessing(transformed_embeddings[0:N], smoke_test_N=N, topic_column='topic')
+preprocessed_embeddings=transformed_embeddings
+for N in [1500, 2000]:
+
+# Compare times for running experiment for different N, with/without feature reduction
+transformed_embeddings = read_dataset_from_file('./projects/am1_project/data/transformed_embeddings_dedup/transformed_embeddings_dedup_1.pickle')
+xgb = XGBClassifier(n_estimators=1000, max_depth=10)
+lr_sweeps=LogisticRegression(max_iter=5000, class_weight="balanced")
+clf = DecisionTreeClassifier(max_depth=500,
+   max_features=None,
+   min_samples_split=10,
+   splitter="random")
+rfc = RandomForestClassifier(
+    n_estimators = 200,
+    max_depth=200,             # deep trees (unpruned)
+    max_features='sqrt',        # number of features per split
+    bootstrap=True,             # bootstrap sampling
+    random_state=42
+)
+ada = AdaBoostClassifier(
+    estimator=DecisionTreeClassifier(max_depth=1),
+    n_estimators=100,
+    random_state=42
+)
+gb = GradientBoostingClassifier(
+    learning_rate=0.1,
+    n_estimators=100,
+    random_state=42
+)
+# Do 80,000 as well
+# I paused this at 40000,False.
+for N in [1500, 5000, 10000, 20000, 40000]:
+    embeddings=pd.DataFrame(transformed_embeddings[0:N])
+    for pca_reduce in [True, False]:
+        for model in [clf, rfc, ada]:
+            if isinstance(model, LogisticRegression):
+                model_type="Logistic Regression"
+            if isinstance(model, XGBClassifier):
+                model_type="XGB"
+            if isinstance(model, DecisionTreeClassifier):
+                model_type="Decision Tree"
+            if isinstance(model, RandomForestClassifier):
+                model_type="Random Forest"
+            if isinstance(model, AdaBoostClassifier):
+                model_type="Ada Boost"
+            if isinstance(model, GradientBoostingClassifier):
+                model_type="Gradient Boost"
+            run_full_model_generation(smoke_test_N=N,
+                model=model,
+                pca_feature_reduction=pca_reduce,
+                transformed_embeddings=remove_single_instances(embeddings, 'topic'), 
+                notes=f"{model_type}, {N} samples. PCA feature reduction: {pca_reduce}")
+
+try lr, xgb with no feature reduction next
+I can do it with feature reduction when i have time
+
+run_full_model_generation(smoke_test_N=1500, 
+    pca_feature_reduction=True,
+    notes="Logistic regression for topic classification",
+    model=LogisticRegression(max_iter=1000))
+    
+
+
+run for xgb now.
+for N in [len(transformed_embeddings)]:
+for N in [500]:
+    embeddings=pd.DataFrame(transformed_embeddings[0:N][['summary_embeddings', 'category_embeddings', 'item_type', 'has_categories', 'topic']])
+    for pca_reduce in [False]:
+        for model in [xgb]:
+            if isinstance(model, LogisticRegression):
+                model_type="Logistic Regression"
+            if isinstance(model, XGBClassifier):
+                model_type="XGB"
+            if isinstance(model, DecisionTreeClassifier):
+                model_type="Decision Tree"
+            if isinstance(model, RandomForestClassifier):
+                model_type="Random Forest"
+            if isinstance(model, AdaBoostClassifier):
+                model_type="Ada Boost"
+            if isinstance(model, GradientBoostingClassifier):
+                model_type="Gradient Boost"
+            run_full_model_generation(smoke_test_N=N,
+                model=model,
+                pca_feature_reduction=pca_reduce,
+                transformed_embeddings=remove_single_instances(embeddings, 'topic'), 
+                notes=f"{model_type}, {N} samples. AgencyId: No. PCA feature reduction: {pca_reduce}")
+
+
+for N in [500]:
+    run_full_model_generation_with_cross_validation(smoke_test_N=N, 
+        pca_feature_reduction=True, 
+        notes=f"Logistic regression for topic classification with {N} samples, PCA feature reduction and cross validation")
+
+matches=read_dataset_from_file('./projects/am1_project/data/model_data_no_leakage/matches/matches_1.pickle')
+THIS IS LATEST
+model_data=read_dataset_from_file('./projects/am1_project/data/model_data_no_leakage/model_data_with_embeddings_no_data_leakage/model_data_with_embeddings_no_data_leakage_1.pickle')
+N=len(model_data['X_train'])
+N=1500
+for model in [xgb, lr, rfc]:
+    for pca_reduce in [True, False]:
+        if isinstance(model, LogisticRegression):
+                model_type="Logistic Regression"
+        if isinstance(model, XGBClassifier):
+                model_type="XGB"
+        if isinstance(model, DecisionTreeClassifier):
+                model_type="Decision Tree"
+        if isinstance(model, RandomForestClassifier):
+                model_type="Random Forest"
+        if isinstance(model, AdaBoostClassifier):
+                model_type="Ada Boost"
+        if isinstance(model, GradientBoostingClassifier):
+                model_type="Gradient Boost"    
+        run_full_model_generation(smoke_test_N=N, 
+            model=model,
+            model_data=model_data,
+            pca_feature_reduction=pca_reduce, 
+            notes=f"{model_type}, {len(model_data['X_train'])} samples. AgencyId: No. PCA feature reduction: {pca_reduce}"
+            )           
+
+for x in range(1,383):
+    print(set((round(all_dummy_embeddings[f'ItemCategories_emb_{x}'],5)==round(d[f'ItemCategories_emb_{x}'],5)).values))
+    if len(list(set((round(all_dummy_embeddings[f'ItemCategories_emb_{x}'],5)==round(d[f'ItemCategories_emb_{x}'],5)).values)))>1:
+        print(round(all_dummy_embeddings[f'ItemCategories_emb_{x}'],5))
+        print(round(c[f'ItemCategories_emb_{x}'],5))
+
+
+save_versioned_pickle_file(matches, 'matches_nextsteps', folder='./projects/am1_project/data/matches_nextsteps')
+
+training_embeddings_with_text=encode_columns_narrow(lr_model_data['X_train'][0:150], ['TextLabel', 'ItemCategories'])
+training_sample=training_embeddings_with_text.iloc[50]
+a=model.encode('Whether employer provided pension scheme is a TypeA or TypeB pension (MainQ)')
+
+a=df_usoc_test.iloc[1000]
+
+matches_2={}
+agencies=['uk.wchads', 'uk.cls.bcs70', 'uk.lha', 'uk.alspac', 'uk.cls.nextsteps', 'uk.whitehall2', 'uk.cls.ncds', 'uk.iser.ukhls']
+agencies=['uk.cls.bcs70', 'uk.lha', 'uk.alspac', 'uk.whitehall2']
+agencies=['gender']
+for agency in agencies:
+    #embeddings2=read_dataset_from_file(f'./projects/am1_project/data/model_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_1.pickle')
+    matches_2[agency]=[]
+    count=0
+    #sample_df = embeddings2['X_train'].sample(n=500)
+    #sample_df_2 = embeddings2['X_train'].sample(n=500)
+    sample_df=all_embeddings_X_train
+    sample_df_2=all_embeddings_X_train
+    for k1, v1 in sample_df.iterrows():
+        print(f"Number of test cases so far: {count}")
+        count=count+1 
+        print(f"Number of test cases that have duplicates/near duplicates in training: {len(matches_2[agency])}")    
+        for k, v in sample_df_2.iterrows():   
+            #b=model.encode(v['TextLabel_embeddings'])
+            cos_sim=cosine_similarity(v1['TextLabel_embeddings'].reshape(1,-1), v['TextLabel_embeddings'].reshape(1,-1))
+            if cos_sim>.8 and cos_sim<1:
+                #print(k1)
+                #print(k)
+                print(f"{agency}: {v1['TextLabel']}::::::: {v['TextLabel']}: {cos_sim}")
+                matches_2[agency].append((v1['TextLabel'], v['TextLabel'], cos_sim))
+                break
+	
+
+>>> for agency in matches_2.keys(): # >.8, 500 random samples compared to 500 other random samples
+...    print(f"{agency}: {len(matches_2[agency])}")
+...
+uk.wchads: 330
+uk.cls.bcs70: 136
+uk.lha: 151
+uk.alspac: 38
+uk.cls.nextsteps: 297
+uk.whitehall2: 266
+uk.cls.ncds: 165
+uk.iser.ukhls: 140
+>>> for agency in matches.keys(): # >.9, 500 random samples compared to 500 other random samples
+...    print(f"{agency}: {len(matches[agency])}")
+...
+uk.wchads: 222
+uk.cls.bcs70: 75
+uk.lha: 94
+uk.alspac: 18
+uk.cls.nextsteps: 174
+uk.whitehall2: 147
+uk.cls.ncds: 130
+uk.iser.ukhls: 100
+   cos_sim=cosine_similarity(v['embedding'].reshape(1,-1), training_sample['embedding'].reshape(1,-1))
+   
+
+text1="Child 7 learning resources available - Yes, they used freely available resources"
+text2="Post-C19: New benefit claims- Carers allowance, Personal independence payments, or Disability Living Allowance"
+
+
+: [[0.9999999]]
+
+GET TRAINING+TEST BASED ON SWEEPS
+
+with open("./projects/am2_project/config/am2_config.json") as f:
+    project_config = json.load(f)
+from src.ml_resources import (
+    get_latest_versions_of_project_sweeps,
+    obtain_items_from_colectica)
+training_sweep_items=get_latest_versions_of_project_sweeps(project_config)
+am1_data={}
+usoc_training_sweeps=[x for x in training_sweep_items if x['agencyId']=='uk.iser.ukhls']
+colectica_utility.get_items_in_containing_items(usoc_training_sweeps,
+    am1_data,
+    "Summary",
+    colectica_client.item_code('Question'))
+colectica_utility.get_items_in_containing_items(usoc_training_sweeps,
+    am1_data,
+    "Label",
+    colectica_client.item_code('Variable'))
+am1_data_new=colectica_utility.get_topics(am1_data)
+
+
+all_study_series=colectica_client.search_items(C.item_code('Series'),
+            ReturnIdentifiersOnly=True,
+            MaxResults=0,
+            SearchLatestVersion=True)['Results']
+
+test_sweeps_dict={}
+for series in all_study_series:
+    series_item_id=[{"AgencyId": series['AgencyId'],
+            "Identifier": series['Identifier'],
+            "Version": series['Version']
+    }]
+    print(series_item_id)
+    series_training_sweeps=[x for x in training_sweep_items 
+        if x['agencyId']==series['AgencyId']]
+    all_series_sweeps=C.search_items(C.item_code('Study'),
+            ReturnIdentifiersOnly=True,
+            MaxResults=0,
+            SearchLatestVersion=True,
+            SearchSets=series_item_id)['Results']
+    # because some genscot are in heaf
+    filtered_sweeps=[x for x in all_series_sweeps if x['AgencyId']==series['AgencyId']]
+    sees_study_ids=[{'agencyId': x['AgencyId'], 
+        "identifier": x['Identifier'], 
+        "version": x['Version']} for x in filtered_sweeps]
+    test_sweeps = [x for x in series_study_ids if x not in series_training_sweeps]
+    test_sweeps_dict[series['AgencyId']]=test_sweeps
+
+agency='uk.alspac'
+len([x for x in test_sweeps_dict[agency]])
+len([x for x in training_sweep_items if x['agencyId']==agency])
+titles=[]
+for x in test_sweeps_dict[agency]:
+    y=C.get_item_json(x['agencyId'], x['identifier'])
+    titles.append(y["DublinCoreMetadata"]["Title"]["en-GB"])
+for x in sorted(titles):
+    print(x)
+    
+save_versioned_pickle_file(am1_data, 'training_sweeps_usoc', folder='./projects/am1_project/data')
+
+all_usoc_ids= [x['Identifier'] for x in all_usoc]
+
+sweep_items=[]
+am1_data={}
+agency_id='uk.iser.ukhls'
+item_types_for_project=[C.item_code('Question'), C.item_code('Variable')]
+
+sweep_items=get_latest_versions_of_project_sweeps(project_config)
+for wave, sweep_id in project_config["ItemsForTrainingAndTest"]["Sweeps"][agency_id].items():
+            latest_version_of_sweep=C.get_item_json(
+                agency_id,
+                sweep_id
+            )
+            sweep_items.append({
+                 "agencyId": latest_version_of_sweep['AgencyId'],
+                 "identifier": latest_version_of_sweep['Identifier'],
+                 "version": latest_version_of_sweep['Version']
+             })
+colectica_utility.get_items_in_containing_items(sweeps,
+        am1_data,
+        "Summary",
+        colectica_client.item_code('Question'))
+
+
+usoc_training=C.search_items(item_types_for_project,
+            ReturnIdentifiersOnly=True,
+            MaxResults=0,
+            SearchLatestVersion=True,
+            SearchSets=sweep_items)['Results']
+
+training_ids=[x['Identifier'] for x in usoc_training]
+all_usoc_ids= [x['Identifier'] for x in all_usoc]
+    
+
+
+
+item_types_for_project=[C.item_code('Question'), C.item_code('Variable')]
+all_usoc=C.search_items(item_types_for_project,
+            ReturnIdentifiersOnly=True,
+            MaxResults=0,
+            SearchLatestVersion=True,
+            SearchSets=usoc_study)['Results']
+
+items = C.search_items(item_types_for_project,
+            ReturnIdentifiersOnly=True,
+            MaxResults=0,
+            SearchLatestVersion=True,
+            SearchSets=sweep)['Results']
+    
+
+    
+df_training_sweeps=data_preprocessing(training_sweeps_items, None)
+
+
+def show_wave_titles(data, agency):
+    #for k, v in data[agency].items():
+    #    print(v)
+    #    print(v['ContainedIn'])
+    waves=sorted(set([(v['AgencyId'], v['ContainedIn']) for k, v in data[agency].items()]))
+    wave_titles=[]   
+    for wave in waves:
+        a=colectica_client.get_item_json(wave[0], wave[1])
+        number_items_in_wave=len([v for k, v in data[agency].items() if v['ContainedIn']==wave[1]])
+        #print(f"{wave}, {a["DublinCoreMetadata"]["Title"]["en-GB"]}")
+        wave_titles.append(f"{a["DublinCoreMetadata"]["Title"]["en-GB"]} ({number_items_in_wave} items): {wave}")
+    for title in sorted(wave_titles):
+        print(title)
+    #return wave_titles
+
+def move_items(source, destination, waves_to_move,agency):
+    print("BEFORE MOVING: ")
+    print(f"Number of items in source: {len(source[agency].items())}")
+    print(f"Number of items in destination: {len(destination[agency].items())}")
+    print(f"Total items: {len(source[agency].items())+len(destination[agency].items())}")
+    items_to_move={k:v for k,v in source[agency].items() if v['ContainedIn'] in waves_to_move}
+    print(f"Number of items to move: {len(items_to_move.items())}")
+    destination[agency]=destination[agency] | items_to_move
+    source[agency]= {k:v for k, v in source[agency].items() if k not in destination[agency].keys()}
+    print("AFTER MOVING: ")
+    print(f"Number of items in source: {len(source[agency].items())}")
+    print(f"Number of items in destination: {len(destination[agency].items())}")
+    print(f"Total items: {len(source[agency].items())+len(destination[agency].items())}")
+
+
+#agencies = ['uk.cls.bcs70']
+#agencies = ['uk.wchads']
+#agencies=['uk.lha']
+#agencies=['uk.mrcleu-uos.sws'] PREPROCESSING/FILTERING REMOVES TOO MANY
+#agencies=['uk.alspac']
+#agencies=['uk.cls.nextsteps']
+#agencies=['uk.genscot'] NOT ENOUGH SAMPLES FOR SINGLE STUDY TEST
+#agencies=['uk.mrcleu-uos.hcs'] NOT ENOUGH SAMPLES FOR SINGLE STUDY TEST
+#agencies=['uk.mrcleu-uos.heaf']  NOT ENOUGH SAMPLES FOR SINGLE STUDY TEST
+agencies=['uk.whitehall2']
+agencies=['uk.iser.ukhls']
+
+
+all_training_waves=[]
+all_test_waves=[]
+all_training_data={"all_studies":{}}
+all_test_data={"all_studies":{}}
+
+remove_items_in_both_training_and_test(training_data, test_data, agency)
+show_wave_titles(training_data, agency)
+show_wave_titles(test_data, agency)
+waves_to_move=[
+    "1c09c1ef-bafc-4e48-acb3-d977072d14b7",
+    " 12e575cf-86a5-4a6a-bd47-9f523f6465ca"
+    ]
+move_items(test_data, training_data, waves_to_move, agency)
+
+move_items(training_data, test_data, waves_to_move, agency)
+
+save_versioned_pickle_file(training_data, 
+    f'training_sweeps_{agency}', 
+    folder=f'./projects/am1_project/data/final_sweeps/training_no_filtered/')
+
+save_versioned_pickle_file(test_data, 
+    f'test_sweeps_{agency}', 
+    folder=f'./projects/am1_project/data/final_sweeps/test_no_filtered/')
+
+agency='uk.iser.ukhls'
+agency='uk.cls.bcs70'
+a=read_dataset_from_file(f'./projects/am1_project/data/final_sweeps/training/training_sweeps_{agency}/training_sweeps_{agency}_1.pickle')
+b=read_dataset_from_file(f'./projects/am1_project/data/final_sweeps/test/test_sweeps_{agency}/test_sweeps_{agency}_1.pickle')
+    
+
+CODE TO UNDO FILTERS
+
+agencies=['uk.iser.ukhls', 'uk.whitehall2', 'uk.cls.nextsteps', 'uk.lha', 'uk.wchads', 'uk.cls.bcs70', 'uk.alspac', 'uk.mrcleu-uos.sws', 'uk.genscot', 'uk.mrcleu-uos.hcs', 'uk.mrcleu-uos.heaf']
+training_data={}
+test_data={}
+for agency in agencies[1:]:
+    training_data = read_dataset_from_file(
+    f'./projects/am1_project/data/final_sweeps/training/training_sweeps_{agency}/training_sweeps_{agency}_1.pickle')
+    test_data = read_dataset_from_file(
+    f'./projects/am1_project/data/final_sweeps/test/test_sweeps_{agency}/test_sweeps_{agency}_1.pickle'
+    )
+    raw_model_data={"training": training_data, "test": test_data}
+    embeddings=generate_embeddings(raw_model_data, 
+     embeddings_file_name=f"{agency}",
+     embeddings_folder_name="unfiltered_embeddings",
+     filter=False)
+
+
+    save_versioned_pickle_file(embeddings, f"{agency}_model_embeddings", folder=f'./projects/am1_project/data/model_embeddings_not_filtered')
+
+embeddings=read_dataset_from_file('./projects/am1_project/data/model_embeddings_not_filtered/uk.iser.ukhls_model_embeddings/uk.iser.ukhls_model_embeddings_1.pickle')
+    
+
+agency='uk.whitehall2'
+whitehall2 performance is a lot better so is lha. nextsteps is slightly worse. usoc is slightly worse
+big boodst for nshd
+agency='uk.cls.nextsteps'
+embeddings2=read_dataset_from_file(f'./projects/am1_project/data/model_embeddings_not_filtered/unfiltered_{agency}_model_embeddings/unfiltered_{agency}_model_embeddings_1.pickle')
+embeddings=read_dataset_from_file(f'./projects/am1_project/data/model_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_1.pickle')
+        
+
+all_filtered_embeddings={'X_train': pd.DataFrame(),
+   'y_train': pd.DataFrame(),
+   'X_test': pd.DataFrame(),
+   'y_test': pd.DataFrame()}
+for agency in agencies:
+    print(agency)
+    #embeddings=read_dataset_from_file(f'./projects/am1_project/data/model_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_1.pickle')
+    study_embeddings = read_dataset_from_file(f'./projects/am1_project/data/unfiltered_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_1.pickle')
+    all_filtered_embeddings['X_train']=pd.concat([all_filtered_embeddings['X_train'], 
+             study_embeddings['X_train']])
+    all_filtered_embeddings['y_train']=pd.concat([all_filtered_embeddings['y_train'], 
+             study_embeddings['y_train']])
+    all_filtered_embeddings['X_test']=pd.concat([all_filtered_embeddings['X_test'], 
+             study_embeddings['X_test']])
+    all_filtered_embeddings['y_test']=pd.concat([all_filtered_embeddings['y_test'], 
+             study_embeddings['y_test']])
+
+set(y_test) - set(y_train)
+
+def filter_by_topics(df1, df2, col="Topic"):
+    return df1[df1[col].isin(df2[col].unique())]
+
+def remove_duplicate_textlabels(df_usoc, df_usoc_test, col="TextLabel"):
+    return df_usoc_test[~df_usoc_test[col].isin(df_usoc[col])]
+
+def remove_items_in_both_training_and_test(training_data, test_data, agency):
+    items_in_both_training_and_test=set([x for x,v in training_data[agency].items() 
+        if x in test_data[agency].keys()])
+    #print(items_in_both_training_and_test)
+    print(f"Number of items in both training and test: {len(items_in_both_training_and_test)}")    
+    print(f"Training data size before: {len(training_data[agency].items())}")
+    training_data[agency]={k: v for k, v in training_data[agency].items() if k not in items_in_both_training_and_test}
+    print(f"Training data size after: {len(training_data[agency].items())}")
+    print(f"Test data size before: {len(test_data[agency].items())}")
+    test_data[agency] = {k: v for k, v in test_data[agency].items() if k not in items_in_both_training_and_test}
+    print(f"Test data size after: {len(test_data[agency].items())}")
+
+def split_test_validation_data(all_data):
+    test_data=None
+    validation_data=None
+    test_data=all_data['X_test']
+    total_length=len(test_data)
+    reduced_test_data=pd.DataFrame()
+    reduced_test_data_y=pd.Series()
+    validation_data=pd.DataFrame()
+    validation_data_y=pd.Series()
+    len_validation=0
+    for x in set(test_data['ContainedIn']):
+        if len_validation + len(test_data[test_data['ContainedIn']==x])<total_length/2:
+            validation_data=pd.concat([validation_data, test_data[test_data['ContainedIn']==x]])
+            validation_data_y= all_data['y_test'].loc[validation_data.index]
+        else:
+            reduced_test_data=pd.concat([reduced_test_data, test_data[test_data['ContainedIn']==x]])
+            reduced_test_data_y=pd.concat([reduced_test_data_y, 
+                all_data['y_test'].loc[reduced_test_data.index]])
+    if len(validation_data)==0 or len(validation_data)/len(test_data)<.3:
+        validation_data=test_data[0:int(len(test_data)/2)]
+        validation_data_y= all_data['y_test'].loc[validation_data.index]
+        reduced_test_data=test_data[int(len(test_data)/2):]
+        reduced_test_data_y= all_data['y_test'].loc[reduced_test_data.index]
+    all_data['X_validation']=validation_data
+    all_data['y_validation']=validation_data_y
+    all_data['X_test']=reduced_test_data
+    all_data['y_test']=reduced_test_data_y
+
+
+all_embeddings_X_train=pd.DataFrame()
+all_embeddings_y_train=pd.DataFrame()
+#agencies=['uk.wchads', 'uk.cls.bcs70', 'uk.lha', 'uk.alspac', 'uk.cls.nextsteps', 'uk.whitehall2', 'uk.cls.ncds', 'uk.iser.ukhls']
+#agencies=[ 'uk.alspac', 'uk.whitehall2', 'uk.cls.nextsteps', 'uk.cls.bcs70', 'uk.lha', 'uk.wchads', 'uk.iser.ukhls']
+agencies=['uk.iser.ukhls', 'uk.whitehall2', 'uk.cls.nextsteps', 'uk.lha', 'uk.wchads', 'uk.cls.bcs70', 'uk.alspac', 'uk.mrcleu-uos.sws', 'uk.genscot', 'uk.mrcleu-uos.hcs', 'uk.mrcleu-uos.heaf']
+for agency in agencies:
+#if True:
+ #   agency='all_studies'
+    print(agency)
+    #embeddings=read_dataset_from_file(f'./projects/am1_project/data/model_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_1.pickle')
+    embeddings=read_dataset_from_file(f'./projects/am1_project/data/unfiltered_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_2.pickle')
+   # num_train=len(embeddings['X_train'])
+    #num_test=len(embeddings['X_test'])
+    #print(f"X_train: {num_train}, X_test: {num_test}. {num_train(num_train + num_test)}")
+    #embeddings=all_filtered_embeddings
+    df_training_embeddings=embeddings['X_train']
+    df_training_embeddings['Topic']=embeddings['y_train']
+    df_test_embeddings=embeddings['X_test']
+    df_test_embeddings['Topic']=embeddings['y_test']
+    df_test_embeddings["TextLabel"] = df_test_embeddings["TextLabel"].str.replace("\xa0", " ", regex=False)
+    df_test_embeddings=remove_duplicate_textlabels(df_training_embeddings, df_test_embeddings, col='TextLabel')
+    df_test_embeddings=filter_by_topics(df_test_embeddings, df_training_embeddings, col="Topic")
+    df_training_embeddings=filter_by_topics(df_training_embeddings, df_test_embeddings, col="Topic")
+    embeddings['X_train']=df_training_embeddings.drop('Topic', axis=1)
+    embeddings['y_train']=df_training_embeddings['Topic']
+    embeddings['X_test']=df_test_embeddings.drop('Topic', axis=1)
+    embeddings['y_test']=df_test_embeddings['Topic']
+    split_test_validation_data(embeddings)
+    gender_topics=embeddings['y_train'][embeddings['y_train']=='10102']
+    all_embeddings_X_train=pd.concat([all_embeddings_X_train, embeddings['X_train'].loc[gender_topics.index]])
+    all_embeddings_y_train=pd.concat([all_embeddings_y_train, gender_topics])
+
+    print(len(embeddings['X_test']))
+    print(len(embeddings['X_validation']))
+    texts=pd.concat([embeddings['X_train']['TextLabel'], embeddings['X_test']['TextLabel']])
+    categories=pd.concat([embeddings['X_train']['ItemCategories'], embeddings['X_test']['ItemCategories']])
+    #label_tdf=vectorizer.fit_transform([str(x) for x in texts.values.tolist()])
+    #categories_tdf=vectorizer.fit_transform([str(x) for x in categories.values.tolist()])
+    #training_label_tdf=label_tdf[0:len(embeddings['X_train'])]
+    #training_categories_tdf=categories_tdf[0:len(embeddings['X_train'])]
+    #test_label_tdf=label_tdf[len(embeddings['X_train']):]
+    #test_categories_tdf=categories_tdf[len(embeddings['X_train']):]
+    #embeddings['X_train']['TextLabel_embeddings']=training_label_tdf.toarray().tolist()
+    #embeddings['X_train']['ItemCategories_embeddings']=training_categories_tdf.toarray().tolist()
+    #embeddings['X_test']['TextLabel_embeddings']=test_label_tdf.toarray().tolist()
+    #embeddings['X_test']['ItemCategories_embeddings']=test_categories_tdf.toarray().tolist()
+    #feature_coLumns=['ItemType', 'AgencyId', 'HasCategories', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    lr=LogisticRegression(max_iter=5000, C=15)
+    xgb = XGBClassifier(n_estimators=1000)
+    clf = MLPClassifier(random_state=1, max_iter=300)
+    rfc = RandomForestClassifier(
+        n_estimators = 300,
+        max_depth=200,             # deep trees (unpruned)
+        max_features='sqrt',        # number of features per split
+        bootstrap=True,             # bootstrap sampling
+        random_state=42
+    )
+    #feature_columns=['AgencyId', 'ItemType', 'HasCategories', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    #feature_columns=['ItemType', 'HasCategories', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    feature_columns=['ItemType', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    pca_reducing=[False]
+    for pca_reduce in pca_reducing:
+        #for model in [lr, rfc, xgb, clf]:
+        for model in [lr]:
+            if isinstance(model, LogisticRegression):
+                model_type="Logistic Regression"
+            if isinstance(model, XGBClassifier):
+                model_type="XGB"
+            if isinstance(model, RandomForestClassifier):
+                model_type="Random Forest"
+            if isinstance(model, MLPClassifier):
+                model_type="MLP"
+            run_full_model_generation(
+                model=model,
+                model_data=embeddings,
+                pca_feature_reduction=pca_reduce,
+                feature_columns=feature_columns,
+                notes=f"{agency}, {model_type}, {len(embeddings['X_train'])} samples. C=15. Unfiltered. AgencyId: No. PCA feature reduction: {pca_reduce}. Feature columns: {feature_columns}"
+                )           
+
+    
+
+
+model=LogisticRegression(max_iter=5000, class_weight="balanced")
+
+pca_reduce=False
+if isinstance(model, LogisticRegression):
+                model_type="Logistic Regression"
+if isinstance(model, XGBClassifier):
+                model_type="XGB"
+if isinstance(model, RandomForestClassifier):
+                model_type="Random Forest"
+run_full_model_generation( 
+            model=model,
+            raw_model_data=raw_model_data,
+            model_data=None,
+            pca_feature_reduction=pca_reduce,
+            notes=f"{agency}, {model_type}, {len(raw_model_data['training'][agency])} samples. AgencyId: No. PCA feature reduction: {pca_reduce}"
+            )           
+
+df=read_dataset_from_file('./projects/am1_project/data/model_embeddings/model_embeddings_1.pickle')
+
+df_training=convert_dictionary_to_dataframe(training_data)
+
+
+
+
+AGENCY =3 IS VRY GOOD
+{0, 3, 5, 6, 7, 11, 12}
+agency=0
+df_usoc=df_training_sweeps[df_training_sweeps['AgencyId']==agency]
+"""
+a=[x for x in list(df_usoc['Topic']) if x[0:3]=='116'] 
+df_usoc_no_covid = df_usoc[
+    ~df_usoc['Topic'].isin(a)
+]
+df_usoc_test=df_test_sweeps[df_test_sweeps['AgencyId']==agency]
+a=[x for x in list(df_usoc_test['Topic']) if x[0:3]=='116'] 
+df_usoc_test_no_covid = df_usoc_test[
+    ~df_usoc_test['Topic'].isin(a)
+]
+df_usoc_no_covid=df_usoc_no_covid[~df_usoc['Topic'].isin(
+    list(set(df_usoc_no_covid['Topic']) - set(df_usoc_test_no_covid['Topic']))
+)]
+"""
+df_usoc_test=df_test_sweeps[df_test_sweeps['AgencyId']==agency]
+
+
+df=read_dataset_from_file(
+    f'./projects/am1_project/data/{agency}model_embeddings/{agency}model_embeddings_1.pickle'
+    )
+df_usoc=df['X_train']
+df_usoc['Topic']=df['y_train']
+df_usoc_test=df['X_test']
+df_usoc_test['Topic']=df['y_test']
+
+df_usoc_test["TextLabel"] = df_usoc_test["TextLabel"].str.replace("\xa0", " ", regex=False)
+df_usoc_test=remove_duplicate_textlabels(df_usoc, df_usoc_test, col='TextLabel')
+df_usoc_test=filter_by_topics(df_usoc_test, df_usoc, col="Topic")
+df_usoc=filter_by_topics(df_usoc, df_usoc_test, col="Topic")
+
+feature_columns=['ItemType', 'HasCategories', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    
+lr_sweeps=LogisticRegression(max_iter=5000, class_weight="balanced")
+lr_sweeps.fit(convert_df_to_ndarray(df_usoc, feature_columns), df_usoc['Topic'])
+test=convert_df_to_ndarray(df_usoc_test, feature_columns)
+y_pred=lr_sweeps.predict(test)
+predictions_with_probabilities=lr_sweeps.predict_proba(test)
+prediction_results=calculate_accuracy(lr_sweeps,
+            predictions_with_probabilities,
+            test,
+            df_usoc_test['Topic'].tolist(),
+            N=5)
+
+
+list(set(lr_sweeps.classes_) - set(df_usoc_test['Topic']))
+roc_auc_score(df_usoc_test['Topic'], predictions_with_probabilities, multi_class='ovr')
+
+import numpy as np
+from sklearn.metrics import roc_auc_score
+
+present_classes = np.unique(df_usoc_test_no_covid['Topic'])
+
+mask = np.isin(lr_sweeps.classes_, present_classes)
+
+filtered_probs = predictions_with_probabilities[:, mask]
+
+filtered_classes = lr_sweeps.classes_[mask]
+
+roc_auc_score(
+    df_usoc_test_no_covid['Topic'],
+    filtered_probs,
+    labels=filtered_classes,
+    multi_class='ovr'
+)
+
+"""
+DEL THIS WHEN SURE UNNEEDED
+y_test=read_dataset_from_file('./projects/am1_project/data/delthis/y_test/y_test_5.pickle')
+predictions_with_probabilities2=read_dataset_from_file('./projects/am1_project/data/delthis/predictions_with_probabilities/predictions_with_probabilities_5.pickle')
+labels=read_dataset_from_file('./projects/am1_project/data/delthis/labels/labels_3.pickle')
+trained_model=read_dataset_from_file('./projects/am1_project/data/delthis/trained_model/trained_model_1.pickle')
+test_results=read_dataset_from_file('./projects/am1_project/data/delthis/test_results/test_results_1.pickle')
+roc_auc_result=roc_auc_score(y_test, 
+        predictions_with_probabilities2, 
+        multi_class='ovr', 
+        labels=trained_model.classes_)
+"""
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
+
+# Example data
+texts = [
+    "The product is excellent",
+    "Amazing customer service",
+    "Very happy with my purchase",
+    "Terrible quality and support",
+    "I want a refund",
+    "Worst experience ever",
+    "Great value for money",
+    "Highly recommended",
+]
+>>> len(embeddings['X_train'])
+13051
+embeddings['X_test']['ItemCategories']
+
+# Labels (1 = positive, 0 = negative)
+labels = [1, 1, 1, 0, 0, 0, 1, 1]
+
+# Split raw text first
+X_train_text, X_test_text, y_train, y_test = train_test_split(
+    texts,
+    labels,
+    test_size=0.2,
+    random_state=42,
+    stratify=labels
+)
+
+# Fit TF-IDF on training data only
+vectorizer = TfidfVectorizer()
+texts=pd.concat([embeddings['X_train']['TextLabel'], embeddings['X_test']['TextLabel']])
+categories=pd.concat([embeddings['X_train']['ItemCategories'], embeddings['X_test']['ItemCategories']])
+label_tdf=vectorizer.fit_transform([str(x) for x in texts.values.tolist()])
+categories_tdf=vectorizer.fit_transform([str(x) for x in categories.values.tolist()])
+training_label_tdf=label_tdf[0:len(embeddings['X_train'])]
+training_categories_tdf=categories_tdf[0:len(embeddings['X_train'])]
+test_label_tdf=label_tdf[len(embeddings['X_train']):]
+test_categories_tdf=categories_tdf[len(embeddings['X_train']):]
+embeddings['X_train']['TextLabel_embeddings']=training_label_tdf.toarray().tolist()[0:20000]
+embeddings['X_train']['ItemCategories_embeddings']=training_categories_tdf.toarray().tolist()[0:20000]
+embeddings['X_test']['TextLabel_embeddings']=test_label_tdf.toarray().tolist()
+embeddings['X_test']['ItemCategories_embeddings']=test_categories_tdf.toarray().tolist()
+
+
+
+
+X_train = vectorizer.fit_transform(X_train_text)
+X_test = vectorizer.transform(X_test_text)
+
+print("Training matrix shape:", X_train.shape)
+print("Test matrix shape:", X_test.shape)
+
+# Train classifier
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# Predictions
+y_pred = model.predict(X_test)
+
+print(classification_report(y_test, y_pred))
+
+from collections import Counter
+
+my_list = ['a', 'b', 'a', 'c', 'b', 'a']
+
+counts = Counter(my_list)
+
+print(counts)
+
+calculate different levels of top-3-5-7-10
+
+def merge_rare_topics(series, min_count=25):
+    # Count occurrences of each topic
+    counts = series.value_counts()
+    # Topics to merge
+    rare_topics = counts[counts < min_count].index
+    # Replace rare topics with parent topic
+    return series.apply(
+        lambda x: str(x)[:-2] if x in rare_topics else x
+    )
+
+
+max_accuracy=0
+best_params=None
+param_grid={'C': [0.1, 1, 10, 100],
+'max_iter': [5000],
+'penalty': ['l2'],
+'class_weight': ["balanced"]
+}
+for params in ParameterSampler(param_grid, n_iter=100):
+    trained_model = LogisticRegression(**params, )
+    print(f"Best so far: {max_accuracy}")
+    print(best_params)
+    trained_model.fit(X_resampled, y_resampled)
+    predictions_with_probabilities=trained_model.predict_proba(X_test)
+    y_test=embeddings['y_test']
+    prediction_results=calculate_accuracy(trained_model,
+            predictions_with_probabilities,
+            X_test,
+            y_test.tolist(),
+            N=5)
+    if prediction_results['Accuracy']>max_accuracy:
+       max_accuracy=prediction_results['Accuracy']	
+       best_params=params
+
+ros = RandomOverSampler()
+    X_resampled, y_resampled = ros.fit_resample(
+        model_data['X_train'],
+        model_data['y_train'])
+    model_data['X_train']=X_resampled
+    model_data['y_train']=y_resampled
+    

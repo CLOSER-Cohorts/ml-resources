@@ -34,20 +34,19 @@ logger=setup_logging(project="am1_project", log_file="logs/am1_log.json")
 #MLFLOW
 with open("./config/config.json") as f:
             general_config = json.load(f)
-#mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
-#mlflow_client = mlflow.MlflowClient()
-#trainedModel = mlflow.sklearn.load_model(
-#        model_uri="models:/Logistic Regression for topic classification/134")
+mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
+mlflow_client = mlflow.MlflowClient()
+trainedModel = mlflow.sklearn.load_model(
+    model_uri="models:/Logistic Regression for topic classification/134")
                     
 modelfile = open('./projects/am1_project/model/trainedModel/Logistic Regression Model_242.pickle', 'rb')
 trainedModel = pickle.load(modelfile)
 categories=trainedModel.classes_.tolist()
 
 class Item(BaseModel):
-    TextLabel: str | None = None
-    ItemCategories: str | None = None
-    ItemType: Literal["question", "variable"] | None = None
-    """
+    TextLabel: str
+    ItemCategories: str | None = ""
+    ItemType: Literal["question", "variable"]
     AgencyId: Literal['uk.iser.ukhls',
         'uk.cls.bcs70', 
         'uk.cls.mcs', 
@@ -60,8 +59,8 @@ class Item(BaseModel):
         'uk.mrcleu-uos.heaf', 
         'uk.whitehall2', 
         'uk.mrcleu-uos.hcs', 
-        'uk.cls.ncds'] | None = None
-    HasCategories: Literal["yes", "no"] | None = None
+        'uk.cls.ncds']
+    HasCategories: Literal["yes", "no"]
     @field_validator("HasCategories", mode="before")
     @classmethod
     def normalize_yes_no(this_class, field_value):
