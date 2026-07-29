@@ -157,14 +157,7 @@
   "ItemsForValidation":{
     "Sweeps": {
       "uk.iser.ukhls": ["Wave 11", "Wave 12", "Wave 13"],
-      "uk.cls.bcs70": [
-        "Age 42 Survey (2012)": "5f4419cc-5f69-46bb-b775-ce82bdfc458a",
-      "Age 50 COVID-19 Survey (2020) Wave 1": "0198e606-1835-4595-9105-efa3b5cb2087",
-      "Age 50 COVID-19 Survey (2020) Wave 2": "e12b8645-b590-47e7-8f48-b423451db27d",
-      "Age 50 COVID-19 Survey (2021) Serology": "2dde2076-fbeb-4840-bbeb-6e5feb124511"
-    
-        
-        "Age 46 Survey (2016)", "Age 51 Survey (2021)", "Age 50 COVID-19 Survey (2021) Wave 3"],
+      "uk.cls.bcs70": [],
       "uk.cls.mcs": ["Age 14 Survey (2015)", "Age 17 Survey (2018)", "Age 20 COVID-19 Survey (2021) Wave 3"],
       "uk.wchads": ["Phase 09",
         "Phase 10", "Phase 11 and 12", "Phase 13", "Phase 14", "Phase 15", "Phase 16"],
