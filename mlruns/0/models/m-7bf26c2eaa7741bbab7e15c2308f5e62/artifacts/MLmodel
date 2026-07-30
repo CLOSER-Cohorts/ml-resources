@@ -1,0 +1,48 @@
+artifact_path: mlflow-artifacts:/0/models/m-7bf26c2eaa7741bbab7e15c2308f5e62/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.12.0
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+is_signature_from_type_hint: false
+mlflow_version: 3.12.0
+model_id: m-7bf26c2eaa7741bbab7e15c2308f5e62
+model_size_bytes: 22647
+model_uuid: m-7bf26c2eaa7741bbab7e15c2308f5e62
+prompts: null
+run_id: fecc1d3f00b44d4190a269a52385bfbb
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "Code Set", "required": true}, {"type": "double",
+    "name": "Sequence", "required": true}, {"type": "double", "name": "Category",
+    "required": true}, {"type": "double", "name": "Question", "required": true}, {"type":
+    "double", "name": "Question Activity", "required": true}, {"type": "double", "name":
+    "Metadata Package", "required": true}, {"type": "double", "name": "Instrument",
+    "required": true}, {"type": "double", "name": "Conditional", "required": true},
+    {"type": "double", "name": "Instrument Set", "required": true}, {"type": "double",
+    "name": "Project", "required": true}, {"type": "double", "name": "Data Collection",
+    "required": true}, {"type": "double", "name": "Control Construct Set", "required":
+    true}, {"type": "double", "name": "Study", "required": true}, {"type": "double",
+    "name": "Series", "required": true}, {"type": "double", "name": "Interviewer Instruction",
+    "required": true}, {"type": "double", "name": "Loop", "required": true}, {"type":
+    "double", "name": "Statement", "required": true}, {"type": "double", "name": "Question
+    Grid", "required": true}, {"type": "double", "name": "OtherMaterial", "required":
+    true}, {"type": "integer", "name": "ItemType", "required": true}]'
+  outputs: '[{"type": "long", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-05-25 09:58:23.705192'

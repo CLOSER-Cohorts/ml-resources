@@ -1,0 +1,33 @@
+artifact_path: mlflow-artifacts:/0/models/m-9f09278cb1e940c4aa0936606e4079e5/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.12.0
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+is_signature_from_type_hint: false
+mlflow_version: 3.12.0
+model_id: m-9f09278cb1e940c4aa0936606e4079e5
+model_size_bytes: 993459
+model_uuid: m-9f09278cb1e940c4aa0936606e4079e5
+prompts: null
+run_id: 5513c3294f464b25ab28226ff2d070ab
+saved_input_example_info:
+  artifact_path: input_example.json
+  serving_input_path: serving_input_example.json
+  type: ndarray
+signature:
+  inputs: '[{"type": "tensor", "tensor-spec": {"dtype": "object", "shape": [-1, 771]}}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "object", "shape": [-1]}}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-05-24 13:00:04.488569'
