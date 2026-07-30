@@ -1,0 +1,46 @@
+artifact_path: mlflow-artifacts:/0/models/m-348c1db95592406da3caa81ddbe1eb18/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.12.0
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+is_signature_from_type_hint: false
+mlflow_version: 3.12.0
+model_id: m-348c1db95592406da3caa81ddbe1eb18
+model_size_bytes: 20371
+model_uuid: m-348c1db95592406da3caa81ddbe1eb18
+prompts: null
+run_id: de6223e1d84e431098d4a23f9f9d6320
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "Category Set", "required": true}, {"type":
+    "double", "name": "Data Layout", "required": true}, {"type": "double", "name":
+    "Variable Group", "required": true}, {"type": "double", "name": "Variable Statistic",
+    "required": true}, {"type": "double", "name": "Code Set", "required": true}, {"type":
+    "double", "name": "Concept", "required": true}, {"type": "double", "name": "Variable",
+    "required": true}, {"type": "double", "name": "Data File", "required": true},
+    {"type": "double", "name": "Category", "required": true}, {"type": "double", "name":
+    "Study", "required": true}, {"type": "double", "name": "Series", "required": true},
+    {"type": "double", "name": "Project", "required": true}, {"type": "double", "name":
+    "Interviewer Instruction", "required": true}, {"type": "double", "name": "Question",
+    "required": true}, {"type": "double", "name": "Question Grid", "required": true},
+    {"type": "double", "name": "OtherMaterial", "required": true}, {"type": "integer",
+    "name": "ItemType", "required": true}]'
+  outputs: '[{"type": "long", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-05-12 15:45:05.568884'

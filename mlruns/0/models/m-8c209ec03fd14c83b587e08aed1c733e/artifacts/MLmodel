@@ -1,0 +1,54 @@
+artifact_path: mlflow-artifacts:/0/models/m-8c209ec03fd14c83b587e08aed1c733e/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.12.0
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+is_signature_from_type_hint: false
+mlflow_version: 3.12.0
+model_id: m-8c209ec03fd14c83b587e08aed1c733e
+model_size_bytes: 24613
+model_uuid: m-8c209ec03fd14c83b587e08aed1c733e
+prompts: null
+run_id: d0f10a00d2a043afa2fe88678bd0e406
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "Code Set", "required": true}, {"type": "double",
+    "name": "Category Set", "required": true}, {"type": "double", "name": "Category",
+    "required": true}, {"type": "double", "name": "Metadata Package", "required":
+    true}, {"type": "double", "name": "Data Layout", "required": true}, {"type": "double",
+    "name": "Variable Group", "required": true}, {"type": "double", "name": "Variable
+    Statistic", "required": true}, {"type": "double", "name": "Variable", "required":
+    true}, {"type": "double", "name": "Data File", "required": true}, {"type": "double",
+    "name": "Project", "required": true}, {"type": "double", "name": "Study", "required":
+    true}, {"type": "double", "name": "Variable Set", "required": true}, {"type":
+    "double", "name": "Series", "required": true}, {"type": "double", "name": "Data
+    Collection", "required": true}, {"type": "double", "name": "Question Activity",
+    "required": true}, {"type": "double", "name": "Question Set", "required": true},
+    {"type": "double", "name": "Conditional", "required": true}, {"type": "double",
+    "name": "Control Construct Set", "required": true}, {"type": "double", "name":
+    "Instrument", "required": true}, {"type": "double", "name": "Question Group",
+    "required": true}, {"type": "double", "name": "Code List Set", "required": true},
+    {"type": "double", "name": "Instrument Set", "required": true}, {"type": "double",
+    "name": "Question", "required": true}, {"type": "double", "name": "Sequence",
+    "required": true}, {"type": "double", "name": "Loop", "required": true}, {"type":
+    "double", "name": "Question Grid", "required": true}, {"type": "integer", "name":
+    "ItemType", "required": true}]'
+  outputs: '[{"type": "long", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-05-12 13:22:02.834205'

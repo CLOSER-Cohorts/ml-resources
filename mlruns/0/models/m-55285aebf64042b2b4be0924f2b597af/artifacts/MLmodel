@@ -1,0 +1,46 @@
+artifact_path: mlflow-artifacts:/0/models/m-55285aebf64042b2b4be0924f2b597af/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.12.0
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+is_signature_from_type_hint: false
+mlflow_version: 3.12.0
+model_id: m-55285aebf64042b2b4be0924f2b597af
+model_size_bytes: 20216
+model_uuid: m-55285aebf64042b2b4be0924f2b597af
+prompts: null
+run_id: 8b2291f2d334474b8d2ee91083cd3fe2
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "Interviewer Instruction", "required": true},
+    {"type": "double", "name": "Conditional", "required": true}, {"type": "double",
+    "name": "Category", "required": true}, {"type": "double", "name": "Code Set",
+    "required": true}, {"type": "double", "name": "Question Grid", "required": true},
+    {"type": "double", "name": "Statement", "required": true}, {"type": "double",
+    "name": "Sequence", "required": true}, {"type": "double", "name": "Control Construct
+    Set", "required": true}, {"type": "double", "name": "Question", "required": true},
+    {"type": "double", "name": "Question Activity", "required": true}, {"type": "double",
+    "name": "Metadata Package", "required": true}, {"type": "double", "name": "Project",
+    "required": true}, {"type": "double", "name": "Study", "required": true}, {"type":
+    "double", "name": "Series", "required": true}, {"type": "double", "name": "Loop",
+    "required": true}, {"type": "double", "name": "OtherMaterial", "required": true},
+    {"type": "integer", "name": "ItemType", "required": true}]'
+  outputs: '[{"type": "long", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-05-22 15:28:17.547343'
