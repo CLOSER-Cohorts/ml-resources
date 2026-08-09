@@ -51,7 +51,8 @@ with open("./config/config.json") as f:
 
 mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
 mlflow_client = mlflow.MlflowClient()
-trainedModel = mlflow.sklearn.load_model(
+trainedModel = mlflow.sklearn
+(
         model_uri="models:/logistic_regression_for_topic_classification/2")
 
 

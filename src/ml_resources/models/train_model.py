@@ -5,7 +5,7 @@ from sklearn.model_selection import ParameterSampler
 from xgboost import XGBClassifier
 from scipy.stats import loguniform, randint
 import numpy as np
-from projects.am1_project.src.utility import convert_df_to_ndarray
+from src.dataframe_utility import convert_df_to_ndarray
 from src.ml_resources.models.predict_model import calculate_accuracy
     
 param_dist = {
@@ -101,9 +101,9 @@ def train_model(data_for_model,
     for params in ParameterSampler(param_grid, n_iter=100):
         trained_model = LogisticRegression(**params, )
         trained_model.fit(X_train, data_for_model['y_train'])
-        X_validation=convert_df_to_ndarray(data_for_model['X_validation'], input_features=feature_columns)
+        X_validation=convert_df_to_ndarray(data_for_model['X_test'], input_features=feature_columns)
         predictions_with_probabilities=trained_model.predict_proba(X_validation)
-        y_validation=data_for_model['y_validation']
+        y_validation=data_for_model['y_test']
         prediction_results=calculate_accuracy(trained_model,
             predictions_with_probabilities,
             X_validation,
@@ -114,7 +114,6 @@ def train_model(data_for_model,
             print(f"Best so far: {max_accuracy}")
             print(params)
             prediction_model=trained_model
-
     """
     model = LogisticRegression(max_iter=1000)
     prediction_model2 = RandomizedSearchCV(
@@ -135,8 +134,5 @@ def train_model(data_for_model,
         y_train = le.fit_transform(data_for_model['y_train'])
     else:
         y_train=data_for_model['y_train']
-    
-    prediction_model.fit(X_train,
-        y_train.squeeze())
     """
     return prediction_model

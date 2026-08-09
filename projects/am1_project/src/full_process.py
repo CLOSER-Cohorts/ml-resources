@@ -4,7 +4,6 @@ import time
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
@@ -14,7 +13,6 @@ from sklearn.metrics import top_k_accuracy_score, make_scorer
 from sklearn.model_selection import cross_validate
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
-from sklearn.utils.multiclass import unique_labels
 from xgboost import XGBClassifier
 from src.ml_resources import (
     read_dataset_from_file,
@@ -23,8 +21,7 @@ from src.ml_resources import (
     apply_pipeline,
     convert_dictionary_to_dataframe,
     create_model_data_object,
-    train_model,
-    calculate_accuracy
+    train_model
     )
 from projects.am1_project.src.am1_mlflow import (
     register_model_and_metrics,
@@ -141,38 +138,6 @@ def create_model_data(embeddings, pca_feature_reduction=False, model=None):
     lr_model_data=create_model_data_object(X_train, X_test, y_train, y_test)
     return lr_model_data
 
-def test_model(trained_model, lr_model_data):
-    input_feature_list=[]
-    X_test=convert_df_to_ndarray(lr_model_data['X_test'])
-    """
-    for input_feature in ['summary_embeddings', 
-        'category_embeddings', 'item_type', 'agency_id', 'has_categories']:
-        input_feature_list.append(np.vstack(lr_model_data['X_test'][input_feature]))
-        X_test = np.hstack(
-        input_feature_list
-        )
-    """
-    y_pred=trained_model.predict(X_test)
-    predictions_with_probabilities=trained_model.predict_proba(X_test)
-    prediction_results = None
-    if isinstance(trained_model, LogisticRegression):
-        prediction_results=calculate_accuracy(trained_model,
-            predictions_with_probabilities,
-            X_test,
-            lr_model_data['y_test'].tolist(),
-            N=3)
-    labels = unique_labels(
-        lr_model_data['y_test'],
-        y_pred
-        )
-    report = classification_report(lr_model_data['y_test'].tolist(),
-        y_pred,
-        labels=labels,
-        target_names=[str(label) for label in labels],
-        output_dict=True)
-    return ({"report": report,
-            "prediction_results": prediction_results
-        })
     
 def run_full_model_generation(smoke_test_N=None, 
     pca_feature_reduction=False,

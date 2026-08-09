@@ -22,6 +22,7 @@ import json
 import mlflow
 import mlflow.sklearn
 from src.ml_resources import (
+    read_dataset_from_file,
     apply_pipeline)
 from src.logging.utility import StructuredMessage, setup_logging
 from projects.am1_project.src.utility import convert_df_to_ndarray
@@ -36,11 +37,42 @@ with open("./config/config.json") as f:
             general_config = json.load(f)
 mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
 mlflow_client = mlflow.MlflowClient()
-trainedModel = mlflow.sklearn.load_model(
-    model_uri="models:/Logistic Regression for topic classification/134")
-                    
-modelfile = open('./projects/am1_project/model/trainedModel/Logistic Regression Model_242.pickle', 'rb')
-trainedModel = pickle.load(modelfile)
+
+trained_models={}
+trained_models['uk.iser.ukhls'] = mlflow.sklearn.load_model(
+        model_uri="models:/Logistic Regression for topic classification@ukhls"
+        )
+trained_models['uk.whitehall2'] = mlflow.sklearn.load_model(
+        model_uri="models:/Logistic Regression for topic classification@whitehall2"
+        )
+trained_models['uk.cls.nextsteps'] = mlflow.sklearn.load_model(
+        model_uri="models:/Logistic Regression for topic classification@nextsteps"
+        )
+trained_models['uk.lha'] = mlflow.sklearn.load_model(
+        model_uri="models:/Logistic Regression for topic classification@lha"
+        )
+trained_models['uk.wchads'] = mlflow.sklearn.load_model(
+        model_uri="models:/Logistic Regression for topic classification@wchads"
+        )
+trained_models['uk.cls.bcs70'] = mlflow.sklearn.load_model(
+        model_uri="models:/Logistic Regression for topic classification@bcs70"
+        )
+trained_models['uk.alspac'] = mlflow.sklearn.load_model(
+        model_uri="models:/Logistic Regression for topic classification@alspac"
+        )
+"""
+trained_models['uk.mrcleu-uos.sws'] = mlflow.sklearn.load_model(
+        model_uri="models:/Logistic Regression for topic classification@sws"
+        )
+trained_models['uk.mrcleu-uos.heaf'] = mlflow.sklearn.load_model(
+        model_uri="models:/Logistic Regression for topic classification@heaf"
+        )
+"""
+
+
+
+#modelfile = open('./projects/am1_project/model/trainedModel/Logistic Regression Model_242.pickle', 'rb')
+trainedModel = read_dataset_from_file('./projects/am1_project/model/tunedModelAllStudies/tunedModelAllStudies_1.pickle')
 categories=trainedModel.classes_.tolist()
 
 class Item(BaseModel):
@@ -67,7 +99,7 @@ class Item(BaseModel):
         if isinstance(field_value, str):
             return field_value.strip().lower()
         return field_value
-    """
+
     @field_validator("ItemType", mode="before")
     @classmethod
     def normalize_item_type(this_class, field_value):
@@ -94,13 +126,14 @@ def health():
         "model_loaded": trainedModel is not None
     }
 
-@app.post("/categorise_items/")
-async def categorise_items(api_request: InferenceRequest):
+@app.post("/categorise_items/{agency_id}")
+async def categorise_items(agency_id:str, api_request: InferenceRequest):
     start_time = time.time()
     df = pd.DataFrame([item.model_dump() for item in api_request.items])
+    print(df)
     df["ItemType"] = df["ItemType"].map({"question": 1, "variable": 0})
+    #df["HasCategories"] = df["HasCategories"].map({"yes": 1, "no": 0})
     """
-    df["HasCategories"] = df["HasCategories"].map({"yes": 1, "no": 0})
     df["AgencyId"] = df["AgencyId"].map({'uk.iser.ukhls' : 0, 
         'uk.cls.bcs70' : 1, 
         'uk.cls.mcs' : 2, 
@@ -116,9 +149,11 @@ async def categorise_items(api_request: InferenceRequest):
         'uk.cls.ncds' : 12})
     """
     print(df)
-    feature_columns=['ItemType', 'TextLabel_embeddings', 'ItemCategories_embeddings']
-    transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories'], training=False)
-    print(transformed_embeddings)
+    #feature_columns=['ItemType', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    feature_columns=['item_type', 'summary_embeddings', 'category_embeddings']
+    transformed_embeddings = apply_pipeline(df, ['TextLabel', 'ItemCategories'],
+        training=False)
+    print(transformed_embeddings.iloc[0])
     X = convert_df_to_ndarray(transformed_embeddings, input_features=feature_columns)
     """
     X = np.hstack([
@@ -129,12 +164,17 @@ async def categorise_items(api_request: InferenceRequest):
     ])
     """
     #result = trainedModel.predict(X)
-    results=trainedModel.predict_proba(X)
+    results=trained_models[agency_id].predict_proba(X)
     predictions=[]
-    confidence_scores=[]
+    confidence_scores={}
     for result in results:
         #result.tolist().index(max(result))
-        confidence_scores.append(max(result).item())
+        prediction=categories[result.tolist().index(max(result))]
+        if agency_id not in confidence_scores.keys():
+          confidence_scores[agency_id]={}
+        if prediction not in confidence_scores[agency_id]:
+          confidence_scores[agency_id][prediction]=[] 
+        confidence_scores[agency_id][prediction].append(max(result).item())
         top_N_results_indices = np.argsort(result)[-5:]
         print(top_N_results_indices)
         top_N_results = np.array(categories)[top_N_results_indices]

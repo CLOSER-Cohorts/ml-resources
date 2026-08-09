@@ -19,10 +19,11 @@ def calculate_accuracy(classifier, predictions, X_test, y_test, N=5):
      top_N_results = classifier.classes_[top_N_results_indices]
      if top_N_results[-1] == y_test[j]:
          correct_predictions = correct_predictions + 1
-     if not isinstance(classifier, XGBClassifier) and top_N_results[-1][0:3] == y_test[j][0:3]:
+     #print(str(y_test[j]))
+     if not isinstance(classifier, XGBClassifier) and top_N_results[-1][0:3] == str(y_test[j])[0:3]:
          correct_l1_predictions = correct_l1_predictions + 1
-     print([x for x in top_N_results])
-     print(y_test[j])
+     #print([x for x in top_N_results])
+     #print(y_test[j])
      if not isinstance(classifier, XGBClassifier) and y_test[j][0:3] in [x[0:3] for x in top_N_results]:
          correct_l1_in_top_N+=1
      if y_test[j] in [x for x in top_N_results]:

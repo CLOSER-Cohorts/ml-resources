@@ -58,9 +58,9 @@ client = APIClient(
     base_url="http://127.0.0.1:8000"
 )
 
-def execute_query(request_body):
+def execute_query(request_body, agency):
     start_time = time.time()
-    response = client.post("/categorise_questions", data=request_body)
+    response = client.post(f"/categorise_items/{agency}", data=request_body)
     latency = time.time() - start_time
     logger.info(StructuredMessage(message='Categorise text http request',
         application="am1",
