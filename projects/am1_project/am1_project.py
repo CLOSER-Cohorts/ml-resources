@@ -263,8 +263,7 @@ df = read_dataset_from_file('./projects/am1_project/data/pending_training_data/a
 request_body={
     "TextLabel": ["How often do you play sports?", "Number of drinks per week"],
     "ItemCategories": ["every day every week twice a week", "dog"],
-    "ItemType": [1, 0],
-    "HasCategories": [1, 1]
+    "ItemType": [1, 0]
 }
 
 api_client.execute_query(request_body)
@@ -724,25 +723,7 @@ for agency in agencies:
 
 set(y_test) - set(y_train)
 
-def filter_by_topics(df1, df2, col="Topic"):
-    return df1[df1[col].isin(df2[col].unique())]
-
-def remove_duplicate_textlabels(df_usoc, df_usoc_test, col="TextLabel"):
-    return df_usoc_test[~df_usoc_test[col].isin(df_usoc[col])]
-
-def remove_items_in_both_training_and_test(training_data, test_data, agency):
-    items_in_both_training_and_test=set([x for x,v in training_data[agency].items() 
-        if x in test_data[agency].keys()])
-    #print(items_in_both_training_and_test)
-    print(f"Number of items in both training and test: {len(items_in_both_training_and_test)}")    
-    print(f"Training data size before: {len(training_data[agency].items())}")
-    training_data[agency]={k: v for k, v in training_data[agency].items() if k not in items_in_both_training_and_test}
-    print(f"Training data size after: {len(training_data[agency].items())}")
-    print(f"Test data size before: {len(test_data[agency].items())}")
-    test_data[agency] = {k: v for k, v in test_data[agency].items() if k not in items_in_both_training_and_test}
-    print(f"Test data size after: {len(test_data[agency].items())}")
-
-def split_test_validation_data(all_data):
+if True:
     test_data=None
     validation_data=None
     test_data=all_data['X_test']
@@ -756,19 +737,98 @@ def split_test_validation_data(all_data):
         if len_validation + len(test_data[test_data['ContainedIn']==x])<total_length/2:
             validation_data=pd.concat([validation_data, test_data[test_data['ContainedIn']==x]])
             validation_data_y= all_data['y_test'].loc[validation_data.index]
+            len_validation = len_validation + len(test_data[test_data['ContainedIn']==x])
         else:
             reduced_test_data=pd.concat([reduced_test_data, test_data[test_data['ContainedIn']==x]])
             reduced_test_data_y=pd.concat([reduced_test_data_y, 
                 all_data['y_test'].loc[reduced_test_data.index]])
-    if len(validation_data)==0 or len(validation_data)/len(test_data)<.3:
-        validation_data=test_data[0:int(len(test_data)/2)]
-        validation_data_y= all_data['y_test'].loc[validation_data.index]
-        reduced_test_data=test_data[int(len(test_data)/2):]
-        reduced_test_data_y= all_data['y_test'].loc[reduced_test_data.index]
-    all_data['X_validation']=validation_data
-    all_data['y_validation']=validation_data_y
-    all_data['X_test']=reduced_test_data
-    all_data['y_test']=reduced_test_data_y
+
+
+all_embeddings_X_train=pd.DataFrame()
+all_embeddings_y_train=pd.DataFrame()
+all_embeddings_X_test=pd.DataFrame()
+all_embeddings_y_test=pd.DataFrame()
+agencies=['uk.iser.ukhls', 'uk.whitehall2', 'uk.cls.nextsteps', 'uk.lha', 'uk.wchads', 'uk.cls.bcs70', 'uk.alspac', 'uk.mrcleu-uos.sws', 'uk.genscot', 'uk.mrcleu-uos.hcs', 'uk.mrcleu-uos.heaf']
+for agency in agencies:
+#  if agency not in ['uk.alspac', 'uk.cls.bcs70', 'uk.cls.nextsteps']:
+#if True:
+ #   agency='all_studies'
+    print(agency)
+    #embeddings=read_dataset_from_file(f'./projects/am1_project/data/model_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_1.pickle')
+    embeddings=read_dataset_from_file(f'./projects/am1_project/data/unfiltered_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_2.pickle')
+    all_embeddings_X_train=pd.concat([all_embeddings_X_train, embeddings['X_train']], ignore_index=True)
+    all_embeddings_X_test=pd.concat([all_embeddings_X_test, embeddings['X_test']], ignore_index=True)
+    all_embeddings_y_train=pd.concat([all_embeddings_y_train, embeddings['y_train']], ignore_index=True)
+    all_embeddings_y_test=pd.concat([all_embeddings_y_test, embeddings['y_test']], ignore_index=True)
+    
+if True:
+    embeddings['X_train']=df_training_embeddings.drop('Topic', axis=1)
+    embeddings['y_train']=df_training_embeddings['Topic']
+    embeddings['X_test']=df_test_embeddings.drop('Topic', axis=1)
+    embeddings['y_test']=df_test_embeddings['Topic']
+    embeddings['X_train'] = embeddings['X_train'].reset_index(drop=True)
+    embeddings['y_train'] = embeddings['y_train'].reset_index(drop=True)
+    embeddings['X_test'] = embeddings['X_test'].reset_index(drop=True)
+    embeddings['y_test'] = embeddings['y_test'].reset_index(drop=True)
+        
+
+if True:    
+    embeddings['X_train'] = all_embeddings_X_train
+    embeddings['X_test'] = all_embeddings_X_test
+    embeddings['y_train'] = all_embeddings_y_train
+    embeddings['y_test'] = all_embeddings_y_test
+    df_training_embeddings=embeddings['X_train']
+    df_training_embeddings['Topic']=embeddings['y_train']
+    df_training_embeddings=df_training_embeddings[~df_training_embeddings["Topic"].str.startswith("116", na=False)]
+    df_test_embeddings=embeddings['X_test']
+    df_test_embeddings['Topic']=embeddings['y_test']
+    df_test_embeddings=df_test_embeddings[~df_test_embeddings["Topic"].str.startswith("116", na=False)]
+    df_test_embeddings["TextLabel"] = df_test_embeddings["TextLabel"].str.replace("\xa0", " ", regex=False)
+    df_test_embeddings=remove_duplicate_textlabels(df_training_embeddings, df_test_embeddings, col='TextLabel')
+    df_test_embeddings=filter_by_topics(df_test_embeddings, df_training_embeddings, col="Topic")
+    df_training_embeddings=filter_by_topics(df_training_embeddings, df_test_embeddings, col="Topic")
+    embeddings['X_train']=df_training_embeddings.drop('Topic', axis=1)
+    embeddings['y_train']=df_training_embeddings['Topic']
+    embeddings['X_test']=df_test_embeddings.drop('Topic', axis=1)
+    embeddings['y_test']=df_test_embeddings['Topic']
+    embeddings['X_train'] = embeddings['X_train'].reset_index(drop=True)
+    embeddings['y_train'] = embeddings['y_train'].reset_index(drop=True)
+    embeddings['X_test'] = embeddings['X_test'].reset_index(drop=True)
+    embeddings['y_test'] = embeddings['y_test'].reset_index(drop=True)
+    split_test_validation_data(embeddings)
+    lr=LogisticRegression(max_iter=5000, C=20)
+    feature_columns=['ItemType', 'TextLabel_embeddings', 'ItemCategories_embeddings']
+    run_full_model_generation(
+                model=lr,
+                model_data=embeddings,
+                pca_feature_reduction=False,
+                feature_columns=feature_columns,
+                notes=f"All studies, LogisticRegression, {len(embeddings['X_train'])} samples. Unfiltered. AgencyId: No. PCA feature reduction: No. Feature columns: {feature_columns}"
+                ) 
+
+
+# How I test for example on specific studies
+X_train=convert_df_to_ndarray(embeddings['X_train'][feature_columns], input_features=feature_columns)
+lr=LogisticRegression(max_iter=5000, C=5, class_weight="balanced")
+prediction_model=lr
+prediction_model.fit(X_train, embeddings['y_train'].values)
+test_results=test_model(prediction_model, mrc_embeddings_no116, feature_columns)
+
+X_train=convert_df_to_ndarray(embeddings['X_train'][feature_columns], input_features=feature_columns)
+lr=LogisticRegression(max_iter=5000, C=5, class_weight="balanced")
+prediction_model=lr
+prediction_model.fit(X_train, embeddings['y_train'].values)
+
+
+test_results=test_model(prediction_model, embeddings, feature_columns)
+
+embeddings['X_test']['Topic']=embeddings['y_test']
+df=embeddings['X_test']
+df_mrc=df[df['AgencyId'].isin([10])]
+mrc_embeddings_no116={}
+mrc_embeddings_no116['X_test']=df_mrc
+mrc_embeddings_no116['y_test']=df_mrc['Topic']
+test_results=test_model(prediction_model, mrc_embeddings_no116, feature_columns)
 
 
 all_embeddings_X_train=pd.DataFrame()

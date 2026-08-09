@@ -27,8 +27,7 @@ from src.ml_resources import (
     apply_pipeline,
     convert_dictionary_to_dataframe,
     create_model_data_object,
-    train_model,
-    calculate_accuracy
+    train_model
     )
 from projects.am1_project.src.am1_mlflow import (
     register_model_and_metrics,
@@ -36,6 +35,7 @@ from projects.am1_project.src.am1_mlflow import (
     )
 from projects.am1_project.src.utility import convert_df_to_ndarray    
 from src.logging.utility import StructuredMessage, setup_logging
+from utility import test_model
 
 # We assume that the code in get_data_from_colectica.py has already been executed, and
 # that there are pickle files in the data directory containing question summaries,
@@ -73,52 +73,6 @@ def encode_columns_narrow(df, columns):
         embeddings = llm_model.encode([str(x) for x  in df[col].tolist()], show_progress_bar=True)
         out[f'{col}_embeddings'] = list(embeddings)
     return out
-
-def test_model(trained_model, model_data, feature_columns):
-    #input_feature_list=[]
-    X_test=convert_df_to_ndarray(model_data['X_test'], input_features=feature_columns)
-    """
-    for input_feature in ['summary_embeddings', 
-        'category_embeddings', 'item_type', 'agency_id', 'has_categories']:
-        input_feature_list.append(np.vstack(model_data['X_test'][input_feature]))
-        X_test = np.hstack(
-        input_feature_list
-        )
-    """
-    y_pred=trained_model.predict(X_test)
-    predictions_with_probabilities=trained_model.predict_proba(X_test)
-    prediction_results = None
-    if isinstance(trained_model, XGBClassifier):
-        le = LabelEncoder()
-        y_test = le.fit_transform(model_data['y_test'])
-    else:
-        y_test=model_data['y_test']
-    labels = unique_labels(
-        y_test,
-        y_pred
-        )
-    prediction_results=calculate_accuracy(trained_model,
-            predictions_with_probabilities,
-            X_test,
-            #model_data['y_test'].tolist(),
-            y_test.tolist(),
-            N=5)
-    if not isinstance(trained_model, XGBClassifier) and not isinstance(trained_model, MLPClassifier):
-        roc_auc_result=roc_auc_score(y_test, 
-            predictions_with_probabilities, 
-            multi_class='ovr', 
-            labels=trained_model.classes_)
-    else:
-        roc_auc_result = None
-    report = classification_report(y_test.tolist(),
-        y_pred,
-        labels=labels,
-        target_names=[str(label) for label in labels],
-        output_dict=True)
-    return ({"report": report,
-            "prediction_results": prediction_results,
-            "roc_auc_score": roc_auc_result
-        })
 
 def remove_single_instances(df, topic_column="Topic"):
     class_proportions = df[topic_column].value_counts()
