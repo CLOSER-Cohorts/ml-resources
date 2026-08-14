@@ -26,15 +26,15 @@ def test_categorise_items_success(client):
                 "TextLabel": "How often do you play sports?",
                 "ItemCategories": "every day every week",
                 "ItemType": "Question",
-                "AgencyId": "uk.alspac",
-                "HasCategories": "yes"
+                #"AgencyId": "uk.alspac",
+                #"HasCategories": "yes"
             },
             {
                 "TextLabel": "How often do you exercise?",
                 "ItemCategories": "daily weekly",
                 "ItemType": "Variable",
-                "AgencyId": "uk.wchads",
-                "HasCategories": "yes"
+                #"AgencyId": "uk.wchads",
+                #"HasCategories": "yes"
             }
         ]
     }
