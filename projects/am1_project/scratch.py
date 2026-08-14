@@ -260,14 +260,15 @@ training_df=read_dataset_from_file('./projects/am1_project/data/trainingDataDf/t
 df = read_dataset_from_file('./projects/am1_project/data/pending_training_data/am2_relationships_data_for_future_model/am2_relationships_data_for_future_model_11.pickle')
 
 
-request_body={
+request_body={ items: {
     "TextLabel": ["How often do you play sports?", "Number of drinks per week"],
     "ItemCategories": ["every day every week twice a week", "dog"],
     "ItemType": [1, 0],
-    "HasCategories": [1, 1]
+    #"HasCategories": [1, 1]
+    }
 }
 
-api_client.execute_query(request_body)
+api_client.execute_query(request_body, 'uk.alspac')
 
 run_full_model_generation(smoke_test_N=1500)
 

@@ -10,8 +10,8 @@
 }
 """
 
-from fastapi import FastAPI
-from pydantic import BaseModel, field_validator
+from fastapi import FastAPI, Request
+from pydantic import BaseModel, Field, field_validator
 from typing import Literal
 import pickle
 import numpy as np
@@ -26,11 +26,18 @@ from src.ml_resources import (
     apply_pipeline)
 from src.logging.utility import StructuredMessage, setup_logging
 from projects.am1_project.src.utility import convert_df_to_ndarray
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi import _rate_limit_exceeded_handler
+
+limiter = Limiter(key_func=get_remote_address)
 
 logger=setup_logging(project="am1_project", log_file="logs/am1_log.json")
 
-
-
+MAX_ITEMS_PER_REQUEST = 100
+MAX_TEXT_LENGTH = 2000
 #YOU NEED TO CHANGE THE CODE HERE SO IT IS GETTING THE LIVE VERSION OF THE MODEL FROM
 #MLFLOW
 with open("./config/config.json") as f:
@@ -76,9 +83,10 @@ trainedModel = read_dataset_from_file('./projects/am1_project/model/tunedModelAl
 categories=trainedModel.classes_.tolist()
 
 class Item(BaseModel):
-    TextLabel: str
-    ItemCategories: str | None = ""
+    TextLabel: str = Field(..., max_length=MAX_TEXT_LENGTH)
+    ItemCategories: str | None = Field("", max_length=MAX_TEXT_LENGTH)
     ItemType: Literal["question", "variable"]
+    """
     AgencyId: Literal['uk.iser.ukhls',
         'uk.cls.bcs70', 
         'uk.cls.mcs', 
@@ -92,8 +100,9 @@ class Item(BaseModel):
         'uk.whitehall2', 
         'uk.mrcleu-uos.hcs', 
         'uk.cls.ncds']
-    HasCategories: Literal["yes", "no"]
-    @field_validator("HasCategories", mode="before")
+    """
+    #HasCategories: Literal["yes", "no"]
+    #@field_validator("HasCategories", mode="before")
     @classmethod
     def normalize_yes_no(this_class, field_value):
         if isinstance(field_value, str):
@@ -108,12 +117,28 @@ class Item(BaseModel):
         return field_value
 
 class InferenceRequest(BaseModel):
-    items: list[Item]
+    items: list[Item] = Field(..., min_length=1, max_length=MAX_ITEMS_PER_REQUEST)
     
+#class PredictionResponse(BaseModel):
+#    predictions: list[str]
+#    confidence_scores: list[list[float]]
+
+class PredictionProbability(BaseModel):
+    label: str
+    probability: float
+
 class PredictionResponse(BaseModel):
     predictions: list[str]
+    top_5_predictions: list[list[PredictionProbability]]
 
 app = FastAPI()
+
+app.state.limiter = limiter
+app.add_exception_handler(
+    RateLimitExceeded,
+    _rate_limit_exceeded_handler
+)
+app.add_middleware(SlowAPIMiddleware)
 
 @app.get("/")
 async def root():
@@ -127,7 +152,10 @@ def health():
     }
 
 @app.post("/categorise_items/{agency_id}")
-async def categorise_items(agency_id:str, api_request: InferenceRequest):
+@limiter.limit("2/minute")
+async def categorise_items(request: Request, 
+   agency_id:str, 
+   api_request: InferenceRequest):
     start_time = time.time()
     df = pd.DataFrame([item.model_dump() for item in api_request.items])
     print(df)
@@ -166,7 +194,10 @@ async def categorise_items(agency_id:str, api_request: InferenceRequest):
     #result = trainedModel.predict(X)
     results=trained_models[agency_id].predict_proba(X)
     predictions=[]
+    low_confidence_predictions = []
     confidence_scores={}
+    confidence_scores_list=[]
+    top_5_predictions = []
     for result in results:
         #result.tolist().index(max(result))
         prediction=categories[result.tolist().index(max(result))]
@@ -175,12 +206,21 @@ async def categorise_items(agency_id:str, api_request: InferenceRequest):
         if prediction not in confidence_scores[agency_id]:
           confidence_scores[agency_id][prediction]=[] 
         confidence_scores[agency_id][prediction].append(max(result).item())
-        top_N_results_indices = np.argsort(result)[-5:]
+        top_N_results_indices = np.argsort(result)[-5:][::-1]
         print(top_N_results_indices)
         top_N_results = np.array(categories)[top_N_results_indices]
+        confidence=result[top_N_results_indices]
         # reverse so results are in descending order...
-        predictions.append(str(top_N_results[::-1]))
-        #predictions.append(categories[result.tolist().index(max(result))])
+        predictions.append(prediction)
+        #confidence_scores_list.append(confidence)
+        item_predictions = [
+            PredictionProbability(
+                label=str(categories[i]),
+                probability=float(result[i])
+            )
+            for i in top_N_results_indices
+        ]
+        top_5_predictions.append(item_predictions)
     latency = time.time() - start_time
     logger.info(StructuredMessage(message='Categorise text',
         application="am1",
@@ -196,5 +236,9 @@ async def categorise_items(agency_id:str, api_request: InferenceRequest):
         confidence=confidence_scores
         ))
     print(predictions)
-    return PredictionResponse(predictions=predictions)
+    return PredictionResponse(
+       #confidence_scores=confidence_scores_list
+       predictions=predictions,
+       top_5_predictions=top_5_predictions
+       )
     

@@ -34,9 +34,8 @@ for k, v in all_raw_data['all_data'].items():
 request_body={
     "TextLabel": text_labels,
     "ItemCategories": item_categories,
-    "ItemType": item_types,
-    "HasCategories": has_categories
+    "ItemType": item_types
 }
 
-topic_classifications=api_client.execute_query(request_body)
+topic_classifications=api_client.execute_query(request_body, 'uk.iser.ukhls')
 
