@@ -5,7 +5,10 @@ from src.ml_resources import (
             read_dataset_from_file,
             get_max_file_version
         )
+from projects.am1_project.src.utility import convert_df_to_ndarray
+import pandas as pd
 from pathlib import Path
+import os
 
 colectica_client = colectica_utility.C
 

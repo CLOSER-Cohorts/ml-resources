@@ -159,7 +159,7 @@ async def categorise_items(request: Request,
     start_time = time.time()
     df = pd.DataFrame([item.model_dump() for item in api_request.items])
     print(df)
-    df["ItemType"] = df["ItemType"].map({"question": 1, "variable": 0})
+    df["ItemType"] = df["ItemType"].map({"question": 0, "variable": 1})
     #df["HasCategories"] = df["HasCategories"].map({"yes": 1, "no": 0})
     """
     df["AgencyId"] = df["AgencyId"].map({'uk.iser.ukhls' : 0, 
@@ -193,6 +193,7 @@ async def categorise_items(request: Request,
     """
     #result = trainedModel.predict(X)
     results=trained_models[agency_id].predict_proba(X)
+    print(trained_models[agency_id].predict(X))
     predictions=[]
     low_confidence_predictions = []
     confidence_scores={}
@@ -200,6 +201,7 @@ async def categorise_items(request: Request,
     top_5_predictions = []
     for result in results:
         #result.tolist().index(max(result))
+        categories=trained_models[agency_id].classes_.tolist()
         prediction=categories[result.tolist().index(max(result))]
         if agency_id not in confidence_scores.keys():
           confidence_scores[agency_id]={}

@@ -8,6 +8,20 @@ item_type = st.selectbox(
     ["Question", "Variable"]
 )
 
+study = st.selectbox(
+    "Study",
+    ["uk.iser.ukhls",
+    "uk.whitehall2",
+    "uk.cls.nextsteps",
+    "uk.lha",
+    "uk.wchads",
+    "uk.cls.bcs70",
+    "uk.alspac",
+    "uk.mrcleu-uos.sws",
+    "uk.mrcleu-uos.hcs",
+    "uk.mrcleu-uos.heaf"]
+)
+
 
 label_text = st.text_area(
     "Enter a label text:",
@@ -31,9 +45,11 @@ if st.button("Submit"):
         ]
     }
 
+    print(payload)
+
     try:
         response = requests.post(
-            "http://127.0.0.1:8000/categorise_items",
+            f"http://127.0.0.1:8000/categorise_items/{study}",
             json=payload
         )
 
