@@ -16,3 +16,4 @@ config/secrets.json
 config/config.json
 logs/*
 !logs/readme.txt
+keys/ed25519_private_key.pem

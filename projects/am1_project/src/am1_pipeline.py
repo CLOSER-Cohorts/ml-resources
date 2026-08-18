@@ -35,7 +35,7 @@ from projects.am1_project.src.am1_mlflow import (
     )
 from projects.am1_project.src.utility import convert_df_to_ndarray    
 from src.logging.utility import StructuredMessage, setup_logging
-from utility import test_model
+from projects.am1_project.src.utility import test_model
 
 # We assume that the code in get_data_from_colectica.py has already been executed, and
 # that there are pickle files in the data directory containing question summaries,
@@ -326,4 +326,4 @@ def run_full_model_generation(smoke_test_N=None,
         raw_data_filename,
         prediction_results=test_results["prediction_results"],
         roc_auc_score=test_results["roc_auc_score"]
-        )     
+        )

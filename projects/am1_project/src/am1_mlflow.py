@@ -2,8 +2,10 @@ import mlflow
 import mlflow.sklearn
 import json
 import numpy as np
-import mlflow
+from cryptography.hazmat.primitives import serialization
 from sklearn.linear_model import LogisticRegression
+import base64
+from src.cryptography import hash_directory
 
 with open("./config/config.json") as f:
     general_config = json.load(f)
@@ -53,22 +55,67 @@ def register_model_and_metrics(model,
         sk_model=model,
         name=model_name,
         input_example=input_example,
-        registered_model_name=model_name,
+        #registered_model_name=model_name,
         serialization_format="skops",
         skops_trusted_types=['xgboost.core.Booster', 'xgboost.sklearn.XGBClassifier']
         )
+        model_path = mlflow.artifacts.download_artifacts(
+            artifact_uri=model_info.model_uri
+        )
+        print(model_path)
+        with open("./keys/ed25519_private_key.pem", "rb") as f:
+            private_key = serialization.load_pem_private_key(
+                f.read(),
+                password=None
+            )
+        model_hash = hash_directory(model_path)
+        print(model_hash)
+        signature = private_key.sign(
+            bytes.fromhex(model_hash)
+        )
+        signature_b64 = base64.b64encode(signature).decode("ascii")
+        registered_model = mlflow.register_model(
+            model_uri=model_info.model_uri,
+            name=model_name,
+        )
+        model_version = registered_model.version
         client = mlflow.MlflowClient()
         # Get the newly created version
         latest = client.get_latest_versions(
-        model_name,
-        stages=None
-        )[-1]
+            model_name,
+            stages=None
+            )[-1]
+        client.set_model_version_tag(
+            name=model_name,
+            version=model_version,
+            key="signature_algorithm",
+            value="Ed25519",
+        )
+        client.set_model_version_tag(
+            name=model_name,
+            version=model_version,
+            key="hash_algorithm",
+            value="SHA-256",
+        )
+        client.set_model_version_tag(
+            name=model_name,
+            version=model_version,
+            key="model_sha256",
+            value=model_hash,
+        )
+        client.set_model_version_tag(
+            name=model_name,
+            version=model_version,
+            key="ed25519_signature",
+            value=signature_b64,
+        )
         client.set_model_version_tag(
             name=model_name,
             version=latest.version,
             key="notes",
             value=notes
         )
+
 
 
 def register_model_and_cross_validation_metrics(model, 
