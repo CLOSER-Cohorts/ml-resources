@@ -31,6 +31,15 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi import _rate_limit_exceeded_handler
+import base64
+from cryptography.hazmat.primitives import serialization
+from src.cryptography import hash_directory
+from cryptography.exceptions import InvalidSignature
+import os
+import sys
+import cryptography
+from pathlib import Path
+import hashlib
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -38,49 +47,95 @@ logger=setup_logging(project="am1_project", log_file="logs/am1_log.json")
 
 MAX_ITEMS_PER_REQUEST = 100
 MAX_TEXT_LENGTH = 2000
-#YOU NEED TO CHANGE THE CODE HERE SO IT IS GETTING THE LIVE VERSION OF THE MODEL FROM
-#MLFLOW
+model_name = 'Logistic Regression for topic classification'
 with open("./config/config.json") as f:
             general_config = json.load(f)
 mlflow.set_tracking_uri(f"{general_config["MLFlowServerHost"]}:{general_config["MLFlowServerPort"]}")
 mlflow_client = mlflow.MlflowClient()
 
+def retrieve_and_validate_models(trained_models, model_name, agencies, public_key):
+    print("=" * 80)
+    print("VALIDATION ENVIRONMENT")
+    print("Python:", sys.executable)
+    print("Python:", sys.version)
+    print("MLflow:", mlflow.__version__)
+    print("Cryptography:", cryptography.__version__)
+    print("CWD:", os.getcwd())
+    print(sys.executable)
+    print(os.getcwd())
+    print(Path("./keys/ed25519_public_key.pem").resolve())
+    key_path = Path("./keys/ed25519_public_key.pem").resolve()
+    key_bytes = key_path.read_bytes()
+    print("Key path:", key_path)
+    print("Key file SHA256:", hashlib.sha256(key_bytes).hexdigest())
+    print("Key file size:", len(key_bytes))
+    print(
+    hashlib.sha256(
+        public_key.public_bytes(
+            serialization.Encoding.DER,
+            serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+    ).hexdigest())
+    print("=" * 80)
+    for agency in agencies:
+        alias = agency.rsplit(".", 1)[-1]
+        print(agency)
+        mv = mlflow_client.get_model_version_by_alias(
+            name=model_name,
+            alias=alias,
+        )
+        model_uri = f"models:/{model_name}@{alias}"
+        local_model_path = mlflow.artifacts.download_artifacts(
+            artifact_uri=model_uri
+            )
+        signature_b64 = mv.tags["ed25519_signature"]
+        expected_hash = mv.tags["model_sha256"]
+        #model_path = mlflow.artifacts.download_artifacts(
+        #    artifact_uri=mv.source
+        #)
+        signature = base64.b64decode(signature_b64) 
+        actual_hash = hash_directory(local_model_path)
+        if actual_hash != expected_hash:
+            raise RuntimeError(
+                "Model hash does not match MLflow metadata"
+            )
+        try:
+            public_key.verify(
+                signature,
+                bytes.fromhex(actual_hash),
+            )
+        except InvalidSignature:
+            raise RuntimeError(
+                "Model cryptographic signature is invalid"
+            )
+        trained_models[agency] = mlflow.sklearn.load_model(
+            local_model_path
+            )
+
 trained_models={}
-trained_models['uk.iser.ukhls'] = mlflow.sklearn.load_model(
-        model_uri="models:/Logistic Regression for topic classification@ukhls"
-        )
-trained_models['uk.whitehall2'] = mlflow.sklearn.load_model(
-        model_uri="models:/Logistic Regression for topic classification@whitehall2"
-        )
-trained_models['uk.cls.nextsteps'] = mlflow.sklearn.load_model(
-        model_uri="models:/Logistic Regression for topic classification@nextsteps"
-        )
-trained_models['uk.lha'] = mlflow.sklearn.load_model(
-        model_uri="models:/Logistic Regression for topic classification@lha"
-        )
-trained_models['uk.wchads'] = mlflow.sklearn.load_model(
-        model_uri="models:/Logistic Regression for topic classification@wchads"
-        )
-trained_models['uk.cls.bcs70'] = mlflow.sklearn.load_model(
-        model_uri="models:/Logistic Regression for topic classification@bcs70"
-        )
-trained_models['uk.alspac'] = mlflow.sklearn.load_model(
-        model_uri="models:/Logistic Regression for topic classification@alspac"
-        )
-"""
-trained_models['uk.mrcleu-uos.sws'] = mlflow.sklearn.load_model(
-        model_uri="models:/Logistic Regression for topic classification@sws"
-        )
-trained_models['uk.mrcleu-uos.heaf'] = mlflow.sklearn.load_model(
-        model_uri="models:/Logistic Regression for topic classification@heaf"
-        )
-"""
+models_to_retrieve=['uk.iser.ukhls',
+    'uk.whitehall2',
+    'uk.cls.nextsteps',
+    'uk.lha',
+    'uk.wchads',
+    'uk.cls.bcs70',
+    'uk.alspac',
+    #'uk.mrcleu-uos.sws',
+    #'uk.mrcleu-uos.heaf'
+    ]
 
-
+with open("./keys/ed25519_public_key.pem", "rb") as f:
+    public_key = serialization.load_pem_public_key(f.read())
+    
+print(public_key)
+retrieve_and_validate_models(trained_models,
+    model_name,
+    models_to_retrieve,
+    public_key)
 
 #modelfile = open('./projects/am1_project/model/trainedModel/Logistic Regression Model_242.pickle', 'rb')
 trainedModel = read_dataset_from_file('./projects/am1_project/model/tunedModelAllStudies/tunedModelAllStudies_1.pickle')
-categories=trainedModel.classes_.tolist()
+#categories=trainedModel.classes_.tolist()
 
 class Item(BaseModel):
     TextLabel: str = Field(..., max_length=MAX_TEXT_LENGTH)
