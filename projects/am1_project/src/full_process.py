@@ -222,6 +222,10 @@ def run_full_model_generation(smoke_test_N=None,
         raw_data_filename,
         prediction_results=test_results["prediction_results"],
         )
+    model_path = mlflow.artifacts.download_artifacts(
+    artifact_uri=model_info.model_uri
+    )
+    print(model_path)
 
 def run_full_model_generation_with_cross_validation(smoke_test_N=None, 
     pca_feature_reduction=False,

@@ -1262,3 +1262,11 @@ feature_importance = (
 )
 
 print(feature_importance)
+
+# create item categories
+ 
+df=convert_dictionary_to_dataframe(all_raw_data) 
+df=df['ItemCategories'].dropna()
+df=df[df != ""]
+df=df.drop_duplicates()
+save_versioned_pickle_file(df, 'item_categories', folder='./projects/am1_project/data')
