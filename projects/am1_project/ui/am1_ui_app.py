@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import pickle
 
 st.title("Topic Classifier")
 
@@ -28,10 +29,39 @@ label_text = st.text_area(
     height=50
 )
 
-categories_text = st.text_area(
-    "Enter any category reponses associated with the item, separated by spaces (e.g. 'yes no'):",
-    height=50
+filename ='./projects/am1_project/data/item_categories/item_categories_1.pickle'
+data_file = open(filename, 'rb')
+categories = pickle.load(data_file)
+    
+def select_suggestion(suggestion):
+    st.session_state.category = suggestion
+    st.session_state.show_suggestions = False
+
+categories_search = st.text_input(
+    "Search for categories",
+    key="category",
+    placeholder="Start typing..."
 )
+
+search = st.session_state.category
+
+if "show_suggestions" not in st.session_state:
+    st.session_state.show_suggestions = True
+
+if st.session_state.show_suggestions and search:
+    suggestions = [
+        category
+        for category in categories
+        if search.lower() in category.lower()
+    ][:10]
+
+    for suggestion in suggestions:
+        st.button(
+            suggestion,
+            key=f"suggestion_{suggestion}",
+            on_click=select_suggestion,
+            args=(suggestion,)
+        )
 
 if st.button("Submit"):
 
@@ -40,7 +70,7 @@ if st.button("Submit"):
             {
                 "TextLabel": label_text,
                 "ItemType": item_type,
-                "ItemCategories": categories_text
+                "ItemCategories": categories_search
             }
         ]
     }
