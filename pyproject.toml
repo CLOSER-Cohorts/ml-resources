@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "am1-ml-project"
+version = "0.1.0"
+description = "Machine learning project for topic classification"
+requires-python = ">=3.12"
+
+dependencies = [
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "sentence-transformers",
+    "xgboost",
+    "mlflow",
+    "fastapi",
+]
