@@ -1270,3 +1270,103 @@ df=df['ItemCategories'].dropna()
 df=df[df != ""]
 df=df.drop_duplicates()
 save_versioned_pickle_file(df, 'item_categories', folder='./projects/am1_project/data')
+
+mismatched_topics=[]
+count=0
+for key, item in all_raw_data['all_data'].items():
+  count=count+1
+  if count>1143:
+    print(f"{count} of {len(all_raw_data['all_data'].keys())}")
+    if item['ItemType']==C.item_code('Question'):
+        item_type_to_search=C.item_code('Variable')
+        item_group=C.item_code('Variable Group')
+        paired_items=C.search_relationship_byobject(item['AgencyId'], 
+            key, 
+            item_types=[item_type_to_search],
+            Descriptions=True)
+    else:
+        item_type_to_search=C.item_code('Question')
+        item_group=C.item_code('Question Group')
+        paired_items=C.search_relationship_bysubject('uk.genscot', 
+            key, 
+            item_types=[item_type_to_search],
+            Descriptions=True)
+    for paired_item in paired_items:
+        if paired_item['Identifier'] in all_raw_data['all_data'].keys():
+           paired_item_topic=all_raw_data['all_data'][paired_item['Identifier']].get('Topic')
+        else:
+           paired_item_topic_item=C.search_relationship_bysubject('uk.genscot', 
+               paired_item['Identifier'], 
+               item_types=[item_group],
+               Descriptions=True)
+           if (paired_item_topic_item)==1:
+               paired_item_topic=paired_item_topic_item[0]['ItemName']['en-GB']
+           if paired_item_topic != item['Topic']:
+              print('Topic mismatch found:')
+              print(item)
+              mismatched_topics.append((item, paired_item))
+    
+
+count=0
+for x in preds_probs:
+   #print(embeddings['y_train'][count])
+   if embeddings['y_train'][count] in trained_models[agency].classes_.tolist():
+       #print("GO")
+       #print(embeddings['y_train'][count]) 
+       index=trained_models[agency].classes_.tolist().index(embeddings['y_train'][count])
+       if x[index]<.1:
+           print(count)
+   count=count+1
+
+preds_probs=trained_models[agency].predict_proba(convert_df_to_ndarray(embeddings['X_train'], input_features=['ItemType', 'TextLabel_embeddings', 'ItemCategories_embeddings']))
+
+count=0
+for topic in embeddings['y_train']:
+    if topic in trained_models[agency].classes_.tolist():
+        index=trained_models[agency].classes_.tolist().index(topic)
+        if preds_probs[count][index]<.001: 
+            print(count)
+    count=count+1
+        
+
+all_df=pd.DataFrame()
+all_topics=[]
+all_agencies=[]
+agencies=['uk.iser.ukhls', 'uk.whitehall2', 'uk.cls.nextsteps', 'uk.lha', 'uk.wchads', 'uk.cls.bcs70', 'uk.alspac', 'uk.mrcleu-uos.sws', 'uk.genscot', 'uk.mrcleu-uos.hcs', 'uk.mrcleu-uos.heaf']
+for agency in agencies:
+    embeddings=read_dataset_from_file(f'./projects/am1_project/data/unfiltered_embeddings/{agency}_model_embeddings/{agency}_model_embeddings_2.pickle')
+    #all_df=pd.concat([all_df, embeddings['X_train']], ignore_index=True)
+    all_topics.extend(embeddings['y_train'].tolist())
+
+
+import mplcursors
+items_10703=all_df[all_df['Topic'].isin(['10403', '10901'])]
+X = np.asarray(items_10703['TextLabel_embeddings']).tolist()
+principalComponents = pca_data.fit_transform(X)
+scatter2 = plt.scatter(principalComponents[:, 0], principalComponents[:, 1], c=items_10703['Topic'].astype('category').cat.codes)
+handles, labels = scatter2.legend_elements()
+
+legend_labels = [
+    "Wellbeing - The state of being comfortable, healthy, or happy.",
+    "Occupation/employment - Means of earning a living; engagement in an activity for wages."
+]
+
+plt.legend(handles, legend_labels, title="AgencyId")
+cursor = mplcursors.cursor(scatter2, hover=True)
+@cursor.connect("add")
+def on_add(sel):
+    index = sel.index
+    #value = str(index) + items_10703.iloc[index]["TextLabel"]
+    value = items_10703.iloc[index]["TextLabel"]
+    sel.annotation.set_text(value)
+    bbox = sel.annotation.get_bbox_patch()
+    bbox.set(
+        facecolor="white",
+        alpha=1.0,
+        edgecolor="black",
+        linewidth=1.5,
+        boxstyle="round,pad=0.5"
+    )
+    sel.annotation.set_color("black")
+    sel.annotation.set_fontsize(10)
+plt.show()

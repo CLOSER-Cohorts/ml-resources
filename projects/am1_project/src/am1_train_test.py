@@ -99,20 +99,48 @@ for agency_id in agencies:
 # Calculate average stats over studies
 
 all_test_results_cross_val=read_dataset_from_file(f'./projects/am1_project/data/cross_val_all_results/cross_val_all_results_3.pickle')
-    
+del(all_test_results_cross_val['uk.mrcleu-uos.hcs'])    
 mean_recall = sum(
     study["report"]["macro avg"]["recall"]
-    for study in all_test_results_cross_val.values()
-) / len(all_test_results_cross_val)
+    for study in all_test_results_cross_val2.values()
+) / len(all_test_results_cross_val2)
 
 mean_precision = sum(
     study["report"]["macro avg"]["precision"]
-    for study in all_test_results_cross_val.values()
-) / len(all_test_results_cross_val)
+    for study in all_test_results_cross_val2.values()
+) / len(all_test_results_cross_val2)
+
+mean_f1 = sum(
+    study["report"]["macro avg"]["f1-score"]
+    for study in all_test_results_cross_val2.values()
+) / len(all_test_results_cross_val2)
+
+
+mean_accuracy = sum(
+    study["report"]["accuracy"]
+    for study in all_test_results_cross_val2.values()
+) / len(all_test_results_cross_val2)
 
 mean_top_n_accuracy = sum(
     study["prediction_results"]["TopNAccuracy"]
-    for study in all_test_results_cross_val.values()
-) / len(all_test_results_cross_val)
+    for study in all_test_results_cross_val2.values()
+) / len(all_test_results_cross_val2)
 
+mean_l1_accuracy = sum(
+    study["prediction_results"]["L1Correct"]
+    for study in all_test_results_cross_val2.values()
+) / len(all_test_results_cross_val2)
 
+mean_top_n_l1_accuracy = sum(
+    study["prediction_results"]["TopNAccuracyL1"]
+    for study in all_test_results_cross_val2.values()
+) / len(all_test_results_cross_val2)
+
+for k, study in all_test_results_cross_val2.items():
+    print(f"{k},{round(study["report"]["accuracy"],3)},
+    {round(study["report"]["macro avg"]["precision"],3)},
+    {round(study["report"]["macro avg"]["recall"],3)},
+    {round(study["prediction_results"]["TopNAccuracy"],3)},
+    {round(study["prediction_results"]["L1Correct"],3)},
+    {round(study["prediction_results"]["TopNAccuracyL1"],3)},
+    {round(study["report"]["macro avg"]["f1-score"],3)} ")

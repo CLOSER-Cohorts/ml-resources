@@ -694,7 +694,7 @@ for agency in agencies[1:]:
 
     save_versioned_pickle_file(embeddings, f"{agency}_model_embeddings", folder=f'./projects/am1_project/data/model_embeddings_not_filtered')
 
-embeddings=read_dataset_from_file('./projects/am1_project/data/model_embeddings_not_filtered/uk.iser.ukhls_model_embeddings/uk.iser.ukhls_model_embeddings_1.pickle')
+embeddings2=read_dataset_from_file('./projects/am1_project/data/model_embeddings_not_filtered/uk.iser.ukhls_model_embeddings/uk.iser.ukhls_model_embeddings_1.pickle')
     
 
 agency='uk.whitehall2'
