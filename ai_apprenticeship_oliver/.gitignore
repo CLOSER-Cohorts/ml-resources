@@ -13,7 +13,6 @@ projects/am2_project/data/*
 !projects/am2_project/data/sweep_items_cached/
 !projects/am2_project/data/sweep_items_cached/**
 config/secrets.json
-config/config.json
 logs/*
 !logs/readme.txt
 keys/ed25519_private_key.pem

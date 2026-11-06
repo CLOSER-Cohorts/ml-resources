@@ -1,4 +1,8 @@
-Run the following command to start the MLFlow server, before executing code such as example.py
+Run the following command to start the MLFlow server, before executing code such as example.py.
+Note that the flag --default-artifact-root is used when first running the server, if you
+are running the server after you have already created/uploaded models to MLflow, use the
+--artifacts-destination flag instead to specify an existing mlflow.db file, as shown in the
+second example
 
 python -m mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns --host 0.0.0.0 --port 5001
 
