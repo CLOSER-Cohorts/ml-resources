@@ -66,22 +66,25 @@ resource "harvester_virtualmachine" "vm" {
         - enable
         - --now
         - qemu-guest-agent.service
-      - - systemctl
-        - enable
-        - --now
-          - httpd
       - setsebool -P httpd_can_network_connect on
       - dnf install -y git
       - dnf install -y python3.12 python3.12-pip
+      - dnf install -y httpd
       - cd /home/almalinux
       - python3.12 -m venv .venv312
       - source .venv312/bin/activate
       - git clone https://github.com/CLOSER-Cohorts/ml-resources
       - cd ml-resources/ai_apprenticeship_oliver
       - python -m pip install -e .
-      - mlflow server --host 0.0.0.0 --port 5000 --allowed-hosts 127.0.0.1:5000,localhost:5000 --backend-store-uri sqlite:///mlflow.db --artifacts-destination file:./mlruns &
-      - python -m uvicorn projects.am1_project.api.main:app &
-      - streamlit run ./projects/am1_project/ui/am1_ui_app.py &
+      - "nohup mlflow server --host 0.0.0.0 --port 5000 --allowed-hosts 127.0.0.1:5000,localhost:5000 --backend-store-uri sqlite:///mlflow.db --artifacts-destination file:./mlruns &"
+      - "until curl -sf http://127.0.0.1:5000/health; do echo 'Waiting for MLflow...'; sleep 2; done"
+      - "nohup python -m uvicorn projects.am1_project.api.main:app &"
+      - "until curl -sf http://127.0.0.1:8000; do echo 'Waiting for FastAPI...'; sleep 2; done"
+      - "nohup streamlit run ./projects/am1_project/ui/am1_ui_app.py &"
+      - - systemctl
+        - enable
+        - --now
+        - httpd
     ssh_authorized_keys:
       - ${var.ssh_public_key_data}
     EOF
