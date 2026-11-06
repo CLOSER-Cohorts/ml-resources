@@ -6,10 +6,10 @@ data "harvester_image" "img" {
 }
 
 resource "harvester_virtualmachine" "vm" {
-  name        = "demo"
+  name        = "mlapps"
   namespace   = var.namespace
-  description = "FastAPI VM"
-  hostname    = "fastapi"
+  description = "ML VM"
+  hostname    = "mlapps"
 
   cpu    = 1
   memory = "8Gi"
@@ -43,9 +43,24 @@ resource "harvester_virtualmachine" "vm" {
     user_data = <<EOF
     #cloud-config
     package_update: true
+    package_upgrade: true
     packages:
       - qemu-guest-agent
       - httpd
+    write_files:
+    - path: /etc/httpd/conf.d/streamlit-proxy.conf
+      owner: root:root
+      permissions: '0644'
+      content: |
+        <VirtualHost *:80>
+            ServerName localhost
+            ProxyRequests Off
+            ProxyPreserveHost On
+            ProxyPass /_stcore/stream ws://127.0.0.1:8501/_stcore/stream
+            ProxyPassReverse /_stcore/stream ws://127.0.0.1:8501/_stcore/stream
+            ProxyPass / http://127.0.0.1:8501/
+            ProxyPassReverse / http://127.0.0.1:8501/
+        </VirtualHost>
     runcmd:
       - - systemctl
         - enable
@@ -55,6 +70,17 @@ resource "harvester_virtualmachine" "vm" {
         - enable
         - --now
           - httpd
+      - setsebool -P httpd_can_network_connect on
+      - dnf install -y git
+      - dnf install -y python3.12 python3.12-pip
+      - cd /home/almalinux
+      - python3.12 -m venv .venv312
+      - source .venv312/bin/activate
+      - git clone https://github.com/CLOSER-Cohorts/ml-resources
+      - cd ml-resources/ai_apprenticeship_oliver
+      - python -m pip install -e .
+      - python -m uvicorn projects.am1_project.api.main:app
+      - streamlit run .\projects\am1_project\ui\am1_ui_app.py
     ssh_authorized_keys:
       - ${var.ssh_public_key_data}
     EOF
@@ -62,7 +88,7 @@ resource "harvester_virtualmachine" "vm" {
 
   labels = {
   "condenser.ingress/isEnabled"     = true
-  "condenser.ingress.fastapi/hostname" = "fastapi"
+  "condenser.ingress.mlapps/hostname" = "mlapps"
 }
 }
 
