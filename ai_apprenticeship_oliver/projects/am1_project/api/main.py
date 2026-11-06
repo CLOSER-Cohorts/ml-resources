@@ -112,6 +112,23 @@ def retrieve_and_validate_models(trained_models, model_name, agencies, public_ke
             local_model_path
             )
 
+def retrieve_models(trained_models, model_name, agencies):
+    for agency in agencies:
+        alias = agency.rsplit(".", 1)[-1]
+        print(agency)
+        mv = mlflow_client.get_model_version_by_alias(
+            name=model_name,
+            alias=alias,
+        )
+        model_uri = f"models:/{model_name}@{alias}"
+        local_model_path = mlflow.artifacts.download_artifacts(
+            artifact_uri=model_uri
+            )
+        trained_models[agency] = mlflow.sklearn.load_model(
+            local_model_path
+            )
+
+
 trained_models={}
 models_to_retrieve=['uk.iser.ukhls',
     'uk.whitehall2',
@@ -124,14 +141,20 @@ models_to_retrieve=['uk.iser.ukhls',
     #'uk.mrcleu-uos.heaf'
     ]
 
-with open("./keys/ed25519_public_key.pem", "rb") as f:
-    public_key = serialization.load_pem_public_key(f.read())
+# COMMENT OUT FOR NOW AS WE ARE NOT VALIDATING MODEL SIGNATURES
+#with open("./keys/ed25519_public_key.pem", "rb") as f:
+#    public_key = serialization.load_pem_public_key(f.read())
     
-print(public_key)
-retrieve_and_validate_models(trained_models,
+#print(public_key)
+#retrieve_and_validate_models(trained_models,
+#    model_name,
+#    models_to_retrieve,
+#    public_key)
+retrieve_models(trained_models,
     model_name,
     models_to_retrieve,
-    public_key)
+    )
+
 
 #modelfile = open('./projects/am1_project/model/trainedModel/Logistic Regression Model_242.pickle', 'rb')
 trainedModel = read_dataset_from_file('./projects/am1_project/model/tunedModelAllStudies/tunedModelAllStudies_1.pickle')
