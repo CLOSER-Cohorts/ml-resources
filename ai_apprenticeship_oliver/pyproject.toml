@@ -16,4 +16,8 @@ dependencies = [
     "xgboost",
     "mlflow",
     "fastapi",
+    "slowapi",
+    "colectica_api",
+    "natsort",
+    "streamlit"
 ]
