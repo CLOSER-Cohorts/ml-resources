@@ -79,6 +79,7 @@ resource "harvester_virtualmachine" "vm" {
       - git clone https://github.com/CLOSER-Cohorts/ml-resources
       - cd ml-resources/ai_apprenticeship_oliver
       - python -m pip install -e .
+      - mlflow server --host 0.0.0.0 --port 5000 --allowed-hosts 127.0.0.1:5000,localhost:5000 --backend-store-uri sqlite:///mlflow.db --artifacts-destination file:./mlruns
       - python -m uvicorn projects.am1_project.api.main:app
       - streamlit run .\projects\am1_project\ui\am1_ui_app.py
     ssh_authorized_keys:
