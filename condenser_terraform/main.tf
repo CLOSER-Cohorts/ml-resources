@@ -68,6 +68,9 @@ resource "harvester_virtualmachine" "vm" {
       - source .venv312/bin/activate
       - python -m ensurepip --upgrade
       - python -m pip install --upgrade pip
+      - curl -fsSL https://raw.githubusercontent.com/CLOSER-Cohorts/ml-resources/refs/heads/main/condenser_terraform/mlapps-proxy.conf
+      - chown root:root /etc/httpd/conf.d/mlapps-proxy.conf
+      - chmod 644 /etc/httpd/conf.d/mlapps-proxy.conf
       - git clone https://github.com/CLOSER-Cohorts/ml-resources
       - cd ml-resources/ai_apprenticeship_oliver
       - python -m pip install -e .
