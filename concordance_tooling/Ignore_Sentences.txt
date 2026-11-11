@@ -1,0 +1,40 @@
+Please mark the answer that best indicates how often
+Please look at the card and tell me
+Please look at this card and tell me
+Please look
+Please enter the number that indicates how strongly you agree or disagree with each statement
+Please enter
+please tell me
+please write in
+please tick
+please just answer
+please answer
+Please record
+Please specify
+Please read
+Please choose
+Please give
+Please select
+Please say
+please indicate
+hhgrid.hhsize
+where 0% means "No chance of happening" and 100% means "Totally likely to happen"
+on a scale from 0% to 100% how likely it is that the following events will happen in your life in the future 
+If any of the following events have already happened just let me know
+how likely is it that you will
+When thinking about the occupation you want to follow how important is
+interview month
+interview year
+How much of the time during the past 4 weeks
+past four weeks
+past four months
+100%
+ff_surname
+ff_forname
+ff_JBSOC00
+ff_jbmngr
+ff_jbsize
+ff_intdate
+ff_jbstat
+ff_sex
+MARSTAT
