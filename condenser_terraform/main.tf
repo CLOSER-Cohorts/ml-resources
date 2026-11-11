@@ -47,12 +47,6 @@ resource "harvester_virtualmachine" "vm" {
     packages:
       - qemu-guest-agent
       - httpd
-    write_files:
-    - path: /etc/httpd/conf.d/mlapps-proxy.conf
-      owner: root:root
-      permissions: '0644'
-      content: |
-        ${file("${path.module}/mlapps-proxy.conf")}
     runcmd:
       - - systemctl
         - enable
