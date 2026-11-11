@@ -52,7 +52,7 @@ resource "harvester_virtualmachine" "vm" {
       owner: root:root
       permissions: '0644'
       content: |
-        
+        ${file("${path.module}/mlapps-proxy.conf")}
     runcmd:
       - - systemctl
         - enable
@@ -62,6 +62,7 @@ resource "harvester_virtualmachine" "vm" {
       - dnf install -y git
       - dnf install -y python3.12 python3.12-pip
       - dnf install -y httpd
+      - dnf install -y kubectl
       - cd /home/almalinux
       - python3.12 -m venv .venv312
       - source .venv312/bin/activate
