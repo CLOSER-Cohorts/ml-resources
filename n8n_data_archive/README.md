@@ -4,6 +4,8 @@ When logged into the n8n VM on condenser, you can backup and restore the n8n dat
 sudo dnf install gnupg2 -y
 sudo dnf install pinentry -y
 sudo dnf install -y git
+# You may need to define your git account
+git config --global user.email "you@example.com"
 # Create the backup
 tar -czvf n8n_backup.tar.gz -C /home/almalinux n8n_data
 # Encrypt the backup
