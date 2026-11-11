@@ -6,6 +6,12 @@ sudo dnf install pinentry -y
 sudo dnf install -y git
 # You may need to define your git account
 git config --global user.email "you@example.com"
+# You may also need to enable ssh authentication, copy the ssh key to your github 
+# account (not shown in this README) and then set the remote url before using git
+# to push to the repository
+ssh-keygen -t ed25519 -C "n8n-backup"
+cat ~/.ssh/id_ed25519.pub
+git remote set-url origin git@github.com:CLOSER-Cohorts/ml-resources.git
 # Create the backup
 tar -czvf n8n_backup.tar.gz -C /home/almalinux n8n_data
 # Encrypt the backup
