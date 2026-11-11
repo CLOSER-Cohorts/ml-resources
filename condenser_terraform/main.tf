@@ -52,17 +52,17 @@ resource "harvester_virtualmachine" "vm" {
         - enable
         - --now
         - qemu-guest-agent.service
+      - sed -i '/^Listen 80$/a Listen 8000' /etc/httpd/conf/httpd.conf
       - setsebool -P httpd_can_network_connect on
       - dnf install -y git
       - dnf install -y python3.12 python3.12-pip
       - dnf install -y httpd
-      - dnf install -y kubectl
       - cd /home/almalinux
       - python3.12 -m venv .venv312
       - source .venv312/bin/activate
       - python -m ensurepip --upgrade
       - python -m pip install --upgrade pip
-      - curl -fsSL https://raw.githubusercontent.com/CLOSER-Cohorts/ml-resources/refs/heads/main/condenser_terraform/mlapps-proxy.conf
+      - curl -fsSL https://raw.githubusercontent.com/CLOSER-Cohorts/ml-resources/refs/heads/main/condenser_terraform/mlapps-proxy.conf -o /etc/httpd/conf.d/mlapps-proxy.conf
       - chown root:root /etc/httpd/conf.d/mlapps-proxy.conf
       - chmod 644 /etc/httpd/conf.d/mlapps-proxy.conf
       - git clone https://github.com/CLOSER-Cohorts/ml-resources
@@ -78,6 +78,8 @@ resource "harvester_virtualmachine" "vm" {
         - enable
         - --now
         - httpd
+    ssh_authorized_keys:
+      - ${var.ssh_public_key_data}
     EOF
   }
 
@@ -85,7 +87,7 @@ resource "harvester_virtualmachine" "vm" {
   "condenser.ingress/isEnabled"     = true
   "condenser.ingress.mlapps/hostname" = "mlapps"
   "condenser.ingress.fastapi/hostname" = "fastapi"
-  "condenser.ingress.fastapi/port" = "8001"
+  "condenser.ingress.fastapi/port" = "8000"
 }
 }
 
