@@ -136,16 +136,27 @@ resource "harvester_virtualmachine" "n8n_vm" {
     runcmd:
       - mkdir -p /home/almalinux/n8n_data
       - chown -R 1000:1000 /home/almalinux/n8n_data
+      - dnf -y install zstd
+      - curl -fsSL https://ollama.com/install.sh | sh
+      - semanage port -a -t http_port_t -p tcp 11434
+      - mkdir -p /etc/systemd/system/ollama.service.d
+      - |   
+        cat > /etc/systemd/system/ollama.service.d/override.conf <<'EOT'
+        [Service]
+        Environment="HOME=/usr/share/ollama"
+        Environment="OLLAMA_HOST=0.0.0.0:11434"
+        EOT
+      - systemctl daemon-reload
+      - systemctl restart ollama
+      - until curl -fsS http://127.0.0.1:11434/api/tags >/dev/null; do sleep 2; done
+      - sudo -u ollama env HOME=/usr/share/ollama OLLAMA_HOST=127.0.0.1:11434 /usr/local/bin/ollama pull qwen2.5:7b
       # Add Docker's official repository
       - sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-      # Install Docker Engine and the Docker CLI
       - sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
       - sudo echo "RUN DOCKER"
-      # Enable and start Docker
       - sudo systemctl enable --now docker
-      # Start the n8n container
       - sudo echo "START CONTAINER"
-      - sudo docker run -d --restart unless-stopped --name n8n  -p 80:5678  -e GENERIC_TIMEZONE="Europe/London" -e TZ="Europe/London" -e N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true -e N8N_RUNNERS_ENABLED=true --mount type=bind,source=/home/almalinux/n8n_data,target=/home/node/.n8n n8nio/n8n
+      - sudo docker run -d --restart unless-stopped --name n8n  -p 80:5678  -e GENERIC_TIMEZONE="Europe/London" -e TZ="Europe/London" -e N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true -e N8N_RUNNERS_ENABLED=true -e N8N_EDITOR_BASE_URL="https://n8n.sri-ml.condenser.arc.ucl.ac.uk/" -e N8N_WEBHOOK_URL="https://n8n.sri-ml.condenser.arc.ucl.ac.uk/" -e N8N_PROXY_HOPS=1 --mount type=bind,source=/home/almalinux/n8n_data,target=/home/node/.n8n n8nio/n8n
       - - systemctl
         - enable
         - --now
@@ -158,5 +169,7 @@ resource "harvester_virtualmachine" "n8n_vm" {
   labels = {
   "condenser.ingress/isEnabled"     = true
   "condenser.ingress.n8n/hostname" = "n8n"
+  "condenser.ingress.ollama/hostname" = "ollama"
+  "condenser.ingress.ollama/port" = "11434" 
 }
 }
