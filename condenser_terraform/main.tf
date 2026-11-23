@@ -97,7 +97,7 @@ resource "harvester_virtualmachine" "n8n_vm" {
   description = "n8n VM"
   hostname    = "n8n"
 
-  cpu    = 1
+  cpu    = 2
   memory = "8Gi"
 
   restart_after_update = true
