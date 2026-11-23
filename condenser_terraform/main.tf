@@ -156,7 +156,7 @@ resource "harvester_virtualmachine" "n8n_vm" {
       - sudo echo "RUN DOCKER"
       - sudo systemctl enable --now docker
       - sudo echo "START CONTAINER"
-      - sudo docker run -d --restart unless-stopped --name n8n  -p 80:5678  -e GENERIC_TIMEZONE="Europe/London" -e TZ="Europe/London" -e N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true -e N8N_RUNNERS_ENABLED=true -e N8N_EDITOR_BASE_URL="https://n8n.sri-ml.condenser.arc.ucl.ac.uk/" -e N8N_WEBHOOK_URL="https://n8n.sri-ml.condenser.arc.ucl.ac.uk/" -e N8N_PROXY_HOPS=1 --mount type=bind,source=/home/almalinux/n8n_data,target=/home/node/.n8n n8nio/n8n
+      - sudo docker run -d --restart unless-stopped --name n8n  -p 80:5678  -e GENERIC_TIMEZONE="Europe/London" -e TZ="Europe/London" -e N8N_AI_TIMEOUT_MAX=6000000 -e N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true -e N8N_RUNNERS_ENABLED=true -e N8N_EDITOR_BASE_URL="https://n8n.sri-ml.condenser.arc.ucl.ac.uk/" -e N8N_WEBHOOK_URL="https://n8n.sri-ml.condenser.arc.ucl.ac.uk/" -e N8N_PROXY_HOPS=1 --mount type=bind,source=/home/almalinux/n8n_data,target=/home/node/.n8n n8nio/n8n
       - - systemctl
         - enable
         - --now
@@ -169,7 +169,12 @@ resource "harvester_virtualmachine" "n8n_vm" {
   labels = {
   "condenser.ingress/isEnabled"     = true
   "condenser.ingress.n8n/hostname" = "n8n"
+  "condenser.ingress.n8n.nginx/proxy-connect-timeout" = "600s"
+  "condenser.ingress.n8n.nginx/proxy-read-timeout" = "600s"
+  "condenser.ingress.n8n.nginx/proxy-send-timeout" = "600s"
   "condenser.ingress.ollama/hostname" = "ollama"
   "condenser.ingress.ollama/port" = "11434" 
+  "condenser.ingress.ollama.nginx/proxy-connect-timeout" = "600s"
+  "condenser.ingress.ollama.nginx/proxy-read-timeout" = "600s"
 }
 }
