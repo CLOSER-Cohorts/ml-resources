@@ -31,6 +31,6 @@ Import the workflows into N8N by following this process:
 - Open an existing workflow, or create a new workflow
 - Click the three dots beside the workflow name in the top left region of the screen
 - Select 'Import', then 'From file'
-- Select an exported workflow JSON file.
+- Select an exported workflow JSON file
 
 There is also an 'Export JSON' option in the menu displayed when the three dots are clicked.
