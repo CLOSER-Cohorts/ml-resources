@@ -25,3 +25,12 @@ gpg --symmetric --cipher-algo AES256 n8n_backup.tar.gz
 rm n8n_backup.tar.gz
 gpg --output n8n_backup.tar.gz --decrypt n8n_backup.tar.gz.gpg
 ```
+# Import workflows
+Import the workflows into N8N by following this process:
+
+- Open an existing workflow, or create a new workflow
+- Click the three dots beside the workflow name in the top left region of the screen
+- Select 'Import', then 'From file'
+- Select an exported workflow JSON file.
+
+There is also an 'Export JSON' option in the menu displayed when the three dots are clicked.

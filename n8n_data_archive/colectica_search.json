@@ -1,0 +1,183 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        128
+      ],
+      "id": "66a3ea1d-572a-48a7-8e22-a5fab31e9769",
+      "name": "When chat message received",
+      "webhookId": "ee3a814b-a1b3-4979-bb0a-611edd364287"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "enableStreaming": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        304,
+        48
+      ],
+      "id": "bf93d4c7-b3e9-4aa4-9560-3e29e903177c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "qwen2.5:7b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        96,
+        336
+      ],
+      "id": "b0c11c55-a466-40c7-869b-0adcc95d30f1",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "5W0B9y15VzY65ZvN",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        224,
+        368
+      ],
+      "id": "966f2567-77aa-43f0-bf97-6170c3372e6e",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discovery.closer.ac.uk/token/createtoken",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"username\": \"{{ $fromAI('username', 'The username for the account on the colectica repository') }}\",\n  \"password\": \"{{ $fromAI('password', 'The password for the account on the colectica repository') }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.5,
+      "position": [
+        528,
+        416
+      ],
+      "id": "c1ec4c4f-3d85-43a6-a413-bcbc79d6a971",
+      "name": "GetToken"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discovery.closer.ac.uk/api/v1/_query",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $fromAI('token', 'The token in the prompt or in memory', string) }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=\n{ \n  \"ItemTypes\": [\"a1bb19bd-a24a-4443-8728-a6ad80eb42b8\"],\n  \"MaxResults\": 0,\n  \"searchDepricatedItems\": \"False\",\n  \"searchLatestVersion\": \"True\",\n  \"searchTerms\": [\"{{ $fromAI('query', 'The query parameter for the search being executed', 'string') }}\"]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.5,
+      "position": [
+        384,
+        336
+      ],
+      "id": "b300aeae-6881-464e-88a5-ecf667291e46",
+      "name": "SearchRepo"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetToken": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SearchRepo": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d604b583-b9a2-4819-991f-aaeb21156533",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "abb6a6b16029dd6b3f651a57dff6a240a0963f3ad6b0d9f3b993ee9f1b7f068e"
+  },
+  "nodeGroups": [],
+  "id": "R1yW0VzUu0HwjkSu",
+  "tags": []
+}
